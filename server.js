@@ -73,7 +73,7 @@ app.get("/groupSearch", async (req, res) => {
     const response = await axios.get(`https://www.omdbapi.com/`, {
       params: {
         t: title,
-        apikey: "cba0ff47"
+        apikey: "INPUT FROM OUR DOC"
       }
     });
 
