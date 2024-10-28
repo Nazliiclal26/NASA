@@ -1,9 +1,3 @@
 # .gitignore
 node_modules
 .env
-
-# Google Books API Key
-GOOGLE_BOOKS_API_KEY=AIzaSyA7W8k35xcWplp6773PLBHKwqQyMPJ6VVY
-
-# OMDb API KEY
-OMDB_API_KEY=cba0ff47
