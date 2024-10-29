@@ -43,17 +43,3 @@ CREATE TABLE IF NOT EXISTS votes (
     item_type VARCHAR(50) NOT NULL, -- 'book' or 'movie'
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
--- Dummy Data for Users
-INSERT INTO users (username, password, preferred_genres)
-VALUES 
-    ('alice', 'password123', '{"Fiction", "Fantasy"}'),
-    ('bob', 'password456', '{"Sci-Fi", "Horror"}'),
-    ('charlie', 'password789', '{"Drama", "Romance"}');
-
--- Dummy Data for Groups
-INSERT INTO groups (group_name, leader_id)
-VALUES 
-    ('Fiction Lovers', 1),  -- Alice is the leader
-    ('Sci-Fi Enthusiasts', 2),  -- Bob is the leader
-    ('Drama Fans', 3);  -- Charlie is the leader
