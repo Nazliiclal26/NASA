@@ -33,3 +33,13 @@ CREATE TABLE IF NOT EXISTS groups (
     group_name VARCHAR(255) NOT NULL,
     leader_id INT REFERENCES users(id) ON DELETE SET NULL
 );
+
+-- Votes Table
+CREATE TABLE IF NOT EXISTS votes (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    group_id INT REFERENCES groups(id) ON DELETE CASCADE,
+    item_id VARCHAR(255) NOT NULL, -- API reference ID (e.g., Google Books or OMDb ID)
+    item_type VARCHAR(50) NOT NULL, -- 'book' or 'movie'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
