@@ -6,10 +6,8 @@ const User = {
     create: async (username, password, preferredGenres) => {
         const client = await pool.connect();
         try {
-            // Begin a transaction
             await client.query('BEGIN');
             
-            // Insert the user into the users table
             const result = await client.query(
                 `INSERT INTO users (username, password, preferred_genres) 
                  VALUES ($1, $2, $3) RETURNING id, username, preferred_genres`,
@@ -17,11 +15,9 @@ const User = {
             );
             const user = result.rows[0];
             
-            // Commit the transaction
             await client.query('COMMIT');
             return user;
         } catch (error) {
-            // Rollback the transaction if any error occurs
             await client.query('ROLLBACK');
             throw error;
         } finally {
@@ -46,7 +42,6 @@ const User = {
         const user = await User.findByUsername(username);
         if (!user) return null;
         
-        // Check if the provided password matches the stored password
         if (user.password !== password) return null;
 
         return user;

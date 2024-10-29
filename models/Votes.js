@@ -21,7 +21,7 @@ const Votes = {
         return result.rows;
     },
 
-    // Remove a specific vote (useful if a user wants to change or retract their vote)
+    // Remove a specific vote
     removeVote: async (id) => {
         await pool.query(`DELETE FROM votes WHERE id = $1`, [id]);
     },
@@ -32,7 +32,7 @@ const Votes = {
             `SELECT COUNT(*) FROM votes WHERE group_id = $1 AND item_id = $2`,
             [groupId, itemId]
         );
-        return parseInt(result.rows[0].count, 10); // Convert count to integer
+        return parseInt(result.rows[0].count, 10);
     }
 };
 
