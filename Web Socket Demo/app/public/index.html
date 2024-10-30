@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Chat</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #messages { list-style-type: none; padding: 0; }
+        #messages li { margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Chat</h1>
+    <!--I think we need a single message thing, then add styling -->
+    <!--Depending on sent or received-->
+    <ul id="messages"></ul>
+    <input id="messageInput" placeholder="Type a message..." />
+    <button id="sendButton">Send</button>
+
+    <script>
+        const socket = new WebSocket('ws://localhost:3000');
+
+        socket.addEventListener('message', (event) => {
+            const li = document.createElement('li');
+            event.data.text().then((message) => {
+                console.log("received message:", message);
+                li.textContent = message;
+                li.style.textAlign = "right";
+                document.getElementById('messages').appendChild(li);
+            }).catch((err) => {
+                console.log(err);
+            });
+        });
+
+        document.getElementById('sendButton').addEventListener('click', () => {
+            const input = document.getElementById('messageInput');
+            if (input.value) {
+                const li = document.createElement('li');
+                li.textContent = input.value;
+                li.style.textAlign = "left";
+                li.style.listStyleType = "none";
+                document.getElementById('messages').appendChild(li);
+                socket.send(input.value);
+                input.value = '';
+            }
+        });
+    </script>
+</body>
+</html>
