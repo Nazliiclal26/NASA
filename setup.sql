@@ -38,9 +38,7 @@ CREATE TABLE IF NOT EXISTS groups (
 -- Votes Table
 CREATE TABLE IF NOT EXISTS votes (
     id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES users(id) ON DELETE CASCADE,
-    group_id INT REFERENCES groups(id) ON DELETE CASCADE,
-    item_id VARCHAR(255) NOT NULL, -- API reference ID (Google Books or OMDb ID)
-    item_type VARCHAR(50) NOT NULL, -- 'book' or 'movie'
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    group_code VARCHAR(10) NOT NULL,  -- Identifier for each group
+    film_title VARCHAR(255) NOT NULL, -- Title of the book or movie being voted on
+    votes INTEGER DEFAULT 1           -- Number of votes for the film within the group
 );
