@@ -27,30 +27,56 @@ app.post("/create", (req, res) => {
 });
 
 app.get("/group/:groupCode", (req, res) => {
-  let groupCode = req.params.groupCode;
+  const groupCode = req.params.groupCode;
 
   res.send(`
-  <!DOCTYPE html>
+    <!DOCTYPE html>
     <html lang="en">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Group ${groupCode}</title>
-      <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-      <script src="/groupSearch.js" defer></script>
+      <script src="/groupSearchMovie.js" defer></script>
+      <style>
+        .film-card {
+          position: relative;
+          display: inline-block;
+          margin: 10px;
+        }
+        .vote-btn {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          background-color: red;
+          color: white;
+          border: none;
+          padding: 5px;
+          cursor: pointer;
+        }
+      </style>
     </head>
     <body>
       <header>
-        <h1>Welcome!</h1>
-        <h1>This is group ${groupCode}</h1>
+        <h1>Welcome to Group ${groupCode}</h1>
       </header>
       <main>
-        <div>
+        <div id="searchSection">
           <h2>Search for a Film</h2>
           <input type="text" id="searchTitle" placeholder="Title">
           <button id="searchFilm">Search</button>
           <div id="searchResult"></div>
         </div>
+
+        <div>
+          <h2>Voted Films</h2>
+          <ul id="votedFilms"></ul>
+        </div>
+
+        <div id="mostVotedFilm"></div>
+
+        <button id="stopVote">Stop Vote</button>
+        <button id="startVote">Start Voting</button>
+
         <a href="/">Back to Home</a>
       </main>
     </body>
@@ -59,42 +85,90 @@ app.get("/group/:groupCode", (req, res) => {
 });
 
 
-app.get("/groupSearch", async (req, res) => {
+
+app.get("/groupSearch", (req, res) => {
   let title = req.query.title;
-  console.log("Request received for title:", title); // Log when the request is received
 
   if (!title) {
-    return res.status(400).json({ message: "Title is required" });
+    return res.status(400).json({ message: "Input Title" });
   }
 
-  try {
-    console.log("Making API request to OMDb API..."); // Log before the API request
+  let url = `https://www.omdbapi.com/?t=${title}&apikey=cba0ff47`;
 
-    const response = await axios.get(`https://www.omdbapi.com/`, {
-      params: {
-        t: title,
-        apikey: "INPUT FROM OUR DOC"
+  axios.get(url)
+    .then((response) => {
+      let data = response.data;
+
+      if (data.Response === "False") {
+        return res.status(404).json({ message: "Film not found" });
       }
+
+      let information = {
+        title: data.Title,
+        poster: data.Poster,
+        rating: data.imdbRating,
+        genre: data.Genre,
+        plot: data.Plot
+      };
+
+      res.status(200).json(information);
+    })
+    .catch((error) => {
+      res.status(500).json({ message: "Error fetching film data" });
     });
+});
 
-    console.log("OMDb API Response:", response.data); // Log the API response
+app.post("/vote", async (req, res) => {
+  let { groupCode, filmTitle } = req.body;
 
-    let data = response.data;
+  try {
+    let result = await pool.query(
+      "SELECT * FROM votes WHERE group_code = $1 AND film_title = $2",
+      [groupCode, filmTitle]
+    );
 
-    if (data.Response === "False") {
-      return res.status(404).json({ message: "Film not found" });
+    if (result.rows.length > 0) {
+      await pool.query(
+        "UPDATE votes SET votes = votes + 1 WHERE group_code = $1 AND film_title = $2",
+        [groupCode, filmTitle]
+      );
+    } else {
+      await pool.query(
+        "INSERT INTO votes (group_code, film_title, votes) VALUES ($1, $2, 1)",
+        [groupCode, filmTitle]
+      );
     }
 
-    const filmInfo = {
-      title: data.Title,
-      poster: data.Poster,
-      rating: data.imdbRating
-    };
-
-    res.status(200).json(filmInfo);
+    res.status(200).json({ message: "Vote recorded" });
   } catch (error) {
-    console.error("Error fetching film:", error);
-    res.status(500).json({ message: "Error fetching film data" });
+    console.error("Error recording vote:", error);
+    res.status(500).json({ message: "Error recording vote" });
+  }
+});
+
+app.get("/votes/:groupCode", async (req, res) => {
+  let groupCode = req.params.groupCode;
+
+  try {
+    let result = await pool.query(
+      "SELECT film_title, votes FROM votes WHERE group_code = $1",
+      [groupCode]
+    );
+
+    res.status(200).json(result.rows);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching votes" });
+  }
+});
+
+app.delete("/clearVotes/:groupCode", async (req, res) => {
+  let groupCode = req.params.groupCode;
+
+  try {
+    await pool.query("DELETE FROM votes WHERE group_code = $1", [groupCode]);
+    res.status(200).json({ message: "Votes deleted" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting votes" });
   }
 });
 
