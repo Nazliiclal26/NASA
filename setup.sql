@@ -39,6 +39,6 @@ CREATE TABLE IF NOT EXISTS groups (
 CREATE TABLE IF NOT EXISTS votes (
     id SERIAL PRIMARY KEY,
     group_code VARCHAR(10) NOT NULL,  -- Identifier for each group
-    film_title VARCHAR(255) NOT NULL, -- Title of the book or movie being voted on
+    title VARCHAR(255) NOT NULL, -- Title of the book or movie being voted on
     votes INTEGER DEFAULT 1           -- Number of votes for the film within the group
 );
