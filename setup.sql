@@ -31,7 +31,8 @@ CREATE TABLE IF NOT EXISTS group_watchlists (
 CREATE TABLE IF NOT EXISTS groups (
     id SERIAL PRIMARY KEY,
     group_name VARCHAR(255) NOT NULL,
-    leader_id INT REFERENCES users(id) ON DELETE SET NULL
+    leader_id INT REFERENCES users(id) ON DELETE SET NULL,
+    group_type VARCHAR(10) NOT NULL CHECK (group_type IN ('book', 'movie'))
 );
 
 -- Votes Table
