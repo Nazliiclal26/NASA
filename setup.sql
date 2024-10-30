@@ -1,6 +1,13 @@
 DROP DATABASE IF EXISTS book_film_club;
 CREATE database book_film_club;
 \c book_film_club;
+
+-- Create a dedicated PostgreSQL user for the book club project
+CREATE USER book_club_user WITH PASSWORD 'your_password';
+
+-- Grant all privileges on the database to the new user
+GRANT ALL PRIVILEGES ON DATABASE book_film_club TO book_club_user;
+
 -- Users Table
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
@@ -32,7 +39,8 @@ CREATE TABLE IF NOT EXISTS groups (
     id SERIAL PRIMARY KEY,
     group_name VARCHAR(255) NOT NULL,
     leader_id INT REFERENCES users(id) ON DELETE SET NULL,
-    group_type VARCHAR(10) NOT NULL CHECK (group_type IN ('book', 'movie'))
+    group_type VARCHAR(10) NOT NULL CHECK (group_type IN ('book', 'movie')),
+    privacy VARCHAR(10) NOT NULL DEFAULT 'public' CHECK (privacy IN ('public', 'private'))
 );
 
 -- Votes Table
