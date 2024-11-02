@@ -48,8 +48,8 @@ CREATE TABLE IF NOT EXISTS votes (
     id SERIAL PRIMARY KEY,
     group_code VARCHAR(10) NOT NULL,
     film_title VARCHAR(255) NOT NULL,
-    votes INTEGER DEFAULT 1
+    number_of_votes INTEGER DEFAULT 1
 );
 
-GRANT SELECT, INSERT ON TABLE votes to book_club_user;
-GRANT USAGE, UPDATE ON SEQUENCE votes_id_seq TO book_club_user;
+GRANT SELECT, INSERT ON ALL TABLES IN SCHEMA public TO book_club_user;
+GRANT USAGE, UPDATE ON ALL SEQUENCES IN SCHEMA public TO book_club_user;
