@@ -2,14 +2,37 @@
 const pool = require('../config/db');
 
 const Votes = {
-    // Cast a vote for a book or movie
-    castVote: async (userId, groupId, itemId, itemType) => {
+    // Cast a vote for a film in a specific group
+    castVote: async (groupCode, filmTitle) => {
         const result = await pool.query(
-            `INSERT INTO votes (user_id, group_id, item_id, item_type) 
-             VALUES ($1, $2, $3, $4) RETURNING *`,
-            [userId, groupId, itemId, itemType]
+            `INSERT INTO votes (group_code, film_title, number_of_votes) 
+             VALUES ($1, $2, 1) 
+             ON CONFLICT (group_code, film_title) 
+             DO UPDATE SET number_of_votes = number_of_votes + 1 
+             RETURNING *`,
+            [groupCode, filmTitle]
         );
         return result.rows[0];
+    },
+
+    // Retrieve votes for a specific group and film title
+    getVotesByGroupAndTitle: async (groupCode, filmTitle) => {
+        const result = await pool.query(
+            `SELECT number_of_votes FROM votes 
+             WHERE group_code = $1 AND film_title = $2`,
+            [groupCode, filmTitle]
+        );
+        return result.rows.length ? result.rows[0].votes : 0;
+    },
+
+    // Retrieve all votes for a specific group
+    getVotesByGroup: async (groupCode) => {
+        const result = await pool.query(
+            `SELECT film_title, number_of_votes FROM votes 
+             WHERE group_code = $1 ORDER BY number_of_votes DESC`,
+            [groupCode]
+        );
+        return result.rows;
     },
 
     // Get all votes for a group
@@ -24,15 +47,6 @@ const Votes = {
     // Remove a specific vote
     removeVote: async (id) => {
         await pool.query(`DELETE FROM votes WHERE id = $1`, [id]);
-    },
-    
-    // Count votes for a specific item within a group
-    countVotesForItem: async (groupId, itemId) => {
-        const result = await pool.query(
-            `SELECT COUNT(*) FROM votes WHERE group_id = $1 AND item_id = $2`,
-            [groupId, itemId]
-        );
-        return parseInt(result.rows[0].count, 10);
     }
 };
 
