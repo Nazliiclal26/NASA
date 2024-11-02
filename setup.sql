@@ -5,9 +5,6 @@ CREATE database book_film_club;
 -- Create a dedicated PostgreSQL user for the book club project
 CREATE USER book_club_user WITH PASSWORD 'your_password';
 
--- Grant all privileges on the database to the new user
-GRANT ALL PRIVILEGES ON DATABASE book_film_club TO book_club_user;
-
 -- Users Table
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
@@ -51,5 +48,5 @@ CREATE TABLE IF NOT EXISTS votes (
     number_of_votes INTEGER DEFAULT 1
 );
 
-GRANT SELECT, INSERT ON ALL TABLES IN SCHEMA public TO book_club_user;
-GRANT USAGE, UPDATE ON ALL SEQUENCES IN SCHEMA public TO book_club_user;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO book_club_user;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO book_club_user;
