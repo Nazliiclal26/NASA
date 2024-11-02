@@ -8,7 +8,7 @@ const Votes = {
             `INSERT INTO votes (group_code, film_title, number_of_votes) 
              VALUES ($1, $2, 1) 
              ON CONFLICT (group_code, film_title) 
-             DO UPDATE SET number_of_votes = number_of_votes + 1 
+             DO UPDATE SET number_of_votes = votes.number_of_votes + 1 
              RETURNING *`,
             [groupCode, filmTitle]
         );
