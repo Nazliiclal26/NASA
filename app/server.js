@@ -1,4 +1,5 @@
 let axios = require("axios");
+let argon2 = require("argon2");
 const pg = require("pg");
 const express = require("express");
 const app = express();
@@ -16,6 +17,74 @@ pool.connect().then(() => {
 
 app.use(express.static("public"));
 app.use(express.json());
+
+// checking if login successful
+app.post("/login", async (req, res) => {
+  let {username, password} = req.body;
+
+  console.log(username, password);
+
+  if(!username.trim() || !password.trim()) {
+    return res.json({status: "error", message: "Missing input"});
+  }
+
+  try{
+    let result = await pool.query(
+      "SELECT * FROM users WHERE username = $1",
+      [username]);
+
+    if(result.rows.length === 0) {
+      console.log("Invalid username or password");
+      return res.json({status: "error", message: "Invalid username or password"});
+    }
+
+    let user = result.rows[0];
+    let userHash = user.password;
+
+    let match = await argon2.verify(userHash, password);
+
+    if(match) {
+      console.log("Login Success");
+      return res.json({status: "success", message: "Login Successful"});
+    }else{
+      console.log("Invalid username or password");
+      return res.json({status: "error", message: "Invalid username or password"});
+    }
+    } catch (error) {
+    console.error("Error logging in:", error);
+  }
+}
+)
+
+// adding new user in sign up page
+app.post("/signUp", async (req, res) => {
+  let {firstName, lastName, username, password, repeatPass} = req.body;
+  let preferred_genres = ["horror"];
+
+  console.log(firstName, lastName, username, password, repeatPass);
+
+  try{
+    let userCheck = await pool.query("SELECT 1 FROM users WHERE username = $1", [username]);
+    if(!firstName.trim() || !lastName.trim() || !username.trim() || !password.trim() || !repeatPass.trim()) {
+      return res.json({status: "error", message: "Missing input"});
+    }else if(userCheck.rows.length > 0) {
+      return res.json({status: "error", message: "Username no longer available"});
+    }else if(password !== repeatPass) {
+      return res.json({status: "error", message: "Passwords don't match"})
+    }else{
+      let hash = await argon2.hash(password);
+      let result = await pool.query(
+      "INSERT INTO users (first_name, last_name, username, password, preferred_genres) VALUES ($1, $2, $3, $4, $5)",
+      [firstName, lastName, username, hash, preferred_genres]
+    )
+    res.json({status: "success", message: "Sign Up Successful"})
+  }
+  }catch (error) {
+    console.error("Error signing up:", error);
+  }
+
+}
+)
 
 app.post("/create", (req, res) => {
   let groupCode = req.body.groupCode;
@@ -83,7 +152,6 @@ app.get("/group/:groupCode", (req, res) => {
     </html>
   `);
 });
-
 
 
 app.get("/groupSearch", (req, res) => {
