@@ -5,10 +5,10 @@ const Votes = {
     // Cast a vote for a film in a specific group
     castVote: async (groupCode, filmTitle) => {
         const result = await pool.query(
-            `INSERT INTO votes (group_code, film_title, number_of_votes) 
+            `INSERT INTO votes (group_code, film_title, votes) 
              VALUES ($1, $2, 1) 
              ON CONFLICT (group_code, film_title) 
-             DO UPDATE SET number_of_votes = votes.number_of_votes + 1 
+             DO UPDATE SET votes = votes.votes + 1 
              RETURNING *`,
             [groupCode, filmTitle]
         );
@@ -18,7 +18,7 @@ const Votes = {
     // Retrieve votes for a specific group and film title
     getVotesByGroupAndTitle: async (groupCode, filmTitle) => {
         const result = await pool.query(
-            `SELECT number_of_votes FROM votes 
+            `SELECT votes FROM votes 
              WHERE group_code = $1 AND film_title = $2`,
             [groupCode, filmTitle]
         );
@@ -28,8 +28,8 @@ const Votes = {
     // Retrieve all votes for a specific group
     getVotesByGroup: async (groupCode) => {
         const result = await pool.query(
-            `SELECT film_title, number_of_votes FROM votes 
-             WHERE group_code = $1 ORDER BY number_of_votes DESC`,
+            `SELECT film_title, votes FROM votes 
+             WHERE group_code = $1 ORDER BY votes DESC`,
             [groupCode]
         );
         return result.rows;
