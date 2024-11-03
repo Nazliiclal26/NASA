@@ -11,7 +11,6 @@ function code(){
 let button = document.getElementById("create");
 button.addEventListener("click", () => {
     let groupCode = code();  
-
     fetch(`/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -29,4 +28,17 @@ button.addEventListener("click", () => {
     .catch((error) => {
         console.error('Error:', error);
     });
+});
+
+let chooseButton = document.getElementById("choose");
+chooseButton.addEventListener("click", () => {
+    document.getElementById("choose-box").style.display="block";
+});
+let joinButton = document.getElementById("joinButton");
+joinButton.addEventListener("click", () => {
+    let groupCode = document.getElementById("groupInput").value;
+    if (groupCode === '') {
+        return;
+    }
+    window.location.href = `/group/${groupCode}`;
 });
