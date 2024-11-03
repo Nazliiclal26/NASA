@@ -1,8 +1,10 @@
 # NASA
 
-npm run setup - sets up database
+## Set up Database
+`npm run setup`
 
-npm run start - starts server
+## Start Server
+`npm run start
 
 Link to Mock Design: https://drexel0-my.sharepoint.com/:f:/g/personal/ar3693_drexel_edu/EkVIfTAt-TREkUM8mmb_6LcB-BqScFA9Eoh5aKURfZMdag?e=FBdCNc
 
