@@ -188,7 +188,64 @@ app.get("/group/:groupCode", (req, res) => {
   `);
 });
 
+app.get("/bookGroup/:groupCode", (req, res) => {
+  const groupCode = req.params.groupCode;
 
+  res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Group ${groupCode}</title>
+          <script src="/groupSearchBook.js" defer></script>
+          <style>
+              /* Add necessary styles */
+              .film-card {
+                  position: relative;
+                  display: inline-block;
+                  margin: 10px;
+              }
+              .vote-btn {
+                  position: absolute;
+                  top: 10px;
+                  right: 10px;
+                  background-color: red;
+                  color: white;
+                  border: none;
+                  padding: 5px;
+                  cursor: pointer;
+              }
+          </style>
+      </head>
+      <body>
+          <header>
+              <h1>Welcome to Group ${groupCode}</h1>
+          </header>
+          <main>
+              <div id="searchSection">
+                  <h2>Search for a Book</h2>
+                  <input type="text" id="searchTitle" placeholder="Title">
+                  <button id="searchBook">Search</button>
+                  <div id="searchResult"></div>
+              </div>
+
+              <div>
+                  <h2>Voted Book</h2>
+                  <ul id="votedBooks"></ul>
+              </div>
+
+              <div id="mostVotedBook"></div>
+
+              <button id="stopVote">Stop Vote</button>
+              <button id="startVote">Start Voting</button>
+
+              <a href="/">Back to Home</a>
+          </main>
+      </body>
+      </html>
+  `);
+});
 
 app.get("/groupSearch", (req, res) => {
   let title = req.query.title;
