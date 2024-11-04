@@ -18,45 +18,58 @@ pool.connect().then(() => {
 app.use(express.static("public"));
 app.use(express.json());
 
-// checking if login successful
+app.get("/getMostVoted/:groupCode", async (req, res) => {
+  let groupCode = req.params.groupCode;
+
+  try {
+      let result = await pool.query(
+          "SELECT * FROM votes WHERE group_code = $1 ORDER BY votes DESC LIMIT 1",
+          [groupCode]
+      );
+
+      if (result.rows.length === 0) {
+          return res.status(404).json({ message: "No most voted film found" });
+      }
+
+      res.status(200).json(result.rows[0]);
+  } catch (error) {
+      res.status(500).json({ message: "Error fetching most voted film" });
+  }
+});
+
+
 app.post("/login", async (req, res) => {
-  let {username, password} = req.body;
+  let { username, password } = req.body;
 
-  console.log(username, password);
-
-  if(!username.trim() || !password.trim()) {
-    return res.json({status: "error", message: "Missing input"});
+  if (!username.trim() || !password.trim()) {
+      return res.json({ status: "error", message: "Missing input" });
   }
 
-  try{
-    let result = await pool.query(
-      "SELECT * FROM users WHERE username = $1",
-      [username]);
+  try {
+      let result = await pool.query("SELECT * FROM users WHERE username = $1", [username]);
 
-    if(result.rows.length === 0) {
-      console.log("Invalid username or password");
-      return res.json({status: "error", message: "Invalid username or password"});
-    }
+      if (result.rows.length === 0) {
+          return res.json({ status: "error", message: "Invalid username or password" });
+      }
 
-    let user = result.rows[0];
-    let userHash = user.password;
+      let user = result.rows[0];
+      let userHash = user.password;
 
-    let match = await argon2.verify(userHash, password);
+      let match = await argon2.verify(userHash, password);
 
-    if(match) {
-      console.log("Login Success");
-      return res.json({status: "success", message: "Login Successful"});
-    }else{
-      console.log("Invalid username or password");
-      return res.json({status: "error", message: "Invalid username or password"});
-    }
-    } catch (error) {
-    console.error("Error logging in:", error);
+      if (match) {
+          console.log("Login Success");
+          return res.json({ status: "success", message: "Login Successful", userId: user.id });
+      } else {
+          return res.json({ status: "error", message: "Invalid username or password" });
+      }
+  } catch (error) {
+      console.error("Error logging in:", error);
+      res.status(500).json({ status: "error", message: "Internal server error" });
   }
-}
-)
+});
 
-// adding new user in sign up page
+
 app.post("/signUp", async (req, res) => {
   let {firstName, lastName, username, password, repeatPass} = req.body;
   let preferred_genres = ["horror"];
@@ -86,72 +99,95 @@ app.post("/signUp", async (req, res) => {
 }
 )
 
-app.post("/create", (req, res) => {
-  let groupCode = req.body.groupCode;
+app.post("/create", async (req, res) => {
+  let { groupCode, leaderId, privacy } = req.body;
+  let groupName = `Group ${groupCode}`;
+  let groupType = 'movie';
 
-  if (!groupCode || groupCode.length !== 10) {
-    return res.status(400).json({ message: "Invalid group code" });
+  if (!leaderId) {
+      return res.status(400).json({ message: "Leader ID is missing" });
   }
-  res.status(200).json({ message: "Group created", groupCode });
+
+  try {
+      let leaderCheck = await pool.query("SELECT * FROM users WHERE id = $1", [leaderId]);
+      if (leaderCheck.rows.length === 0) {
+          return res.status(404).json({ message: "Leader not found" });
+      }
+
+      let result = await pool.query(
+          `INSERT INTO groups (group_name, leader_id, group_type, privacy) 
+           VALUES ($1, $2, $3, $4) RETURNING *`,
+          [groupName, leaderId, groupType, privacy]
+      );
+
+      res.status(201).json({ message: "Group created", group: result.rows[0] });
+  } catch (error) {
+      console.error("Error creating group:", error);
+      res.status(500).json({ message: "Error creating group" });
+  }
 });
+
+
 
 app.get("/group/:groupCode", (req, res) => {
   const groupCode = req.params.groupCode;
 
   res.send(`
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Group ${groupCode}</title>
-      <script src="/groupSearchMovie.js" defer></script>
-      <style>
-        .film-card {
-          position: relative;
-          display: inline-block;
-          margin: 10px;
-        }
-        .vote-btn {
-          position: absolute;
-          top: 10px;
-          right: 10px;
-          background-color: red;
-          color: white;
-          border: none;
-          padding: 5px;
-          cursor: pointer;
-        }
-      </style>
-    </head>
-    <body>
-      <header>
-        <h1>Welcome to Group ${groupCode}</h1>
-      </header>
-      <main>
-        <div id="searchSection">
-          <h2>Search for a Film</h2>
-          <input type="text" id="searchTitle" placeholder="Title">
-          <button id="searchFilm">Search</button>
-          <div id="searchResult"></div>
-        </div>
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Group ${groupCode}</title>
+          <script src="/groupSearchMovie.js" defer></script>
+          <style>
+              /* Add necessary styles */
+              .film-card {
+                  position: relative;
+                  display: inline-block;
+                  margin: 10px;
+              }
+              .vote-btn {
+                  position: absolute;
+                  top: 10px;
+                  right: 10px;
+                  background-color: red;
+                  color: white;
+                  border: none;
+                  padding: 5px;
+                  cursor: pointer;
+              }
+          </style>
+      </head>
+      <body>
+          <header>
+              <h1>Welcome to Group ${groupCode}</h1>
+          </header>
+          <main>
+              <div id="searchSection">
+                  <h2>Search for a Film</h2>
+                  <input type="text" id="searchTitle" placeholder="Title">
+                  <button id="searchFilm">Search</button>
+                  <div id="searchResult"></div>
+              </div>
 
-        <div>
-          <h2>Voted Films</h2>
-          <ul id="votedFilms"></ul>
-        </div>
+              <div>
+                  <h2>Voted Films</h2>
+                  <ul id="votedFilms"></ul>
+              </div>
 
-        <div id="mostVotedFilm"></div>
+              <div id="mostVotedFilm"></div>
 
-        <button id="stopVote">Stop Vote</button>
-        <button id="startVote">Start Voting</button>
+              <button id="stopVote">Stop Vote</button>
+              <button id="startVote">Start Voting</button>
 
-        <a href="/">Back to Home</a>
-      </main>
-    </body>
-    </html>
+              <a href="/">Back to Home</a>
+          </main>
+      </body>
+      </html>
   `);
 });
+
 
 
 app.get("/groupSearch", (req, res) => {
@@ -187,7 +223,7 @@ app.get("/groupSearch", (req, res) => {
 });
 
 app.post("/vote", async (req, res) => {
-  let { groupCode, filmTitle } = req.body;
+  let { groupCode, filmTitle, poster } = req.body;
 
   try {
     let result = await pool.query(
@@ -197,29 +233,29 @@ app.post("/vote", async (req, res) => {
 
     if (result.rows.length > 0) {
       await pool.query(
-        "UPDATE votes SET votes = votes + 1 WHERE group_code = $1 AND film_title = $2",
+        "UPDATE votes SET num_votes = num_votes + 1 WHERE group_code = $1 AND film_title = $2",
         [groupCode, filmTitle]
       );
     } else {
       await pool.query(
-        "INSERT INTO votes (group_code, film_title, votes) VALUES ($1, $2, 1)",
-        [groupCode, filmTitle]
+        "INSERT INTO votes (group_code, film_title, poster, num_votes) VALUES ($1, $2, $3, 1)",
+        [groupCode, filmTitle, poster]
       );
     }
 
     res.status(200).json({ message: "Vote recorded" });
   } catch (error) {
-    console.error("Error recording vote:", error);
     res.status(500).json({ message: "Error recording vote" });
   }
 });
+
 
 app.get("/votes/:groupCode", async (req, res) => {
   let groupCode = req.params.groupCode;
 
   try {
     let result = await pool.query(
-      "SELECT film_title, votes FROM votes WHERE group_code = $1",
+      "SELECT film_title, poster, num_votes FROM votes WHERE group_code = $1",
       [groupCode]
     );
 
