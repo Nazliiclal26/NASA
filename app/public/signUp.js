@@ -36,8 +36,8 @@ signUpButton.addEventListener("click", () => {
     })
     .catch(error => console.log(error))
 
-})
+});
 
 signInButton.addEventListener("click", () => {
     window.location.href = "login.html"
-})
+});

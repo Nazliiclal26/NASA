@@ -26,10 +26,14 @@ loginButton.addEventListener("click", () => {
             status.textContent = data.message;
             status.style.color = "red";
         }
+
+        // make call to store authorization token
     })
     .catch(error => console.log(error))
 
 })
+
+// cookie storage function
 
 signUpButton.addEventListener("click", () => {
     window.location.href = "signUp.html"

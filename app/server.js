@@ -3,6 +3,7 @@ let argon2 = require("argon2");
 const pg = require("pg");
 const express = require("express");
 const app = express();
+const path = require("path");
 
 const port = 3000;
 const hostname = "localhost";
@@ -15,8 +16,12 @@ pool.connect().then(() => {
   console.log(`Connected to database ${env.database}`);
 });
 
-app.use(express.static("public"));
+app.use(express.static("public", {index: false}));
 app.use(express.json());
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "login.html"));
+});
 
 // checking if login successful
 app.post("/login", async (req, res) => {
