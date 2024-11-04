@@ -1,36 +1,23 @@
 let loginButton = document.getElementById("login");
-let signUpButton = document.getElementById("signUp");
 
 loginButton.addEventListener("click", () => {
     let username = document.getElementById("username").value;
     let password = document.getElementById("password").value;
-    let status = document.getElementById("status");
 
-    status.textContent = "";
-
-    let credentials = {"username" : username, "password" : password};
-
-    fetch("/login", {
+    fetch('/login', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(credentials)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
     })
     .then(response => response.json())
     .then(data => {
-        if(data.status === "success") {
-            status.textContent = data.message;
-            status.style.color = "green";
-        }else{
-            status.textContent = data.message;
-            status.style.color = "red";
+        if (data.status === 'success') {
+            localStorage.setItem('userId', data.userId);
+            alert(data.message);
+            window.location.href = '/selection.html';
+        } else {
+            alert(data.message);
         }
     })
-    .catch(error => console.log(error))
-
-})
-
-signUpButton.addEventListener("click", () => {
-    window.location.href = "signUp.html"
-})
+    .catch(error => console.error('Error:', error));
+});
