@@ -50,3 +50,12 @@ CREATE TABLE IF NOT EXISTS votes (
     title VARCHAR(255) NOT NULL, -- Title of the book or movie being voted on
     votes INTEGER DEFAULT 1           -- Number of votes for the film within the group
 );
+
+-- Messages Table
+CREATE TABLE IF NOT EXISTS messages (
+    id SERIAL PRIMARY KEY,
+    group_id INT REFERENCES groups(id) NOT NULL,
+    sender_id INT REFERENCES users(id) NOT NULL,
+    user_message VARCHAR(512) NOT NULL,
+    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
