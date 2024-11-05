@@ -1,4 +1,5 @@
 let loginButton = document.getElementById("login");
+let signUpButton = document.getElementById("signUp");
 
 loginButton.addEventListener("click", () => {
     let username = document.getElementById("username").value;
@@ -21,3 +22,7 @@ loginButton.addEventListener("click", () => {
     })
     .catch(error => console.error('Error:', error));
 });
+
+signUpButton.addEventListener("click", () => {
+    window.location.href = '/signUp.html';
+})

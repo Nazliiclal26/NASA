@@ -88,6 +88,7 @@ body {
     border-radius: 65px;
     cursor: pointer;
     font-size: large;
+    font-weight: bold;
 }
 
 .inputBox {
