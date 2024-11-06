@@ -2,6 +2,8 @@ let axios = require("axios");
 let argon2 = require("argon2");
 const pg = require("pg");
 const express = require("express");
+const cookieParser = require("cookie-parser");
+const crypto = require("crypto");
 const app = express();
 const path = require("path");
 
@@ -18,6 +20,19 @@ pool.connect().then(() => {
 
 app.use(express.static("public", {index: false}));
 app.use(express.json());
+app.use(cookieParser());
+
+// structure of "username": "cookie-token"
+let tokenStorage = {};
+tokenOptions = {
+  httpOnly: true, 
+  secure: true, 
+  sameSite: "strict"
+};
+
+function makeToken() {
+  return crypto.randomBytes(32).toString("hex");
+}
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
@@ -50,7 +65,11 @@ app.post("/login", async (req, res) => {
 
     if(match) {
       console.log("Login Success");
-      return res.json({status: "success", message: "Login Successful"});
+      // only create the cookie-token on a successful match
+      let token = makeToken();
+      console.log("Generated token:", token);
+      tokenStorage[token] = username;
+      return res.cookie("token", token, tokenOptions).json({status: "success", message: "Login Successful"});
     }else{
       console.log("Invalid username or password");
       return res.json({status: "error", message: "Invalid username or password"});
@@ -166,7 +185,7 @@ app.get("/groupSearch", (req, res) => {
     return res.status(400).json({ message: "Input Title" });
   }
 
-  let url = `https://www.omdbapi.com/?t=${title}&apikey=cba0ff47`;
+  let url = `https://www.omdbapi.com/?t=${title}&apikey=${movieApiKey}`;
 
   axios.get(url)
     .then((response) => {
