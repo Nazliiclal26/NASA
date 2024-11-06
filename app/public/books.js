@@ -36,7 +36,7 @@ createButton.addEventListener("click", () => {
         return response.json();
     })
     .then((data) => {
-        window.location.href = `/group/${groupCode}`;
+        window.location.href = `/bookGroup/${groupCode}`;
     })
     .catch((error) => {
         console.error('Error:', error);
@@ -59,6 +59,6 @@ chooseButton.addEventListener("click", () => {
             return;
         }
 
-        window.location.href = `/group/${groupCode}`;
+        window.location.href = `/bookGroup/${groupCode}`;
     });
 });

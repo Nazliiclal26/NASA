@@ -59,3 +59,7 @@ CREATE TABLE IF NOT EXISTS messages (
     user_message VARCHAR(512) NOT NULL,
     added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO book_club_user;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO book_club_user;
+ALTER TABLE votes ADD CONSTRAINT unique_group_film UNIQUE (group_code, film_title);
