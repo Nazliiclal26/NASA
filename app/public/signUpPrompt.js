@@ -102,13 +102,25 @@ function changeView() {
     } else {
       if (joinButton.classList.contains("clicked")) {
         mainBox.innerHTML = `
-            <div id="innerGroup">
+            <div id="innerGroupJoin">
             <div class="titleGroup" id="title">Enter Group Code</div>
-            <div class="mainButton" id="join">Join</div>
-            <div class="mainButton" id="create">Create</div>
+            <div>
+                <input
+                type="text"
+                id="groupCode"
+                name="groupCode"
+                placeholder="Enter group code"
+              />
+            </div>
+            <div id="bigBlock">
+            <div id="privacyBlock">
+            <div class="groupButtons" id=random>Random</div>
+            </div>
+            </div>
             <div id="mainButtons">
             <div id="back">Back</div>
-            <div id="skip">Skip</div>
+            <div id="joinGroup">Join</div>
+            </div>
             </div>
           </div>
             `;
@@ -152,6 +164,89 @@ function changeView() {
 
   function processJoin() {
     let backButton = document.getElementById("back");
+    let groupCodeInput = document.getElementById("groupCode");
+    let randomButton = document.getElementById("random");
+    let joinButton = document.getElementById("joinGroup");
+
+    let isRandom = null;
+
+    randomButton.addEventListener("click", () => {
+      randomButton.classList.toggle("clickedGroupButton");
+      groupCodeInput.value = "";
+
+      if (randomButton.classList.contains("clickedGroupButton")) {
+        isRandom = true;
+      } else {
+        isRandom = false;
+      }
+    });
+
+    joinButton.addEventListener("click", () => {
+      let groupCodeVal = groupCodeInput.value.trim();
+
+      if (isRandom) {
+        let groupCodeData = {
+          type: "random",
+          code: "",
+          userId: localStorage.getItem("userID"),
+        };
+        alert("join random");
+        fetch("/joinGroup", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(groupCodeData),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "success") {
+              // go to home
+            } else {
+              console.log(data);
+              alert(data.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      } else if (groupCodeVal !== "") {
+        let groupCodeData = {
+          type: "code",
+          code: groupCodeVal,
+          userId: localStorage.getItem("userID"),
+        };
+        alert(`joing with code ${groupCodeVal}`);
+        fetch("/joinGroup", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(groupCodeData),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "success") {
+              // go to home
+            } else {
+              console.log(data);
+              alert(data.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      } else {
+        alert("please enter group code or select random");
+      }
+    });
+
+    groupCodeInput.addEventListener("input", () => {
+      if (groupCodeInput.value.trim() !== "") {
+        randomButton.classList.remove("clickedGroupButton");
+        isRandom = false;
+      }
+    });
 
     backButton.addEventListener("click", () => {
       mainBox.innerHTML = `
