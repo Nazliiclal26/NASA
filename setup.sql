@@ -36,10 +36,11 @@ CREATE TABLE IF NOT EXISTS group_watchlists (
 -- Groups Table
 CREATE TABLE IF NOT EXISTS groups (
     id SERIAL PRIMARY KEY,
-    group_name VARCHAR(255) NOT NULL,
+    group_code VARCHAR(255) UNIQUE NOT NULL,
     leader_id INT REFERENCES users(id) ON DELETE SET NULL,
     group_type VARCHAR(10) NOT NULL CHECK (group_type IN ('book', 'movie')),
-    privacy VARCHAR(10) NOT NULL DEFAULT 'public' CHECK (privacy IN ('public', 'private'))
+    privacy VARCHAR(10) NOT NULL DEFAULT 'public' CHECK (privacy IN ('public', 'private')),
+    members VARCHAR(255)[]
 );
 
 -- Votes Table

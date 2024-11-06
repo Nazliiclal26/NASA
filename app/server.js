@@ -149,29 +149,149 @@ app.post("/signUpPrompt", async (req, res) => {
 
 app.post("/createGroup", async (req, res) => {
   let { groupName, groupType, access, leaderId } = req.body;
+  let memberList = [leaderId];
 
   if (!leaderId) {
     return res.status(400).json({ message: "Leader ID is missing" });
   }
 
-  try {
-    let leaderCheck = await pool.query("SELECT * FROM users WHERE id = $1", [
-      leaderId,
-    ]);
-    if (leaderCheck.rows.length === 0) {
-      return res.status(404).json({ message: "Leader not found" });
+  let checkGroupName = await pool.query(
+    "SELECT * FROM groups WHERE group_code = $1",
+    [groupName]
+  );
+
+  if (checkGroupName.rows.length > 0) {
+    res
+      .status(400)
+      .json({ status: "error", message: "group name already exists" });
+  } else {
+    try {
+      let result = await pool.query(
+        `INSERT INTO groups (group_code, leader_id, group_type, privacy, members) 
+           VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [groupName, leaderId, groupType, access, memberList]
+      );
+
+      res.status(201).json({ message: "Group created", group: result.rows[0] });
+    } catch (error) {
+      console.error("Error creating group:", error);
+      res.status(500).json({ message: "Error creating group" });
     }
+  }
+});
 
-    let result = await pool.query(
-      `INSERT INTO groups (group_name, leader_id, group_type, privacy) 
-           VALUES ($1, $2, $3, $4) RETURNING *`,
-      [groupName, leaderId, groupType, access]
-    );
+app.post("/joinGroup", async (req, res) => {
+  let { type, code, userId } = req.body;
 
-    res.status(201).json({ message: "Group created", group: result.rows[0] });
-  } catch (error) {
-    console.error("Error creating group:", error);
-    res.status(500).json({ message: "Error creating group" });
+  if (type === "code") {
+    try {
+      if (!code || !userId) {
+        return res
+          .status(400)
+          .json({ status: "error", message: "missing code or userId" });
+      }
+
+      let groupCheck = await pool.query(
+        "SELECT * FROM groups WHERE group_code = $1",
+        [code]
+      );
+
+      if (groupCheck.rows.length === 0) {
+        return res
+          .status(404)
+          .json({ status: "error", message: "group not found" });
+      }
+
+      let group = groupCheck.rows[0];
+
+      if (group.members && group.members.includes(userId)) {
+        return res
+          .status(400)
+          .json({ status: "error", message: "user already in group" });
+      }
+
+      let update;
+      if (group.members) {
+        update = [...group.members, userId];
+      } else {
+        update = [userId];
+      }
+
+      let updateRes = await pool.query(
+        "UPDATE groups SET members = $1 WHERE group_code = $2 RETURNING *",
+        [update, code]
+      );
+
+      res.status(200).json({
+        status: "success",
+        message: "joined group",
+        group: updateRes.rows[0],
+      });
+    } catch (error) {
+      console.error("Error joining group:", error);
+      res.status(500).json({ message: "Error joining group" });
+    }
+  } else if (type === "random") {
+    try {
+      let groupCheck = await pool.query(
+        "SELECT * FROM groups WHERE privacy = $1 AND NOT $2 = ANY(members)",
+        ["public", userId]
+      );
+      let chosenGroupId;
+
+      console.log(groupCheck);
+
+      let numGroups = groupCheck.rowCount;
+
+      if (numGroups >= 1) {
+        let possibleId = groupCheck.rows.map((row) => row.id);
+        let randomId = Math.floor(Math.random() * numGroups);
+
+        chosenGroupId = possibleId[randomId];
+      } else {
+        return res
+          .status(404)
+          .json({ status: "error", message: "no available public groups" });
+      }
+
+      let randomGroup = await pool.query("SELECT * FROM groups WHERE id = $1", [
+        chosenGroupId,
+      ]);
+
+      if (randomGroup.rows.length === 0) {
+        return res
+          .status(404)
+          .json({ status: "error", message: "group not found" });
+      }
+
+      let groupRandom = randomGroup.rows[0];
+
+      if (groupRandom.members && groupRandom.members.includes(userId)) {
+        return res
+          .status(400)
+          .json({ status: "error", message: "user already in group" });
+      }
+
+      let updateRandom;
+      if (groupRandom.members) {
+        updateRandom = [...groupRandom.members, userId];
+      } else {
+        updateRandom = [userId];
+      }
+
+      let result = await pool.query(
+        "UPDATE groups SET members = $1 WHERE id = $2 RETURNING *",
+        [updateRandom, chosenGroupId]
+      );
+
+      res.status(200).json({
+        status: "success",
+        message: "joined random group",
+        group: result.rows[0],
+      });
+    } catch (error) {
+      alert("ERROR");
+    }
   }
 });
 
@@ -193,7 +313,7 @@ app.post("/create", async (req, res) => {
     }
 
     let result = await pool.query(
-      `INSERT INTO groups (group_name, leader_id, group_type, privacy) 
+      `INSERT INTO groups (group_code, leader_id, group_type, privacy) 
            VALUES ($1, $2, $3, $4) RETURNING *`,
       [groupName, leaderId, groupType, privacy]
     );

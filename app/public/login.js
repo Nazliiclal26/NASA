@@ -15,7 +15,7 @@ loginButton.addEventListener("click", () => {
       if (data.status === "success") {
         localStorage.setItem("userId", data.userId);
         alert(data.message);
-        window.location.href = "/homepage.html";
+        window.location.href = "/selection.html";
       } else {
         alert(data.message);
       }
