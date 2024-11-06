@@ -450,7 +450,6 @@ app.get("/bookGroup/:groupCode", (req, res) => {
           <title>Group ${groupCode}</title>
           <script src="/groupSearchBook.js" defer></script>
           <style>
-              /* Add necessary styles */
               .film-card {
                   position: relative;
                   display: inline-block;
