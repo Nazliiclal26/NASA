@@ -6,11 +6,6 @@ body {
   font-weight: bold;
 }
 
-#leftPanel {
-  background-color: rgb(202, 238, 251);
-  width: 65vw;
-}
-
 #divider {
   height: 100vh;
   border: 1px solid black;
@@ -121,7 +116,7 @@ body {
 
 input {
   border: 0px;
-  background-color: rgb(202, 238, 251);
+  background-color: white;
   font-size: 20px;
   height: 40px;
   width: 250px;
@@ -142,4 +137,45 @@ input:hover {
 #pass input,
 #repeat input {
   width: 528px;
+}
+
+#leftPanel {
+  background-color: rgb(202, 238, 251);
+  width: 65vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.block {
+  width: 92%;
+  height: 40%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+}
+
+.image {
+  width: 55%;
+  height: 95%;
+  background-color: rgb(255, 255, 255);
+  border-radius: 60px;
+  border: 3px solid black;
+}
+
+.blockText {
+  width: 55%;
+  height: 40%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  font-weight: 400;
+}
+
+.second {
+  text-align: right;
 }
