@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   
     async function voteForBook(title, poster) {
       try {
-        const response = await fetch("/vote", {
+        const response = await fetch("/bookVote", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ groupCode, bookTitle: title, poster: poster }) 
