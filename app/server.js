@@ -2,7 +2,10 @@ let axios = require("axios");
 let argon2 = require("argon2");
 const pg = require("pg");
 const express = require("express");
+const http = require("http");
 const app = express();
+const server = http.createServer(app);
+
 
 const port = 3000;
 const hostname = "localhost";
@@ -10,6 +13,10 @@ const hostname = "localhost";
 const env = require("../env.json");
 const Pool = pg.Pool;
 const pool = new Pool(env);
+const group = require("../models/Group");
+
+let { Server } = require("socket.io");
+let io = new Server(server);
 
 pool.connect().then(() => {
   console.log(`Connected to database ${env.database}`);
@@ -325,62 +332,109 @@ app.post("/create", async (req, res) => {
   }
 });
 
+// Adding client-side room functionality here - is called upon redirect to 'group/:groupId' in movies.js
 app.get("/group/:groupCode", (req, res) => {
   const groupCode = req.params.groupCode;
 
   res.send(`
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Group ${groupCode}</title>
-          <script src="/groupSearchMovie.js" defer></script>
-          <style>
-              /* Add necessary styles */
-              .film-card {
-                  position: relative;
-                  display: inline-block;
-                  margin: 10px;
-              }
-              .vote-btn {
-                  position: absolute;
-                  top: 10px;
-                  right: 10px;
-                  background-color: red;
-                  color: white;
-                  border: none;
-                  padding: 5px;
-                  cursor: pointer;
-              }
-          </style>
-      </head>
-      <body>
-          <header>
-              <h1>Welcome to Group ${groupCode}</h1>
-          </header>
-          <main>
-              <div id="searchSection">
-                  <h2>Search for a Film</h2>
-                  <input type="text" id="searchTitle" placeholder="Title">
-                  <button id="searchFilm">Search</button>
-                  <div id="searchResult"></div>
-              </div>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Group ${groupCode}</title>
+      <script src="/groupSearchMovie.js" defer></script>
+      <style>
+        .film-card {
+          position: relative;
+          display: inline-block;
+          margin: 10px;
+        }
+        .vote-btn {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          background-color: red;
+          color: white;
+          border: none;
+          padding: 5px;
+          cursor: pointer;
+        }
+        #messages { list-style-type: none; padding: 0; }
+        #messages li { margin: 10px 0; }
+      </style>
+    </head>
+    <body>
+      <header>
+        <h1>Welcome to Group ${groupCode}</h1>
+      </header>
+      <main>
+        <div id="searchSection">
+          <h2>Search for a Film</h2>
+          <input type="text" id="searchTitle" placeholder="Title">
+          <button id="searchFilm">Search</button>
+          <div id="searchResult"></div>
+        </div>
 
-              <div>
-                  <h2>Voted Films</h2>
-                  <ul id="votedFilms"></ul>
-              </div>
+        <div>
+          <h2>Voted Films</h2>
+          <ul id="votedFilms"></ul>
+        </div>
 
-              <div id="mostVotedFilm"></div>
+        <div id="mostVotedFilm"></div>
 
-              <button id="stopVote">Stop Vote</button>
-              <button id="startVote">Start Voting</button>
+        <button id="stopVote">Stop Vote</button>
+        <button id="startVote">Start Voting</button>
 
-              <a href="/">Back to Home</a>
-          </main>
-      </body>
-      </html>
+        <a href="/">Back to Home</a>
+
+        <div id="chatSection">
+          <h2>Chat</h2>
+          <ul id="messages"></ul>
+          <div style="text-align:center">
+            <input id="messageInput" placeholder="Type a message..." />
+            <button id="sendButton">Send</button></div>
+          </div>
+      </main>
+      <script src="/socket.io/socket.io.js"></script>
+      <script>
+        let socket = io();
+        socket.on("connect", () => { console.log("Socket has been connected."); });
+        let send = document.getElementById("sendButton");
+        let input = document.getElementById("messageInput");
+        let messages = document.getElementById("messages");
+        send.addEventListener("click", () => {
+          let message = input.value;
+          if (message === '') {
+            return;
+          }
+          appendSentMessage(message);  
+          console.log("Sending message:", message);
+          socket.emit('sendMessageToRoom', {message});
+        });
+
+        socket.on("receive", (data) => {
+          console.log("Received message:", data);
+          appendReceivedMessage(data); 
+        });
+        
+        function appendReceivedMessage(msg) {
+          let msgBox = document.createElement("li");
+          msgBox.textContent = msg;
+          msgBox.style.textAlign = "left";
+          msgBox.style.listStyleType = "none";
+          messages.appendChild(msgBox);
+        }
+
+        function appendSentMessage(msg) {
+          let msgBox = document.createElement("li");
+          msgBox.textContent = msg;
+          msgBox.style.textAlign = "right";
+          messages.appendChild(msgBox);
+        }
+      </script>
+    </body>
+    </html>
   `);
 });
 
@@ -529,6 +583,45 @@ app.delete("/clearVotes/:groupCode", async (req, res) => {
   }
 });
 
-app.listen(port, hostname, () => {
+/* SOCKET FUNCTIONALITY */
+// The key:value pairs of Rooms has the structure: { "groupId" : {socketId : socket} }
+let rooms = {};
+
+io.on("connection", (socket) => {
+  console.log("Socket ", socket.id, " has been connected.");
+  console.log("Adding socket to room...");
+
+  let url = socket.handshake.headers.referer;
+  let pathParts = url.split("/");
+  let roomId = pathParts[pathParts.length - 1];
+  
+  if (!rooms.hasOwnProperty(roomId)) {
+    rooms[roomId] = {};
+    console.log("Socket room for Room id", roomId, "has been created");
+  }
+
+  rooms[roomId][socket.id] = socket;
+  console.log(`Numbers of members in room ${roomId}: ${Object.keys(rooms[roomId]).length}`);
+
+  socket.on("sendMessageToRoom", ({message}) => {
+    console.log("Sending", message, "to room:", roomId);
+    for (let roommateId of Object.keys(rooms[roomId])) {
+      if (roommateId === socket.id) {
+        continue;
+      }
+      console.log("Sending", message, "to member", roommateId);
+      rooms[roomId][roommateId].emit("receive", message);
+    }
+  });
+
+  socket.on("disconnect", () => {
+    console.log(`${socket.id} of room ${roomId} has disconnected`);
+    delete rooms[roomId][socket.id];
+  });
+
+});
+
+
+server.listen(port, hostname, () => {
   console.log(`Listening at: http://${hostname}:${port}`);
 });
