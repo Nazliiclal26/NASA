@@ -25,6 +25,22 @@ pool.connect().then(() => {
 app.use(express.static("public"));
 app.use(express.json());
 
+app.post("/codeValid", async (req, res) => {
+  let { code } = req.body;
+
+  try {
+    let result = await pool.query("SELECT * FROM groups WHERE group_name = $1", [code]);
+
+    if (result.rows.length === 0) {
+      return res.json({ isValid: true });
+    } else {
+      return res.json({ isValid: false });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 app.get("/getMostVoted/:groupCode", async (req, res) => {
   let groupCode = req.params.groupCode;
 
