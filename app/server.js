@@ -631,6 +631,33 @@ app.get("/groupSearchBook", (req, res) => {
     });
 });
 
+app.post("/bookVote", async (req, res) => {
+  let { groupCode, filmTitle, poster } = req.body;
+
+  try {
+    let result = await pool.query(
+      "SELECT * FROM votes WHERE group_code = $1 AND book_title = $2",
+      [groupCode, filmTitle]
+    );
+
+    if (result.rows.length > 0) {
+      await pool.query(
+        "UPDATE votes SET num_votes = num_votes + 1 WHERE group_code = $1 AND book_title = $2",
+        [groupCode, filmTitle]
+      );
+    } else {
+      await pool.query(
+        "INSERT INTO votes (group_code, book_title, poster, num_votes) VALUES ($1, $2, $3, 1)",
+        [groupCode, filmTitle, poster]
+      );
+    }
+
+    res.status(200).json({ message: "Vote recorded" });
+  } catch (error) {
+    res.status(500).json({ message: "Error recording vote" });
+  }
+});
+
 /* SOCKET FUNCTIONALITY */
 // The key:value pairs of Rooms has the structure: { "groupId" : {socketId : socket} }
 let rooms = {};
