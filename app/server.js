@@ -491,7 +491,51 @@ app.get("/bookGroup/:groupCode", (req, res) => {
               <button id="startVote">Start Voting</button>
 
               <a href="/">Back to Home</a>
-          </main>
+              <div id="chatSection">
+          <h2>Chat</h2>
+          <ul id="messages"></ul>
+          <div style="text-align:center">
+            <input id="messageInput" placeholder="Type a message..." />
+            <button id="sendButton">Send</button></div>
+          </div>
+      </main>
+      <script src="/socket.io/socket.io.js"></script>
+      <script>
+        let socket = io();
+        socket.on("connect", () => { console.log("Socket has been connected."); });
+        let send = document.getElementById("sendButton");
+        let input = document.getElementById("messageInput");
+        let messages = document.getElementById("messages");
+        send.addEventListener("click", () => {
+          let message = input.value;
+          if (message === '') {
+            return;
+          }
+          appendSentMessage(message);  
+          console.log("Sending message:", message);
+          socket.emit('sendMessageToRoom', {message});
+        });
+
+        socket.on("receive", (data) => {
+          console.log("Received message:", data);
+          appendReceivedMessage(data); 
+        });
+        
+        function appendReceivedMessage(msg) {
+          let msgBox = document.createElement("li");
+          msgBox.textContent = msg;
+          msgBox.style.textAlign = "left";
+          msgBox.style.listStyleType = "none";
+          messages.appendChild(msgBox);
+        }
+
+        function appendSentMessage(msg) {
+          let msgBox = document.createElement("li");
+          msgBox.textContent = msg;
+          msgBox.style.textAlign = "right";
+          messages.appendChild(msgBox);
+        }
+      </script>
       </body>
       </html>
   `);
@@ -588,7 +632,7 @@ app.get("/bookVotes/:groupCode", async (req, res) => {
 
   try {
     let result = await pool.query(
-      "SELECT book_title, poster, num_votes FROM votes WHERE group_code = $1",
+      "SELECT title, poster, num_votes FROM votes WHERE group_code = $1",
       [groupCode]
     );
 
@@ -636,18 +680,18 @@ app.post("/bookVote", async (req, res) => {
 
   try {
     let result = await pool.query(
-      "SELECT * FROM votes WHERE group_code = $1 AND book_title = $2",
+      "SELECT * FROM votes WHERE group_code = $1 AND title = $2",
       [groupCode, filmTitle]
     );
 
     if (result.rows.length > 0) {
       await pool.query(
-        "UPDATE votes SET num_votes = num_votes + 1 WHERE group_code = $1 AND book_title = $2",
+        "UPDATE votes SET num_votes = num_votes + 1 WHERE group_code = $1 AND title = $2",
         [groupCode, filmTitle]
       );
     } else {
       await pool.query(
-        "INSERT INTO votes (group_code, book_title, poster, num_votes) VALUES ($1, $2, $3, 1)",
+        "INSERT INTO votes (group_code, title, poster, num_votes) VALUES ($1, $2, $3, 1)",
         [groupCode, filmTitle, poster]
       );
     }
