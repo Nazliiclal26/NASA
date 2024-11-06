@@ -5,6 +5,9 @@ CREATE database book_film_club;
 -- Create a dedicated PostgreSQL user for the book club project
 CREATE USER book_club_user WITH PASSWORD 'your_password';
 
+-- Grant all privileges on the database to the new user
+GRANT ALL PRIVILEGES ON DATABASE book_film_club TO book_club_user;
+
 -- Users Table
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
@@ -36,7 +39,7 @@ CREATE TABLE IF NOT EXISTS group_watchlists (
 -- Groups Table
 CREATE TABLE IF NOT EXISTS groups (
     id SERIAL PRIMARY KEY,
-    group_code VARCHAR(255) UNIQUE NOT NULL,
+    group_name VARCHAR(255) UNIQUE NOT NULL,
     leader_id INT REFERENCES users(id) ON DELETE SET NULL,
     group_type VARCHAR(10) NOT NULL CHECK (group_type IN ('book', 'movie')),
     privacy VARCHAR(10) NOT NULL DEFAULT 'public' CHECK (privacy IN ('public', 'private')),
@@ -46,11 +49,9 @@ CREATE TABLE IF NOT EXISTS groups (
 -- Votes Table
 CREATE TABLE IF NOT EXISTS votes (
     id SERIAL PRIMARY KEY,
-    group_code VARCHAR(10) NOT NULL,
-    film_title VARCHAR(255),
-    book_title VARCHAR(255),
-    poster VARCHAR(255) NOT NULL,
-    num_votes INTEGER DEFAULT 1
+    group_code VARCHAR(10) NOT NULL,  -- Identifier for each group
+    title VARCHAR(255) NOT NULL, -- Title of the book or movie being voted on
+    votes INTEGER DEFAULT 1           -- Number of votes for the film within the group
 );
 
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO book_club_user;

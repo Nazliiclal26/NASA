@@ -156,7 +156,7 @@ app.post("/createGroup", async (req, res) => {
   }
 
   let checkGroupName = await pool.query(
-    "SELECT * FROM groups WHERE group_code = $1",
+    "SELECT * FROM groups WHERE group_name = $1",
     [groupName]
   );
 
@@ -167,7 +167,7 @@ app.post("/createGroup", async (req, res) => {
   } else {
     try {
       let result = await pool.query(
-        `INSERT INTO groups (group_code, leader_id, group_type, privacy, members) 
+        `INSERT INTO groups (group_name, leader_id, group_type, privacy, members) 
            VALUES ($1, $2, $3, $4, $5) RETURNING *`,
         [groupName, leaderId, groupType, access, memberList]
       );
@@ -192,7 +192,7 @@ app.post("/joinGroup", async (req, res) => {
       }
 
       let groupCheck = await pool.query(
-        "SELECT * FROM groups WHERE group_code = $1",
+        "SELECT * FROM groups WHERE group_name = $1",
         [code]
       );
 
@@ -218,7 +218,7 @@ app.post("/joinGroup", async (req, res) => {
       }
 
       let updateRes = await pool.query(
-        "UPDATE groups SET members = $1 WHERE group_code = $2 RETURNING *",
+        "UPDATE groups SET members = $1 WHERE group_name = $2 RETURNING *",
         [update, code]
       );
 
@@ -313,7 +313,7 @@ app.post("/create", async (req, res) => {
     }
 
     let result = await pool.query(
-      `INSERT INTO groups (group_code, leader_id, group_type, privacy) 
+      `INSERT INTO groups (group_name, leader_id, group_type, privacy) 
            VALUES ($1, $2, $3, $4) RETURNING *`,
       [groupName, leaderId, groupType, privacy]
     );
