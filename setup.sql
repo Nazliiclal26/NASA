@@ -55,7 +55,6 @@ CREATE TABLE IF NOT EXISTS votes (
 );
 
 -- Messages Table
-
 CREATE TABLE IF NOT EXISTS messages (
     id SERIAL PRIMARY KEY,
     group_id INT REFERENCES groups(id) NOT NULL,
