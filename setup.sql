@@ -5,12 +5,13 @@ CREATE database book_film_club;
 -- Create a dedicated PostgreSQL user for the book club project
 CREATE USER book_club_user WITH PASSWORD 'your_password';
 
+-- Grant all privileges on the database to the new user
+GRANT ALL PRIVILEGES ON DATABASE book_film_club TO book_club_user;
+
 -- Users Table
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(255) UNIQUE NOT NULL,
-    first_name VARCHAR(255) NOT NULL,
-    last_name VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
     preferred_genres VARCHAR(255)[]
 );
@@ -45,11 +46,18 @@ CREATE TABLE IF NOT EXISTS groups (
 -- Votes Table
 CREATE TABLE IF NOT EXISTS votes (
     id SERIAL PRIMARY KEY,
-    group_code VARCHAR(10) NOT NULL,
-    film_title VARCHAR(255),
-    book_title VARCHAR(255),
-    poster VARCHAR(255) NOT NULL,
-    num_votes INTEGER DEFAULT 1
+    group_code VARCHAR(10) NOT NULL,  -- Identifier for each group
+    title VARCHAR(255) NOT NULL, -- Title of the book or movie being voted on
+    votes INTEGER DEFAULT 1           -- Number of votes for the film within the group
+);
+
+-- Messages Table
+CREATE TABLE IF NOT EXISTS messages (
+    id SERIAL PRIMARY KEY,
+    group_id INT REFERENCES groups(id) NOT NULL,
+    sender_id INT REFERENCES users(id) NOT NULL,
+    user_message VARCHAR(512) NOT NULL,
+    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO book_club_user;

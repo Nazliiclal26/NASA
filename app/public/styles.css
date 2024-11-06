@@ -26,3 +26,8 @@ th, td {
 #message {
 	margin: 1rem 0;
 }
+
+.choose-entry {
+	padding-top: 15px;
+	display: none;
+}
