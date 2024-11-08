@@ -28,7 +28,10 @@ app.post("/codeValid", async (req, res) => {
   let { code } = req.body;
 
   try {
-    let result = await pool.query("SELECT * FROM groups WHERE group_name = $1", [code]);
+    let result = await pool.query(
+      "SELECT * FROM groups WHERE group_name = $1",
+      [code]
+    );
 
     if (result.rows.length === 0) {
       return res.json({ isValid: true });
@@ -658,7 +661,9 @@ app.get("/getGroups/:userId", async (req, res) => {
       status: "error",
       message: "user not in any groups",
     });
-    
+  }
+});
+
 app.get("/bookVotes/:groupCode", async (req, res) => {
   let groupCode = req.params.groupCode;
 
@@ -681,9 +686,12 @@ app.get("/groupSearchBook", (req, res) => {
     return res.status(400).json({ message: "Input title" });
   }
 
-  let url = `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(title)}&key=AIzaSyA7W8k35xcWplp6773PLBHKwqQyMPJ6VVY`;
+  let url = `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(
+    title
+  )}&key=AIzaSyA7W8k35xcWplp6773PLBHKwqQyMPJ6VVY`;
 
-  axios.get(url)
+  axios
+    .get(url)
     .then((response) => {
       let books = response.data.items;
 
@@ -697,7 +705,9 @@ app.get("/groupSearchBook", (req, res) => {
         poster: book.imageLinks ? book.imageLinks.thumbnail : "",
         authors: book.authors ? book.authors.join(", ") : "N/A",
         publishedDate: book.publishedDate,
-        description: book.description ? book.description : "No description available."
+        description: book.description
+          ? book.description
+          : "No description available.",
       };
 
       res.status(200).json(information);
