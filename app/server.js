@@ -6,7 +6,6 @@ const http = require("http");
 const app = express();
 const server = http.createServer(app);
 
-
 const port = 3000;
 const hostname = "localhost";
 
@@ -642,6 +641,24 @@ app.delete("/clearVotes/:groupCode", async (req, res) => {
   }
 });
 
+app.get("/getGroups/:userId", async (req, res) => {
+  let userId = req.params.userId;
+  try {
+    let { rows } = await pool.query(
+      "SELECT * FROM groups WHERE $1 = ANY (members)",
+      [userId]
+    );
+
+    res.json({
+      status: "success",
+      rows: rows,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: "user not in any groups",
+    });
+    
 app.get("/bookVotes/:groupCode", async (req, res) => {
   let groupCode = req.params.groupCode;
 
@@ -728,16 +745,18 @@ io.on("connection", (socket) => {
   let url = socket.handshake.headers.referer;
   let pathParts = url.split("/");
   let roomId = pathParts[pathParts.length - 1];
-  
+
   if (!rooms.hasOwnProperty(roomId)) {
     rooms[roomId] = {};
     console.log("Socket room for Room id", roomId, "has been created");
   }
 
   rooms[roomId][socket.id] = socket;
-  console.log(`Numbers of members in room ${roomId}: ${Object.keys(rooms[roomId]).length}`);
+  console.log(
+    `Numbers of members in room ${roomId}: ${Object.keys(rooms[roomId]).length}`
+  );
 
-  socket.on("sendMessageToRoom", ({message}) => {
+  socket.on("sendMessageToRoom", ({ message }) => {
     console.log("Sending", message, "to room:", roomId);
     for (let roommateId of Object.keys(rooms[roomId])) {
       if (roommateId === socket.id) {
@@ -752,9 +771,7 @@ io.on("connection", (socket) => {
     console.log(`${socket.id} of room ${roomId} has disconnected`);
     delete rooms[roomId][socket.id];
   });
-
 });
-
 
 server.listen(port, hostname, () => {
   console.log(`Listening at: http://${hostname}:${port}`);
