@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     try {
-      const response = await fetch(`/groupSearch?title=${encodeURIComponent(title)}`);
+      const response = await fetch(`/movieGroupSearch?title=${encodeURIComponent(title)}`);
       if (!response.ok) throw new Error("Film not found");
 
       const data = await response.json();

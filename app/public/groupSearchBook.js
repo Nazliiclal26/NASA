@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
   
       try {
-        const response = await fetch(`/groupSearch?title=${encodeURIComponent(title)}`);
+        const response = await fetch(`/bookGroupSearch?title=${encodeURIComponent(title)}`);
         if (!response.ok) throw new Error("Book not found");
   
         const data = await response.json();
@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             <img src="${data.poster}" alt="${data.title} poster">
             <button class="vote-btn" data-title="${data.title}">+</button>
             <h3>${data.title}</h3>
-            <p>IMDb Rating: ${data.rating}</p>
+            <p>Author: ${data.author}</p>
             <p>Genre: ${data.genre}</p>
             <p>Plot: ${data.plot}</p>
           </div>

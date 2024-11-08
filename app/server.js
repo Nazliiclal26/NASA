@@ -11,6 +11,14 @@ const env = require("../env.json");
 const Pool = pg.Pool;
 const pool = new Pool(env);
 
+const keys = require("../keys.json");
+let movieApiKey = keys.movies;
+let booksApiKey = keys.books;
+
+// Can do simple search with volume lookup:
+// GET https://www.googleapis.com/books/v1/volumes?q=flowers+inauthor:keyes&printType=books&key=yourAPIKey
+// And we can do pagination on results as we pleease -- they return so much information my goodness
+  // https://developers.google.com/books/docs/v1/using -- for retrieving a specific volume, you can see all they return
 pool.connect().then(() => {
   console.log(`Connected to database ${env.database}`);
 });
@@ -276,7 +284,6 @@ app.get("/bookGroup/:groupCode", (req, res) => {
           <title>Group ${groupCode}</title>
           <script src="/groupSearchBook.js" defer></script>
           <style>
-              /* Add necessary styles */
               .film-card {
                   position: relative;
                   display: inline-block;
@@ -316,24 +323,117 @@ app.get("/bookGroup/:groupCode", (req, res) => {
               <button id="stopVote">Stop Vote</button>
               <button id="startVote">Start Voting</button>
 
-              <a href="/">Back to Home</a>
+        <a href="/homepage.html">Back to Home</a>
           </main>
       </body>
       </html>
   `);
 });
 
-app.get("/groupSearch", (req, res) => {
+app.get("/movieGroup/:groupCode", (req, res) => {
+  const groupCode = req.params.groupCode;
+
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Group ${groupCode}</title>
+      <script src="/groupSearchMovie.js" defer></script>
+      <style>
+        .film-card {
+          position: relative;
+          display: inline-block;
+          margin: 10px;
+        }
+        .vote-btn {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          background-color: red;
+          color: white;
+          border: none;
+          padding: 5px;
+          cursor: pointer;
+        }
+      </style>
+    </head>
+    <body>
+      <header>
+        <h1>Welcome to Group ${groupCode}</h1>
+      </header>
+      <main>
+        <div id="searchSection">
+          <h2>Search for a Film</h2>
+          <input type="text" id="searchTitle" placeholder="Title">
+          <button id="searchFilm">Search</button>
+          <div id="searchResult"></div>
+        </div>
+
+        <div>
+          <h2>Voted Films</h2>
+          <ul id="votedFilms"></ul>
+        </div>
+
+        <div id="mostVotedFilm"></div>
+
+        <button id="stopVote">Stop Vote</button>
+        <button id="startVote">Start Voting</button>
+
+        <a href="/homepage.html">Back to Home</a>
+      </main>
+    </body>
+    </html>
+  `);
+});
+
+app.get("/bookGroupSearch", (req, res) => {
   let title = req.query.title;
 
   if (!title) {
     return res.status(400).json({ message: "Input Title" });
   }
 
-  let url = `https://www.omdbapi.com/?t=${title}&apikey=cba0ff47`;
+  let url = `https://www.googleapis.com/books/v1/volumes?q=intitle:${title}&key=${booksApiKey}`;
+  axios.get(url)
+    .then((response) => {
+      let data = response.data;
+      let totalItems = response.totalItems;
+      if (totalItems === 0) {
+        return res.status(404).json({ message: "Could not fetch film" });
 
-  axios
-    .get(url)
+      }
+      // Returning first response
+      let book = data.items[0].volumeInfo;
+      
+
+      let information = {
+          title: book.title,
+          poster: book.imageLinks.thumbnail,
+          genre: book.categories[0],
+          plot: book.description,
+          author: book.authors[0]
+      };
+
+      return res.status(200).json(information);
+    })
+    .catch((error) => {
+      return res.status(500).json({ message: "Error fetching book data" });
+    });
+
+});
+
+app.get("/movieGroupSearch", (req, res) => {
+  let title = req.query.title;
+
+  if (!title) {
+    return res.status(400).json({ message: "Input Title" });
+  }
+
+  let url = `https://www.omdbapi.com/?t=${title}&apikey=${movieApiKey}`;
+
+  axios.get(url)
     .then((response) => {
       let data = response.data;
 
@@ -346,13 +446,14 @@ app.get("/groupSearch", (req, res) => {
         poster: data.Poster,
         rating: data.imdbRating,
         genre: data.Genre,
-        plot: data.Plot,
+        plot: data.Plot
       };
 
-      res.status(200).json(information);
+      return res.status(200).json(information);
     })
     .catch((error) => {
-      res.status(500).json({ message: "Error fetching film data" });
+      console.log(error);
+      return res.status(500).json({ message: "Error fetching film data" });
     });
 });
 

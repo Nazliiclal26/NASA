@@ -36,7 +36,7 @@ createButton.addEventListener("click", () => {
         return response.json();
     })
     .then((data) => {
-        window.location.href = `/group/${groupCode}`;
+        window.location.href = `/movieGroup/${groupCode}`;
     })
     .catch((error) => {
         console.error('Error:', error);
