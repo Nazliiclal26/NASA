@@ -24,6 +24,22 @@ pool.connect().then(() => {
 app.use(express.static("public"));
 app.use(express.json());
 
+app.post("/codeValid", async (req, res) => {
+  let { code } = req.body;
+
+  try {
+    let result = await pool.query("SELECT * FROM groups WHERE group_name = $1", [code]);
+
+    if (result.rows.length === 0) {
+      return res.json({ isValid: true });
+    } else {
+      return res.json({ isValid: false });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 app.get("/getMostVoted/:groupCode", async (req, res) => {
   let groupCode = req.params.groupCode;
 
@@ -449,7 +465,6 @@ app.get("/bookGroup/:groupCode", (req, res) => {
           <title>Group ${groupCode}</title>
           <script src="/groupSearchBook.js" defer></script>
           <style>
-              /* Add necessary styles */
               .film-card {
                   position: relative;
                   display: inline-block;
@@ -490,7 +505,51 @@ app.get("/bookGroup/:groupCode", (req, res) => {
               <button id="startVote">Start Voting</button>
 
               <a href="/">Back to Home</a>
-          </main>
+              <div id="chatSection">
+          <h2>Chat</h2>
+          <ul id="messages"></ul>
+          <div style="text-align:center">
+            <input id="messageInput" placeholder="Type a message..." />
+            <button id="sendButton">Send</button></div>
+          </div>
+      </main>
+      <script src="/socket.io/socket.io.js"></script>
+      <script>
+        let socket = io();
+        socket.on("connect", () => { console.log("Socket has been connected."); });
+        let send = document.getElementById("sendButton");
+        let input = document.getElementById("messageInput");
+        let messages = document.getElementById("messages");
+        send.addEventListener("click", () => {
+          let message = input.value;
+          if (message === '') {
+            return;
+          }
+          appendSentMessage(message);  
+          console.log("Sending message:", message);
+          socket.emit('sendMessageToRoom', {message});
+        });
+
+        socket.on("receive", (data) => {
+          console.log("Received message:", data);
+          appendReceivedMessage(data); 
+        });
+        
+        function appendReceivedMessage(msg) {
+          let msgBox = document.createElement("li");
+          msgBox.textContent = msg;
+          msgBox.style.textAlign = "left";
+          msgBox.style.listStyleType = "none";
+          messages.appendChild(msgBox);
+        }
+
+        function appendSentMessage(msg) {
+          let msgBox = document.createElement("li");
+          msgBox.textContent = msg;
+          msgBox.style.textAlign = "right";
+          messages.appendChild(msgBox);
+        }
+      </script>
       </body>
       </html>
   `);
@@ -599,6 +658,79 @@ app.get("/getGroups/:userId", async (req, res) => {
       status: "error",
       message: "user not in any groups",
     });
+    
+app.get("/bookVotes/:groupCode", async (req, res) => {
+  let groupCode = req.params.groupCode;
+
+  try {
+    let result = await pool.query(
+      "SELECT title, poster, num_votes FROM votes WHERE group_code = $1",
+      [groupCode]
+    );
+
+    res.status(200).json(result.rows);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching votes" });
+  }
+});
+
+app.get("/groupSearchBook", (req, res) => {
+  let title = req.query.title;
+
+  if (!title) {
+    return res.status(400).json({ message: "Input title" });
+  }
+
+  let url = `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(title)}&key=AIzaSyA7W8k35xcWplp6773PLBHKwqQyMPJ6VVY`;
+
+  axios.get(url)
+    .then((response) => {
+      let books = response.data.items;
+
+      if (!books || books.length === 0) {
+        return res.status(404).json({ message: "Book not found" });
+      }
+      let book = books[0].volumeInfo;
+
+      let information = {
+        title: book.title,
+        poster: book.imageLinks ? book.imageLinks.thumbnail : "",
+        authors: book.authors ? book.authors.join(", ") : "N/A",
+        publishedDate: book.publishedDate,
+        description: book.description ? book.description : "No description available."
+      };
+
+      res.status(200).json(information);
+    })
+    .catch((error) => {
+      res.status(500).json({ message: "Error fetching book data" });
+    });
+});
+
+app.post("/bookVote", async (req, res) => {
+  let { groupCode, filmTitle, poster } = req.body;
+
+  try {
+    let result = await pool.query(
+      "SELECT * FROM votes WHERE group_code = $1 AND title = $2",
+      [groupCode, filmTitle]
+    );
+
+    if (result.rows.length > 0) {
+      await pool.query(
+        "UPDATE votes SET num_votes = num_votes + 1 WHERE group_code = $1 AND title = $2",
+        [groupCode, filmTitle]
+      );
+    } else {
+      await pool.query(
+        "INSERT INTO votes (group_code, title, poster, num_votes) VALUES ($1, $2, $3, 1)",
+        [groupCode, filmTitle, poster]
+      );
+    }
+
+    res.status(200).json({ message: "Vote recorded" });
+  } catch (error) {
+    res.status(500).json({ message: "Error recording vote" });
   }
 });
 

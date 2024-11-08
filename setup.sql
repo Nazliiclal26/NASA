@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS votes (
     id SERIAL PRIMARY KEY,
     group_code VARCHAR(10) NOT NULL,  -- Identifier for each group
     title VARCHAR(255) NOT NULL, -- Title of the book or movie being voted on
-    votes INTEGER DEFAULT 1           -- Number of votes for the film within the group
+    num_votes INTEGER DEFAULT 1           -- Number of votes for the film within the group
 );
 
 -- Messages Table
@@ -65,4 +65,3 @@ CREATE TABLE IF NOT EXISTS messages (
 
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO book_club_user;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO book_club_user;
-ALTER TABLE votes ADD CONSTRAINT unique_group_film UNIQUE (group_code, film_title);
