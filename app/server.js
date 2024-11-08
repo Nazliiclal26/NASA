@@ -197,7 +197,11 @@ app.post("/createGroup", async (req, res) => {
         [groupName, leaderId, groupType, access, memberList]
       );
 
-      res.status(201).json({ message: "Group created", group: result.rows[0] });
+      res.status(200).json({
+        status: "success",
+        message: "Group created",
+        group: result.rows[0],
+      });
     } catch (error) {
       console.error("Error creating group:", error);
       res.status(500).json({ message: "Error creating group" });

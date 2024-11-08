@@ -99,6 +99,7 @@ function changeView() {
   skipButton.addEventListener("click", () => {
     if (isSkip) {
       alert("skip to next page");
+      window.location.href = "/selection.html";
     } else {
       if (joinButton.classList.contains("clicked")) {
         mainBox.innerHTML = `
@@ -201,7 +202,8 @@ function changeView() {
           .then((response) => response.json())
           .then((data) => {
             if (data.status === "success") {
-              // go to home
+              alert(data.message);
+              window.location.href = "/selection.html";
             } else {
               console.log(data);
               alert(data.message);
@@ -336,7 +338,8 @@ function changeView() {
         .then((response) => response.json())
         .then((data) => {
           if (data.status === "success") {
-            // go to home
+            console.log("TEST");
+            window.location.href = "/selection.html";
           } else {
             console.log(data);
             alert(data.message);
