@@ -227,7 +227,7 @@ function changeView() {
           .then((response) => response.json())
           .then((data) => {
             if (data.status === "success") {
-              // go to home
+              window.location.href = "/selection.html";
             } else {
               console.log(data);
               alert(data.message);
