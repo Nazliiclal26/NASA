@@ -15,6 +15,8 @@ const pool = new Pool(env);
 const group = require("../models/Group");
 
 const authRoutes = require('./routes/authRoutes');
+const calendarRoutes = require('./routes/calendarRoutes');
+app.use('/calendar', calendarRoutes);
 
 let { Server } = require("socket.io");
 let io = new Server(server);
