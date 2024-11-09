@@ -1,13 +1,110 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Book & Movie Club</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <header>
+    <link rel="stylesheet" href="signUp.css" />
+  </head>
+  <body>
+    <div id="leftPanel">
+      <div class="block">
+        <div class="image"></div>
+        <div class="blockText">
+          insert something interesting about website idk what im writing anymore
+        </div>
+      </div>
+      <div class="block">
+        <div class="blockText second">
+          i have no idea what this should say so imma just keep writing
+        </div>
+        <div class="image"></div>
+      </div>
+    </div>
+    <div id="divider"></div>
+    <div id="rightPanel">
+      <div id="innerPanel">
+        <div class="subBox" id="title">
+          <div class="boxTitle">Sign Up</div>
+        </div>
+        <div class="subBox" id="names">
+          <div id="container">
+            <div class="boxTitle">First Name</div>
+            <div class="box">
+              <input
+                type="text"
+                id="firstName"
+                name="firstName"
+                placeholder="Enter your first name"
+              />
+            </div>
+          </div>
+          <div id="container">
+            <div class="boxTitle">Last Name</div>
+            <div class="box">
+              <input
+                type="text"
+                id="lastName"
+                name="lastName"
+                placeholder="Enter your last name"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="subBox" id="usernameBox">
+          <div class="boxTitle">Username</div>
+          <div class="box">
+            <input
+              type="text"
+              id="username"
+              name="username"
+              placeholder="Enter your username"
+            />
+          </div>
+        </div>
+        <div class="subBox" id="pass">
+          <div class="boxTitle">Password</div>
+          <div class="box">
+            <input
+              type="text"
+              id="password"
+              name="password"
+              placeholder="Enter your password"
+            />
+          </div>
+        </div>
+        <div class="subBox" id="repeat">
+          <div class="boxTitle">Repeat Password</div>
+          <div class="box">
+            <input
+              type="text"
+              id="repeatPass"
+              name="repeatPass"
+              placeholder="Enter your password again"
+            />
+          </div>
+        </div>
+        <div class="subBox" id="buttons">
+          <button class="button" id="signUp">Sign Up</button>
+          <button class="button" id="signIn">
+            <div id="subText">Sign In</div>
+            <img
+              id="arrow"
+              src="/images/arrow.png"
+              width="30px"
+              height="30px"
+            />
+          </button>
+        </div>
+        <div id="status"></div>
+      </div>
+    </div>
+
+    <script src="signUp.js"></script>
+  </body>
+</html>
+
+<!-- <header>
         <h1>Sign Up</h1>
     </header>
     <div id="status"></div>
@@ -35,9 +132,4 @@
 
         <button id="signUp">Sign Up</button>
         <button id="signIn">Sign In</button>
-    </main>
-
-    <script src="signUp.js"></script>
-</body>
-</html>
-
+    </main> -->

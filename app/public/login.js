@@ -2,20 +2,23 @@ let loginButton = document.getElementById("login");
 let signUpButton = document.getElementById("signUp");
 
 loginButton.addEventListener("click", () => {
-    let username = document.getElementById("username").value;
-    let password = document.getElementById("password").value;
-    let status = document.getElementById("status");
+  let username = document.getElementById("username").value;
+  let password = document.getElementById("password").value;
 
-    status.textContent = "";
-
-    let credentials = {"username" : username, "password" : password};
-
-    fetch("/login", {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(credentials)
+  fetch("/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.status === "success") {
+        localStorage.setItem("userId", data.userId);
+        alert(data.message);
+        window.location.href = "/selection.html";
+      } else {
+        alert(data.message);
+      }
     })
     .then(response => response.json())
     .then(data => {
@@ -31,10 +34,10 @@ loginButton.addEventListener("click", () => {
     })
     .catch(error => console.log(error))
 
-})
+});
 
 // cookie storage function
 
 signUpButton.addEventListener("click", () => {
-    window.location.href = "signUp.html"
-})
+  window.location.href = "/signUp.html";
+});

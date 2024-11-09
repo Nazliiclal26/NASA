@@ -1,38 +1,16 @@
-async function code() {
-    let code = prompt("Please enter a group code:");
-  
-    if (!code || code.trim() === '') {
-      alert("Invalid");
-      return;
+function code() {
+    let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let code = '';
+    for (let i = 0; i < 10; i++) {
+        let rand = Math.floor(Math.random() * chars.length);
+        code += chars.charAt(rand);
     }
-  
-    try {
-      let response = await fetch(`/codeValid`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code })
-      });
-  
-      let result = await response.json();
-      if (result.isValid) {
-        alert("Valid ");
-        return code;
-      } 
-      else {
-        alert("Code already exists. Please try a different one.");
-        return code(); 
-      }
-    } catch (error) {
-      alert("Please try again.");
-    }
-  }
-  
+    return code;
+}
 
 let createButton = document.getElementById("create");
-createButton.addEventListener("click", async () => {
-    let groupCode = await code(); 
-
-    if (!groupCode) return;
+createButton.addEventListener("click", () => {
+    let groupCode = code(); 
 
     let leaderId = localStorage.getItem('userId');
     if (!leaderId) {
@@ -58,7 +36,7 @@ createButton.addEventListener("click", async () => {
         return response.json();
     })
     .then((data) => {
-        window.location.href = `/group/${groupCode}`;
+        window.location.href = `/bookGroup/${groupCode}`;
     })
     .catch((error) => {
         console.error('Error:', error);
@@ -81,6 +59,6 @@ chooseButton.addEventListener("click", () => {
             return;
         }
 
-        window.location.href = `/group/${groupCode}`;
+        window.location.href = `/bookGroup/${groupCode}`;
     });
 });

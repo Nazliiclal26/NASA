@@ -5,8 +5,8 @@ CREATE database book_film_club;
 -- Create a dedicated PostgreSQL user for the book club project
 CREATE USER book_club_user WITH PASSWORD 'your_password';
 
-ALTER TABLE users ADD COLUMN IF NOT EXISTS first_name VARCHAR(255) NOT NULL;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name VARCHAR(255) NOT NULL;
+-- Grant all privileges on the database to the new user
+GRANT ALL PRIVILEGES ON DATABASE book_film_club TO book_club_user;
 
 -- Users Table
 CREATE TABLE IF NOT EXISTS users (
@@ -39,20 +39,29 @@ CREATE TABLE IF NOT EXISTS group_watchlists (
 -- Groups Table
 CREATE TABLE IF NOT EXISTS groups (
     id SERIAL PRIMARY KEY,
-    group_name VARCHAR(255) NOT NULL,
+    group_name VARCHAR(255) UNIQUE NOT NULL,
     leader_id INT REFERENCES users(id) ON DELETE SET NULL,
     group_type VARCHAR(10) NOT NULL CHECK (group_type IN ('book', 'movie')),
-    privacy VARCHAR(10) NOT NULL DEFAULT 'public' CHECK (privacy IN ('public', 'private'))
+    privacy VARCHAR(10) NOT NULL DEFAULT 'public' CHECK (privacy IN ('public', 'private')),
+    members VARCHAR(255)[]
 );
 
 -- Votes Table
 CREATE TABLE IF NOT EXISTS votes (
     id SERIAL PRIMARY KEY,
-    group_code VARCHAR(10) NOT NULL,
-    film_title VARCHAR(255) NOT NULL,
-    num_votes INTEGER DEFAULT 1
+    group_code VARCHAR(10) NOT NULL,  -- Identifier for each group
+    title VARCHAR(255) NOT NULL, -- Title of the book or movie being voted on
+    num_votes INTEGER DEFAULT 1           -- Number of votes for the film within the group
+);
+
+-- Messages Table
+CREATE TABLE IF NOT EXISTS messages (
+    id SERIAL PRIMARY KEY,
+    group_id INT REFERENCES groups(id) NOT NULL,
+    sender_id INT REFERENCES users(id) NOT NULL,
+    user_message VARCHAR(512) NOT NULL,
+    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO book_club_user;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO book_club_user;
-ALTER TABLE votes ADD CONSTRAINT unique_group_film UNIQUE (group_code, film_title);
