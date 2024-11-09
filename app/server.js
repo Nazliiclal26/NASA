@@ -14,6 +14,8 @@ const Pool = pg.Pool;
 const pool = new Pool(env);
 const group = require("../models/Group");
 
+const authRoutes = require('./routes/authRoutes');
+
 let { Server } = require("socket.io");
 let io = new Server(server);
 
@@ -23,6 +25,7 @@ pool.connect().then(() => {
 
 app.use(express.static("public"));
 app.use(express.json());
+app.use(authRoutes);
 
 app.post("/codeValid", async (req, res) => {
   let { code } = req.body;
