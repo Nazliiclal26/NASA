@@ -38,9 +38,20 @@ signUpButton.addEventListener("click", () => {
         window.location.href = "/signUpPrompt.html";
       }
     })
-    .catch((error) => console.log(error));
+    .then(response => response.json())
+    .then(data => {
+        if(data.status === "error") {
+            status.textContent = data.message;
+            status.style.color = "red";
+        }else{
+            status.textContent = data.message;
+            status.style.color = "green";
+        }
+    })
+    .catch(error => console.log(error))
+
 });
 
 signInButton.addEventListener("click", () => {
-  window.location.href = "login.html";
+    window.location.href = "login.html"
 });

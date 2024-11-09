@@ -4,7 +4,10 @@ const pg = require("pg");
 const express = require("express");
 const http = require("http");
 const app = express();
+
 const server = http.createServer(app);
+
+const path = require("path");
 
 const port = 3000;
 const hostname = "localhost";
@@ -21,12 +24,16 @@ pool.connect().then(() => {
   console.log(`Connected to database ${env.database}`);
 });
 
-app.use(express.static("public"));
+app.use(express.static("public", {index: false}));
 app.use(express.json());
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "login.html"));
+});
+
 
 app.post("/codeValid", async (req, res) => {
   let { code } = req.body;
-
   try {
     let result = await pool.query(
       "SELECT * FROM groups WHERE group_name = $1",
