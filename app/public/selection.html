@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Movie Club</title>
+    <link rel="stylesheet" href="selection.css" />
+  </head>
+  <body>
+    <div id="navbar">
+      <div id="leftPanel">
+        <div id="typeButtons">
+          <div id="books">Books</div>
+          <div id="movies">Movies</div>
+        </div>
+      </div>
+      <div id="searchBox">
+        <input
+          type="text"
+          id="search"
+          name="search"
+          placeholder="Search a book or movie..."
+        />
+      </div>
+      <div id="navButtons">
+        <div id="buttonContainer">
+          <div id="watchlist">My Watchlist</div>
+          <div id="account">Account</div>
+          <div id="logout">
+            <img src="images/logout.png" width="30px" />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="main">
+      <div id="catalog"></div>
+      <div id="modalButton">
+        <div id="groupButton">
+          <img id="groupIcon" src="images/group.png" height="50px" />
+        </div>
+      </div>
+
+      <div id="mainModal" class="hidden">
+        <div id="mainGroupModalButton">
+          <img id="closeIcon" src="images/arrowGroup.png" width="30px" />
+        </div>
+        <div id="groupModal">
+          <div id="title">My Groups</div>
+          <div id="groups"></div>
+          <div id="groupActions">
+            <div id="joinButton">Join</div>
+            <div id="addButton">Add</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="joinModal" class="hidden">
+        <div id="joinGroupModalButton">
+          <img id="closeIcon" src="images/arrowGroup.png" width="30px" />
+        </div>
+        <div id="groupModal">
+          <div id="title">My Groups</div>
+          <div id="groups">
+            <div id="titleGroup">Enter Group Code</div>
+            <input
+              type="text"
+              id="code"
+              name="code"
+              placeholder="Enter code..."
+            />
+            <div id="random">Random</div>
+            <div id="joinGroup">Join</div>
+          </div>
+          <div id="groupActions">
+            <div id="joinGroupHome">Groups</div>
+            <div id="joinAddButton">Add</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="createModal" class="hidden">
+        <div id="createGroupModalButton">
+          <img id="closeIcon" src="images/arrowGroup.png" width="30px" />
+        </div>
+        <div id="groupModal">
+          <div id="title">My Groups</div>
+          <div id="groups">
+            <div id="titleGroup">Name</div>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              placeholder="Enter group name..."
+            />
+            <div id="titleGroupName">Type</div>
+            <div id="typeButtonsModalType">
+              <div class="groupButtons" id="booksButton">Book</div>
+              <div class="groupButtons" id="moviesButton">Movie</div>
+            </div>
+            <div id="titleGroupName">Access</div>
+            <div id="typeButtonsModalAccess">
+              <div class="groupButtons" id="publicButton">Public</div>
+              <div class="groupButtons" id="privateButton">Private</div>
+            </div>
+            <div id="create">Create</div>
+          </div>
+          <div id="groupActions">
+            <div id="createHomeButton">Groups</div>
+            <div id="createJoinButton">Join</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="selection.js"></script>
+  </body>
+</html>

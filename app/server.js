@@ -6,7 +6,6 @@ const http = require("http");
 const app = express();
 const server = http.createServer(app);
 
-
 const port = 3000;
 const hostname = "localhost";
 
@@ -24,6 +23,25 @@ pool.connect().then(() => {
 
 app.use(express.static("public"));
 app.use(express.json());
+
+app.post("/codeValid", async (req, res) => {
+  let { code } = req.body;
+
+  try {
+    let result = await pool.query(
+      "SELECT * FROM groups WHERE group_name = $1",
+      [code]
+    );
+
+    if (result.rows.length === 0) {
+      return res.json({ isValid: true });
+    } else {
+      return res.json({ isValid: false });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
 
 app.get("/getMostVoted/:groupCode", async (req, res) => {
   let groupCode = req.params.groupCode;
@@ -156,29 +174,153 @@ app.post("/signUpPrompt", async (req, res) => {
 
 app.post("/createGroup", async (req, res) => {
   let { groupName, groupType, access, leaderId } = req.body;
+  let memberList = [leaderId];
 
   if (!leaderId) {
     return res.status(400).json({ message: "Leader ID is missing" });
   }
 
-  try {
-    let leaderCheck = await pool.query("SELECT * FROM users WHERE id = $1", [
-      leaderId,
-    ]);
-    if (leaderCheck.rows.length === 0) {
-      return res.status(404).json({ message: "Leader not found" });
+  let checkGroupName = await pool.query(
+    "SELECT * FROM groups WHERE group_name = $1",
+    [groupName]
+  );
+
+  if (checkGroupName.rows.length > 0) {
+    res
+      .status(400)
+      .json({ status: "error", message: "group name already exists" });
+  } else {
+    try {
+      let result = await pool.query(
+        `INSERT INTO groups (group_name, leader_id, group_type, privacy, members) 
+           VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [groupName, leaderId, groupType, access, memberList]
+      );
+
+      res.status(200).json({
+        status: "success",
+        message: "Group created",
+        group: result.rows[0],
+      });
+    } catch (error) {
+      console.error("Error creating group:", error);
+      res.status(500).json({ message: "Error creating group" });
     }
+  }
+});
 
-    let result = await pool.query(
-      `INSERT INTO groups (group_name, leader_id, group_type, privacy) 
-           VALUES ($1, $2, $3, $4) RETURNING *`,
-      [groupName, leaderId, groupType, access]
-    );
+app.post("/joinGroup", async (req, res) => {
+  let { type, code, userId } = req.body;
 
-    res.status(201).json({ message: "Group created", group: result.rows[0] });
-  } catch (error) {
-    console.error("Error creating group:", error);
-    res.status(500).json({ message: "Error creating group" });
+  if (type === "code") {
+    try {
+      if (!code || !userId) {
+        return res
+          .status(400)
+          .json({ status: "error", message: "missing code or userId" });
+      }
+
+      let groupCheck = await pool.query(
+        "SELECT * FROM groups WHERE group_name = $1",
+        [code]
+      );
+
+      if (groupCheck.rows.length === 0) {
+        return res
+          .status(404)
+          .json({ status: "error", message: "group not found" });
+      }
+
+      let group = groupCheck.rows[0];
+
+      if (group.members && group.members.includes(userId)) {
+        return res
+          .status(400)
+          .json({ status: "error", message: "user already in group" });
+      }
+
+      let update;
+      if (group.members) {
+        update = [...group.members, userId];
+      } else {
+        update = [userId];
+      }
+
+      let updateRes = await pool.query(
+        "UPDATE groups SET members = $1 WHERE group_name = $2 RETURNING *",
+        [update, code]
+      );
+
+      res.status(200).json({
+        status: "success",
+        message: "joined group",
+        group: updateRes.rows[0],
+      });
+    } catch (error) {
+      console.error("Error joining group:", error);
+      res.status(500).json({ message: "Error joining group" });
+    }
+  } else if (type === "random") {
+    try {
+      let groupCheck = await pool.query(
+        "SELECT * FROM groups WHERE privacy = $1 AND NOT $2 = ANY(members)",
+        ["public", userId]
+      );
+      let chosenGroupId;
+
+      console.log(groupCheck);
+
+      let numGroups = groupCheck.rowCount;
+
+      if (numGroups >= 1) {
+        let possibleId = groupCheck.rows.map((row) => row.id);
+        let randomId = Math.floor(Math.random() * numGroups);
+
+        chosenGroupId = possibleId[randomId];
+      } else {
+        return res
+          .status(404)
+          .json({ status: "error", message: "no available public groups" });
+      }
+
+      let randomGroup = await pool.query("SELECT * FROM groups WHERE id = $1", [
+        chosenGroupId,
+      ]);
+
+      if (randomGroup.rows.length === 0) {
+        return res
+          .status(404)
+          .json({ status: "error", message: "group not found" });
+      }
+
+      let groupRandom = randomGroup.rows[0];
+
+      if (groupRandom.members && groupRandom.members.includes(userId)) {
+        return res
+          .status(400)
+          .json({ status: "error", message: "user already in group" });
+      }
+
+      let updateRandom;
+      if (groupRandom.members) {
+        updateRandom = [...groupRandom.members, userId];
+      } else {
+        updateRandom = [userId];
+      }
+
+      let result = await pool.query(
+        "UPDATE groups SET members = $1 WHERE id = $2 RETURNING *",
+        [updateRandom, chosenGroupId]
+      );
+
+      res.status(200).json({
+        status: "success",
+        message: "joined random group",
+        group: result.rows[0],
+      });
+    } catch (error) {
+      alert("ERROR");
+    }
   }
 });
 
@@ -330,7 +472,6 @@ app.get("/bookGroup/:groupCode", (req, res) => {
           <title>Group ${groupCode}</title>
           <script src="/groupSearchBook.js" defer></script>
           <style>
-              /* Add necessary styles */
               .film-card {
                   position: relative;
                   display: inline-block;
@@ -371,7 +512,51 @@ app.get("/bookGroup/:groupCode", (req, res) => {
               <button id="startVote">Start Voting</button>
 
               <a href="/">Back to Home</a>
-          </main>
+              <div id="chatSection">
+          <h2>Chat</h2>
+          <ul id="messages"></ul>
+          <div style="text-align:center">
+            <input id="messageInput" placeholder="Type a message..." />
+            <button id="sendButton">Send</button></div>
+          </div>
+      </main>
+      <script src="/socket.io/socket.io.js"></script>
+      <script>
+        let socket = io();
+        socket.on("connect", () => { console.log("Socket has been connected."); });
+        let send = document.getElementById("sendButton");
+        let input = document.getElementById("messageInput");
+        let messages = document.getElementById("messages");
+        send.addEventListener("click", () => {
+          let message = input.value;
+          if (message === '') {
+            return;
+          }
+          appendSentMessage(message);  
+          console.log("Sending message:", message);
+          socket.emit('sendMessageToRoom', {message});
+        });
+
+        socket.on("receive", (data) => {
+          console.log("Received message:", data);
+          appendReceivedMessage(data); 
+        });
+        
+        function appendReceivedMessage(msg) {
+          let msgBox = document.createElement("li");
+          msgBox.textContent = msg;
+          msgBox.style.textAlign = "left";
+          msgBox.style.listStyleType = "none";
+          messages.appendChild(msgBox);
+        }
+
+        function appendSentMessage(msg) {
+          let msgBox = document.createElement("li");
+          msgBox.textContent = msg;
+          msgBox.style.textAlign = "right";
+          messages.appendChild(msgBox);
+        }
+      </script>
       </body>
       </html>
   `);
@@ -463,6 +648,106 @@ app.delete("/clearVotes/:groupCode", async (req, res) => {
   }
 });
 
+app.get("/getGroups/:userId", async (req, res) => {
+  let userId = req.params.userId;
+  try {
+    let { rows } = await pool.query(
+      "SELECT * FROM groups WHERE $1 = ANY (members)",
+      [userId]
+    );
+
+    res.json({
+      status: "success",
+      rows: rows,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: "user not in any groups",
+    });
+  }
+});
+
+app.get("/bookVotes/:groupCode", async (req, res) => {
+  let groupCode = req.params.groupCode;
+
+  try {
+    let result = await pool.query(
+      "SELECT title, poster, num_votes FROM votes WHERE group_code = $1",
+      [groupCode]
+    );
+
+    res.status(200).json(result.rows);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching votes" });
+  }
+});
+
+app.get("/groupSearchBook", (req, res) => {
+  let title = req.query.title;
+
+  if (!title) {
+    return res.status(400).json({ message: "Input title" });
+  }
+
+  let url = `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(
+    title
+  )}&key=AIzaSyA7W8k35xcWplp6773PLBHKwqQyMPJ6VVY`;
+
+  axios
+    .get(url)
+    .then((response) => {
+      let books = response.data.items;
+
+      if (!books || books.length === 0) {
+        return res.status(404).json({ message: "Book not found" });
+      }
+      let book = books[0].volumeInfo;
+
+      let information = {
+        title: book.title,
+        poster: book.imageLinks ? book.imageLinks.thumbnail : "",
+        authors: book.authors ? book.authors.join(", ") : "N/A",
+        publishedDate: book.publishedDate,
+        description: book.description
+          ? book.description
+          : "No description available.",
+      };
+
+      res.status(200).json(information);
+    })
+    .catch((error) => {
+      res.status(500).json({ message: "Error fetching book data" });
+    });
+});
+
+app.post("/bookVote", async (req, res) => {
+  let { groupCode, filmTitle, poster } = req.body;
+
+  try {
+    let result = await pool.query(
+      "SELECT * FROM votes WHERE group_code = $1 AND title = $2",
+      [groupCode, filmTitle]
+    );
+
+    if (result.rows.length > 0) {
+      await pool.query(
+        "UPDATE votes SET num_votes = num_votes + 1 WHERE group_code = $1 AND title = $2",
+        [groupCode, filmTitle]
+      );
+    } else {
+      await pool.query(
+        "INSERT INTO votes (group_code, title, poster, num_votes) VALUES ($1, $2, $3, 1)",
+        [groupCode, filmTitle, poster]
+      );
+    }
+
+    res.status(200).json({ message: "Vote recorded" });
+  } catch (error) {
+    res.status(500).json({ message: "Error recording vote" });
+  }
+});
+
 /* SOCKET FUNCTIONALITY */
 // The key:value pairs of Rooms has the structure: { "groupId" : {socketId : socket} }
 let rooms = {};
@@ -474,16 +759,18 @@ io.on("connection", (socket) => {
   let url = socket.handshake.headers.referer;
   let pathParts = url.split("/");
   let roomId = pathParts[pathParts.length - 1];
-  
+
   if (!rooms.hasOwnProperty(roomId)) {
     rooms[roomId] = {};
     console.log("Socket room for Room id", roomId, "has been created");
   }
 
   rooms[roomId][socket.id] = socket;
-  console.log(`Numbers of members in room ${roomId}: ${Object.keys(rooms[roomId]).length}`);
+  console.log(
+    `Numbers of members in room ${roomId}: ${Object.keys(rooms[roomId]).length}`
+  );
 
-  socket.on("sendMessageToRoom", ({message}) => {
+  socket.on("sendMessageToRoom", ({ message }) => {
     console.log("Sending", message, "to room:", roomId);
     for (let roommateId of Object.keys(rooms[roomId])) {
       if (roommateId === socket.id) {
@@ -498,9 +785,7 @@ io.on("connection", (socket) => {
     console.log(`${socket.id} of room ${roomId} has disconnected`);
     delete rooms[roomId][socket.id];
   });
-
 });
-
 
 server.listen(port, hostname, () => {
   console.log(`Listening at: http://${hostname}:${port}`);
