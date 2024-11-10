@@ -49,9 +49,10 @@ CREATE TABLE IF NOT EXISTS groups (
 -- Votes Table
 CREATE TABLE IF NOT EXISTS votes (
     id SERIAL PRIMARY KEY,
-    group_code VARCHAR(10) NOT NULL,  -- Identifier for each group
-    title VARCHAR(255) NOT NULL, -- Title of the book or movie being voted on
-    num_votes INTEGER DEFAULT 1           -- Number of votes for the film within the group
+    group_code VARCHAR(10) NOT NULL,  
+    film_title VARCHAR(255) NOT NULL, 
+    num_votes INTEGER DEFAULT 1,
+    poster VARCHAR(255) NOT NULL
 );
 
 -- Messages Table
