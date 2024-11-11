@@ -31,6 +31,60 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
+app.post("/startVoting/:groupCode", async (req, res) => {
+  let groupCode = req.params.groupCode;
+
+  try {
+    let fullGroupName = `Group ${groupCode}`;
+    let result = await pool.query(
+      "UPDATE groups SET voting_status = FALSE WHERE group_name = $1",
+      [fullGroupName]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Group not found" });
+    }
+
+    res.status(200).json({ message: "Voting started" });
+  } catch (error) {
+    console.error("Error starting voting:", error);
+    res.status(500).json({ message: "Error starting voting" });
+  }
+});
+
+
+app.get("/getVotingStatus/:groupCode", async (req, res) => {
+  let groupCode = req.params.groupCode;
+  let fullGroupName = `Group ${groupCode}`;
+
+  try {
+    let result = await pool.query(
+      "SELECT voting_status FROM groups WHERE group_name = $1",
+      [fullGroupName]
+    );
+    res.status(200).json({ votingStatus: result.rows[0].voting_status });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching voting status" });
+  }
+});
+
+app.post("/stopVoting/:groupCode", async (req, res) => {
+  let groupCode = req.params.groupCode;
+  let fullGroupName = `Group ${groupCode}`;
+
+  try {
+    //console.log("here");
+    await pool.query(
+      "UPDATE groups SET voting_status = TRUE WHERE group_name = $1",
+      [fullGroupName]
+    );
+    res.status(200).json({ message: "Voting stopped" });
+  } catch (error) {
+    console.error("Error stopping voting:", error);
+    res.status(500).json({ message: "Error stopping voting" });
+  }
+});
+
 app.post("/codeValid", async (req, res) => {
   let { code } = req.body;
   try {
@@ -649,7 +703,7 @@ app.get("/groupSearch", (req, res) => {
 });
 
 app.post("/vote", async (req, res) => {
-  let { groupCode, filmTitle, poster } = req.body;
+  let { groupCode, filmTitle, poster, filmGenre } = req.body;
 
   try {
     let result = await pool.query(
@@ -663,9 +717,10 @@ app.post("/vote", async (req, res) => {
         [groupCode, filmTitle]
       );
     } else {
+      //console.log("Data for vote insertion:", { groupCode, filmTitle, poster, filmGenre });
       await pool.query(
-        "INSERT INTO votes (group_code, film_title, poster, num_votes) VALUES ($1, $2, $3, 1)",
-        [groupCode, filmTitle, poster]
+        "INSERT INTO votes (group_code, film_title, poster, num_votes, film_genre) VALUES ($1, $2, $3, 1, $4)",
+        [groupCode, filmTitle, poster, filmGenre]
       );
     }
 
@@ -680,7 +735,7 @@ app.get("/votes/:groupCode", async (req, res) => {
 
   try {
     let result = await pool.query(
-      "SELECT film_title, poster, num_votes FROM votes WHERE group_code = $1",
+      "SELECT film_title, poster, num_votes, film_genre FROM votes WHERE group_code = $1",
       [groupCode]
     );
 
