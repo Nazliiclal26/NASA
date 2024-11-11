@@ -325,7 +325,7 @@ function changeView() {
         groupName: groupName,
         groupType: groupType,
         access: access,
-        leaderId: localStorage.getItem("userID"),
+        leaderId: localStorage.getItem("userId"),
       };
 
       fetch("/createGroup", {
