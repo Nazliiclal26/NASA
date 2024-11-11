@@ -267,7 +267,7 @@ async function displayGroups() {
           myGroups.push(row.group_name);
           divStruct += `
           <div>
-            <a href='/group/${row.group_name}'</a>
+            <a href='/group/${row.group_name}'>${row.group_name}</a>
           </div>
           `;
         });
