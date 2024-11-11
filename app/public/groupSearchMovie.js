@@ -9,22 +9,40 @@ document.addEventListener("DOMContentLoaded", async () => {
   let mostVotedFilmSection = document.getElementById("mostVotedFilm");
   
   try {
-    let response = await fetch(`/getMostVoted/${groupCode}`);
-    if (response.ok) {
-      let mostVoted = await response.json();
-      if (mostVoted) {
-        mostVotedFilmSection.innerHTML = `
-          <h2>Most Voted Film</h2>
-          <p>${mostVoted.film_title} with ${mostVoted.num_votes} votes!</p>
-          <img src="${mostVoted.poster}" alt="${mostVoted.film_title} poster" style="max-width: 200px;">
-        `;
-        searchSection.style.display = "none"; 
-      }
+    let votingStatusResponse = await fetch(`/getVotingStatus/${groupCode}`);
+    let { votingStatus } = await votingStatusResponse.json();
+
+    if (votingStatus) {
+      console.log("hereeee");
+      await displayMostVotedFilm();
+      searchSection.style.display = "none";
     } else {
-      console.log("No most voted film");
+      searchSection.style.display = "block";
     }
   } catch (error) {
-    console.error("Error fetching the most voted film:", error);
+    console.error("Error initializing page:", error);
+  }
+  
+  async function displayMostVotedFilm() {
+    try {
+      let response = await fetch(`/votes/${groupCode}`);
+      if (response.ok) {
+        let data = await response.json();
+        if (data.length > 0) {
+          let mostVoted = data.reduce((a, b) => (a.num_votes > b.num_votes ? a : b));
+          mostVotedFilmSection.innerHTML = `
+            <h2>Most Voted Film</h2>
+            <p>${mostVoted.film_title} with ${mostVoted.num_votes} votes!</p>
+            <p>${mostVoted.film_genre}</p>
+            <img src="${mostVoted.poster}" alt="${mostVoted.film_title} poster" style="max-width: 200px;">
+          `;
+        } else {
+          mostVotedFilmSection.innerHTML = "<p>No votes yet.</p>";
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching the most voted film:", error);
+    }
   }
 
   searchButton.addEventListener("click", async () => {
@@ -43,7 +61,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       searchResult.innerHTML = `
         <div class="film-card">
           <img src="${data.poster}" alt="${data.title} poster">
-          <button class="vote-btn" data-title="${data.title}">+</button>
+          <button class="vote-btn" data-title="${data.title}" data-genre="${data.genre}">+</button>
           <h3>${data.title}</h3>
           <p>IMDb Rating: ${data.rating}</p>
           <p>Genre: ${data.genre}</p>
@@ -53,8 +71,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       document.querySelector(".vote-btn").addEventListener("click", (e) => {
         let filmTitle = e.target.dataset.title;
+        let film_genre = e.target.dataset.genre;
         let poster = e.target.closest('.film-card').querySelector('img').src; 
-        voteForFilm(filmTitle, poster);
+        voteForFilm(filmTitle, poster, film_genre);
       });
     } catch (error) {
       searchResult.innerText = "Film not found or an error occurred.";
@@ -62,12 +81,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  async function voteForFilm(title, poster) {
+  async function voteForFilm(title, poster, film_genre) {
     try {
       const response = await fetch("/vote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ groupCode, filmTitle: title, poster: poster }) 
+        body: JSON.stringify({ groupCode, filmTitle: title, poster: poster, filmGenre: film_genre }) 
       });
   
       if (!response.ok) throw new Error("Error voting");
@@ -89,7 +108,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       data.forEach((film) => {
         if (film.num_votes > 0) {
           const li = document.createElement("li");
-          li.textContent = `${film.film_title} - ${film.num_votes} votes`;
+          li.innerHTML = `${film.film_title} - ${film.num_votes} votes - <span style="color: blue;">${film.film_genre}</span>`;
           votedFilmsList.appendChild(li);
         }
       });
@@ -99,32 +118,30 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   stopVoteButton.addEventListener("click", async () => {
-    let response = await fetch(`/votes/${groupCode}`);
-    let data = await response.json();
-
-    if (data.length === 0) {
-      mostVotedFilmSection.innerHTML = "<p>No votes yet.</p>";
-      return;
+    try {
+      await fetch(`/stopVoting/${groupCode}`, { method: "POST", headers: { "Content-Type": "application/json" } });
+      await displayMostVotedFilm(); 
+      searchSection.style.display = "none";
+    } catch (error) {
+      console.error("Error stopping voting:", error);
     }
-
-    let mostVoted = data.reduce((a, b) => (a.num_votes > b.num_votes ? a : b));
-    mostVotedFilmSection.innerHTML = `
-      <h2>Most Voted Film</h2>
-      <p>${mostVoted.film_title} with ${mostVoted.num_votes} votes!</p>
-      <img src="${mostVoted.poster}" style="max-width: 200px;">
-    `;
-
-    searchSection.style.display = "none"; 
   });
 
   startVoteButton.addEventListener("click", async () => {
-    await fetch(`/clearVotes/${groupCode}`, { method: "DELETE" }); 
-    searchSection.style.display = "block"; 
-    mostVotedFilmSection.innerHTML = ""; 
-    fetchVotes(); 
+    try {
+      await fetch(`/clearVotes/${groupCode}`, { method: "DELETE" });
+      await fetch(`/startVoting/${groupCode}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+      });
+  
+      searchSection.style.display = "block";
+      mostVotedFilmSection.innerHTML = "";
+      fetchVotes(); 
+    } catch (error) {
+      console.error("Error starting voting:", error);
+    }
   });
 
   fetchVotes(); 
 });
-
-
