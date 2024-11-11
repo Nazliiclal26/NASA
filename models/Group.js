@@ -53,7 +53,22 @@ const Group = {
             [groupType]
         );
         return result.rows;
+    },
+
+    // Find singular group row by its name
+    findByName: async (groupName) => {
+        if (!groupName) {
+            throw new Error("Must include group name in request.");
+        }
+
+        const result = await pool.query(
+            `SELECT * FROM groups WHERE group_name = $1`,
+            [groupName]
+        );
+        
+        return result.rows[0];
     }
+
 };
 
 module.exports = Group;
