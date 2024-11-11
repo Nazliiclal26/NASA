@@ -125,7 +125,6 @@ function processJoinModal() {
             closeModals();
             mainModal.classList.remove("hidden");
             displayGroups();
-            alert(data.message);
           } else {
             console.log(data);
             alert(data.message);
@@ -154,7 +153,6 @@ function processJoinModal() {
             closeModals();
             mainModal.classList.remove("hidden");
             displayGroups();
-            alert(data.message);
           } else {
             console.log(data);
             alert(data.message);
