@@ -17,11 +17,14 @@ router.get('/auth/callback', async (req, res) => {
   try {
     const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
-    // Store tokens as needed
-    res.redirect('/somewhere-successful');
+    
+    // Store tokens in the session
+    req.session.tokens = tokens;
+
+    res.redirect('/calendar/events'); // Redirect to a calendar page or meeting dashboard after login
   } catch (error) {
+    console.error("Failed to exchange token:", error);
     res.redirect('/login-error');
   }
 });
-
 module.exports = router;
