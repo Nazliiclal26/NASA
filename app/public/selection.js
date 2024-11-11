@@ -18,6 +18,39 @@ let createJoinButton = document.getElementById("createJoinButton");
 
 let accountButton = document.getElementById("account");
 
+let searchSection = document.getElementById("searchBox");
+let searchButton = document.getElementById("searchFilm");
+let searchResult = document.getElementById("searchResult");
+
+searchButton.addEventListener("click", async () => {
+  let title = document.getElementById("search").value;
+
+  if (!title) {
+    searchResult.innerText = "Please enter a film title.";
+    return;
+  }
+
+  try {
+    let response = await fetch(`/groupSearch?title=${encodeURIComponent(title)}`);
+    if (!response.ok) throw new Error("Film not found");
+
+    let data = await response.json();
+    searchResult.innerHTML = `
+      <div class="film-card">
+        <img src="${data.poster}" alt="${data.title} poster">
+        <button class="watchlist-btn" data-title="${data.title}" data-genre="${data.genre}">+</button>
+        <h3>${data.title}</h3>
+        <p>IMDb Rating: ${data.rating}</p>
+        <p>Genre: ${data.genre}</p>x
+        <p>Plot: ${data.plot}</p>
+      </div>
+    `;
+  } catch (error) {
+    searchResult.innerText = "Film not found or an error occurred.";
+    console.error("Error fetching film:", error);
+  }
+});
+
 accountButton.addEventListener("click", () => {
   window.location.href = "account.html";
 });
