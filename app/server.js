@@ -5,6 +5,7 @@ const express = require("express");
 const http = require("http");
 const app = express();
 const server = http.createServer(app);
+const session = require('express-session');
 
 const port = 3000;
 const hostname = "localhost";
@@ -14,8 +15,8 @@ const Pool = pg.Pool;
 const pool = new Pool(env);
 const group = require("../models/Group");
 
-const authRoutes = require('./routes/authRoutes');
-const calendarRoutes = require('./routes/calendarRoutes');
+const authRoutes = require('../routes/authRoutes');
+const calendarRoutes = require('../routes/calendarRoutes');
 app.use('/calendar', calendarRoutes);
 
 let { Server } = require("socket.io");
@@ -28,6 +29,14 @@ pool.connect().then(() => {
 app.use(express.static("public"));
 app.use(express.json());
 app.use(authRoutes);
+
+// Setup sessions for storing auth tokens
+app.use(session({
+  secret: 'your_secret_key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: true } // set to true if using https
+}));
 
 app.post("/codeValid", async (req, res) => {
   let { code } = req.body;
@@ -476,6 +485,7 @@ app.get("/bookGroup/:groupCode", (req, res) => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Group ${groupCode}</title>
           <script src="/groupSearchBook.js" defer></script>
+          <script src="/js/calendarScripts.js"></script>
           <style>
               .film-card {
                   position: relative;
@@ -515,6 +525,13 @@ app.get("/bookGroup/:groupCode", (req, res) => {
 
               <button id="stopVote">Stop Vote</button>
               <button id="startVote">Start Voting</button>
+
+              <div id="calendarManagement">
+                  <h2>Manage Meetings</h2>
+                  <button onclick="createCalendarEvent()">Schedule New Meeting</button>
+                  <button onclick="showCalendarEvents()">Show Scheduled Meetings</button>
+                  <div id="calendarEvents"></div>
+              </div>
 
               <a href="/">Back to Home</a>
               <div id="chatSection">
