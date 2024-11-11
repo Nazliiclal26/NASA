@@ -16,6 +16,12 @@ let joinAddButton = document.getElementById("joinAddButton");
 let createGroupHome = document.getElementById("createHomeButton");
 let createJoinButton = document.getElementById("createJoinButton");
 
+let accountButton = document.getElementById("account");
+
+accountButton.addEventListener("click", () => {
+  window.location.href = "account.html";
+});
+
 function closeModals() {
   mainModal.classList.add("hidden");
   joinModal.classList.add("hidden");

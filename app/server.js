@@ -49,6 +49,53 @@ app.post("/codeValid", async (req, res) => {
   }
 });
 
+app.post("/changeUser", async (req, res) => {
+  let { userId, username } = req.body;
+
+  console.log(username, userId);
+
+  let result = await pool.query("SELECT * FROM users WHERE username = $1", [
+    username,
+  ]);
+  if (result.rows.length > 0) {
+    return res.json({ status: "error", message: "username already exists" });
+  } else {
+    await pool.query("UPDATE users SET username = $1 WHERE id = $2", [
+      username,
+      userId,
+    ]);
+    return res.json({ status: "success", message: "username changed" });
+  }
+});
+
+app.post("/changePass", async (req, res) => {
+  let { userId, password } = req.body;
+
+  let result = await pool.query("SELECT * FROM users WHERE id = $1", [userId]);
+
+  if (result.rows.length > 0) {
+    let userHash = result.rows[0].password;
+    let match = await argon2.verify(userHash, password);
+
+    if (match) {
+      return res.json({
+        status: "error",
+        message: "password is the same as before",
+      });
+    } else {
+      let newPassHash = await argon2.hash(password);
+
+      await pool.query("UPDATE users SET password = $1 WHERE id = $2", [
+        newPassHash,
+        userId,
+      ]);
+      return res.json({ status: "success", message: "password changed" });
+    }
+  } else {
+    return res.json({ status: "error", message: "users not found" });
+  }
+});
+
 app.get("/getMostVoted/:groupCode", async (req, res) => {
   let groupCode = req.params.groupCode;
 
