@@ -383,3 +383,25 @@ body {
 .clickedGroupButton {
   border: 2px solid;
 }
+
+#searchResult {
+  margin-top: 20px; 
+  padding: 0px;
+  width: 100%;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: white;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#searchResult li {
+  list-style: none;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+#searchResult li:last-child {
+  border-bottom: none;
+}
