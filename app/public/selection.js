@@ -219,6 +219,9 @@ function processCreateModal() {
       .then((data) => {
         if (data.status === "success") {
           // go to home
+          closeModals();
+          mainModal.classList.remove("hidden");
+          displayGroups();
         } else {
           console.log(data);
           alert(data.message);

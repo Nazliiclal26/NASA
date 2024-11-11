@@ -24,13 +24,12 @@ pool.connect().then(() => {
   console.log(`Connected to database ${env.database}`);
 });
 
-app.use(express.static("public", {index: false}));
+app.use(express.static("public", { index: false }));
 app.use(express.json());
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
-
 
 app.post("/codeValid", async (req, res) => {
   let { code } = req.body;
@@ -415,7 +414,7 @@ app.get("/group/:groupCode", (req, res) => {
         <button id="stopVote">Stop Vote</button>
         <button id="startVote">Start Voting</button>
 
-        <a href="/">Back to Home</a>
+        <a href="/selection.html">Back to Home</a>
 
         <div id="chatSection">
           <h2>Chat</h2>
@@ -518,7 +517,7 @@ app.get("/bookGroup/:groupCode", (req, res) => {
               <button id="stopVote">Stop Vote</button>
               <button id="startVote">Start Voting</button>
 
-              <a href="/">Back to Home</a>
+              <a href="/selection.html">Back to Home</a>
               <div id="chatSection">
           <h2>Chat</h2>
           <ul id="messages"></ul>
