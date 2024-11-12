@@ -872,22 +872,29 @@ io.on("connection", (socket) => {
   });
 });
 
-// Endpoint to add an event
-app.post("/api/addEvent", async (req, res) => {
-  // Log the request body to confirm it's being received correctly
-  console.log("Received data:", req.body);
+const db = require('../config/db'); 
 
+// Endpoint to add an event
+app.post('/api/addEvent', async (req, res) => {
   const { groupCode, eventDate, eventTitle, description } = req.body;
 
+  // Debugging: Log received data
+  console.log("Received data on server:", { groupCode, eventDate, eventTitle, description });
+
+  if (!eventDate || !eventTitle || !groupCode) {
+      return res.status(400).json({ error: "Missing required fields" });
+  }
+
   try {
-      const result = await pool.query(
-          "INSERT INTO group_events (group_code, event_date, event_title, description) VALUES ($1, $2, $3, $4) RETURNING *",
-          [groupCode, eventDate, eventTitle, description]
-      );
-      res.status(201).json(result.rows[0]);
+      const query = `
+          INSERT INTO group_events (group_code, event_date, event_title, description)
+          VALUES ($1, $2, $3, $4) RETURNING *`;
+      const values = [groupCode, eventDate, eventTitle, description];
+
+      const result = await db.query(query, values);
+      res.status(201).json(result.rows[0]); // Respond with the newly created event
   } catch (err) {
-      // Log the detailed error stack trace
-      console.error("Database insertion error:", err.stack);
+      console.error("Database error:", err); // Log any errors
       res.status(500).json({ error: err.message });
   }
 });

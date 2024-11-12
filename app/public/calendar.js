@@ -20,17 +20,16 @@ async function loadEventsFromDatabase(groupCode) {
     try {
         const response = await fetch(`/api/getEvents/${groupCode}`);
         if (response.ok) {
-            // Corrected line to assign the fetched events to the `events` array
             events = (await response.json()).map(event => ({
                 id: event.event_id,
-                date: event.event_date,
+                date: event.event_date.split("T")[0], // Strip off the time part
                 title: event.event_title,
                 description: event.description
             }));
             
-            displayReminders(); // Display reminders on the sidebar
-            console.log("Loaded events:", events); // Debug: check loaded events
-            showCalendar(currentMonth, currentYear); // Refresh calendar view
+            console.log("Loaded events from database:", events); // Debug: inspect loaded events
+            displayReminders();
+            showCalendar(currentMonth, currentYear);
         } else {
             console.error("Failed to load events:", await response.text());
         }
@@ -41,59 +40,61 @@ async function loadEventsFromDatabase(groupCode) {
 
 // Function to add events
 function addEvent() {
-    let date = eventDateInput.value;
-    let title = eventTitleInput.value;
-    let description = eventDescriptionInput.value;
+    const date = eventDateInput.value;
+    const title = eventTitleInput.value;
+    const description = eventDescriptionInput.value;
+    const pathParts = window.location.pathname.split("/");
+    const groupCode = pathParts[pathParts.length - 1];
 
-    if (date && title) {
-        // Create a unique event ID
-        let eventId = eventIdCounter++;
+    console.log("Extracted date:", date); // Debugging output
+    console.log("Extracted groupCode:", groupCode); // Debugging output
 
-        events.push(
-            {
-                id: eventId, 
-                date: date,
-                title: title,
-                description: description
+    if (date && title && groupCode) {
+        addEventToDatabase(groupCode, date, title, description).then((newEvent) => {
+            if (newEvent) {
+                events.push(newEvent); 
+                showCalendar(currentMonth, currentYear);
+                displayReminders();
             }
-        );
-        
-        const pathParts = window.location.pathname.split("/");
-        const groupCode = pathParts[pathParts.length - 1];
-        console.log("group code: ", groupCode);
+        });
 
-        addEventToDatabase(groupCode, date, title, description)
-            .then(() => {
-                events.push({ date, title, description }); // Store as plain string
-            });
-        
         eventDateInput.value = "";
         eventTitleInput.value = "";
         eventDescriptionInput.value = "";
-        displayReminders();
+    } else {
+        console.error("Missing required fields in addEvent");
     }
 }
 
 async function addEventToDatabase(groupCode, eventDate, eventTitle, description) {
+    const formattedDate = new Date(eventDate).toISOString().split("T")[0];
+    const payload = { groupCode, eventDate: formattedDate, eventTitle, description };
+    
+    console.log("Payload to be sent to server:", payload); // Debugging output
+
     try {
         const response = await fetch("/api/addEvent", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ groupCode, eventDate, eventTitle, description })
+            body: JSON.stringify(payload)
         });
+        
         if (response.ok) {
             const newEvent = await response.json();
-            events.push(newEvent); // Add to local events array
-            displayReminders();
-            showCalendar(currentMonth, currentYear);
+            return {
+                id: newEvent.event_id, 
+                date: newEvent.event_date.split("T")[0], 
+                title: newEvent.event_title, 
+                description: newEvent.description
+            };
         } else {
             console.error("Failed to add event:", await response.text());
         }
     } catch (error) {
         console.error("Error adding event:", error);
     }
+    return null;
 }
-
 
 async function deleteEventFromDatabase(eventId) {
     try {
@@ -109,22 +110,18 @@ async function deleteEventFromDatabase(eventId) {
 // Function to display reminders
 function displayReminders() {
     reminderList.innerHTML = "";
-    for (let i = 0; i < events.length; i++) {
-        let event = events[i];
-        let eventDate = new Date(event.date);
-        if (eventDate.getMonth() ===
-            currentMonth &&
-            eventDate.getFullYear() ===
-            currentYear) {
-            let listItem = document.createElement("li");
-            listItem.innerHTML =
-                `<strong>${event.title}</strong> - 
-            ${event.description} on 
-            ${eventDate.toLocaleDateString()}`;
+    for (const event of events) {
+        if (!event.date) continue; // Skip if event.date is undefined
 
-            // Add a delete button for each reminder item
-            let deleteButton =
-                document.createElement("button");
+        console.log("Displaying reminder for date:", event.date); // Debug: check each event date
+
+        const [year, month, day] = event.date.split("-").map(Number);
+        
+        if (month - 1 === currentMonth && year === currentYear) {
+            const listItem = document.createElement("li");
+            listItem.innerHTML = `<strong>${event.title}</strong> - ${event.description} on ${event.date}`;
+
+            const deleteButton = document.createElement("button");
             deleteButton.className = "delete-event";
             deleteButton.textContent = "Delete";
             deleteButton.onclick = function () {
@@ -221,7 +218,7 @@ function jump() {
 function showCalendar(month, year) {
     console.log("Events for calendar:", events); // Debug: check events for display
     let firstDay = new Date(year, month, 1).getDay();
-    tbl = document.getElementById("calendar-body");
+    const tbl = document.getElementById("calendar-body");
     tbl.innerHTML = "";
     monthAndYear.innerHTML = months[month] + " " + year;
     selectYear.value = year;
@@ -232,35 +229,26 @@ function showCalendar(month, year) {
         let row = document.createElement("tr");
         for (let j = 0; j < 7; j++) {
             if (i === 0 && j < firstDay) {
-                cell = document.createElement("td");
-                cellText = document.createTextNode("");
-                cell.appendChild(cellText);
+                const cell = document.createElement("td");
+                cell.appendChild(document.createTextNode(""));
                 row.appendChild(cell);
             } else if (date > daysInMonth(month, year)) {
                 break;
             } else {
-                cell = document.createElement("td");
-                cell.setAttribute("data-date", date);
-                cell.setAttribute("data-month", month + 1);
-                cell.setAttribute("data-year", year);
-                cell.setAttribute("data-month_name", months[month]);
+                const cell = document.createElement("td");
+                const cellDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
                 cell.className = "date-picker";
-                cell.innerHTML = "<span>" + date + "</span";
+                cell.innerHTML = `<span>${date}</span>`;
 
-                if (
-                    date === today.getDate() &&
-                    year === today.getFullYear() &&
-                    month === today.getMonth()
-                ) {
-                    cell.className = "date-picker selected";
+                // Highlight today's date
+                if (date === today.getDate() && year === today.getFullYear() && month === today.getMonth()) {
+                    cell.classList.add("selected");
                 }
 
-                // Check if there are events on this date
-                if (hasEventOnDate(date, month, year)) {
+                // Check if there's an event for this date
+                if (events.some(event => event.date === cellDateStr)) {
                     cell.classList.add("event-marker");
-                    cell.appendChild(
-                        createEventTooltip(date, month, year)
-                );
+                    cell.appendChild(createEventTooltip(cellDateStr));
                 }
 
                 row.appendChild(cell);
@@ -274,18 +262,15 @@ function showCalendar(month, year) {
 }
 
 // Function to create an event tooltip
-function createEventTooltip(date, month, year) {
-    let tooltip = document.createElement("div");
+function createEventTooltip(dateStr) {
+    const tooltip = document.createElement("div");
     tooltip.className = "event-tooltip";
 
-    let eventsOnDate = getEventsOnDate(date, month, year);
-    for (let i = 0; i < eventsOnDate.length; i++) {
-        let event = eventsOnDate[i];
-        let eventDate = new Date(event.date);
-        let eventText = `<strong>${event.title}</strong> - 
-            ${event.description} on 
-            ${eventDate.toLocaleDateString()}`;
-        let eventElement = document.createElement("p");
+    // Find all events on this date
+    const eventsOnDate = events.filter(event => event.date === dateStr);
+    for (const event of eventsOnDate) {
+        const eventText = `<strong>${event.title}</strong> - ${event.description}`;
+        const eventElement = document.createElement("p");
         eventElement.innerHTML = eventText;
         tooltip.appendChild(eventElement);
     }
@@ -313,9 +298,6 @@ function hasEventOnDate(date, month, year) {
 function daysInMonth(iMonth, iYear) {
     return 32 - new Date(iYear, iMonth, 32).getDate();
 }
-
-// Call the showCalendar function initially to display the calendar
-// showCalendar(currentMonth, currentYear);
 
 // Initialize calendar on page load
 document.addEventListener("DOMContentLoaded", function() {
