@@ -20,8 +20,16 @@ async function loadEventsFromDatabase(groupCode) {
     try {
         const response = await fetch(`/api/getEvents/${groupCode}`);
         if (response.ok) {
-            events = await response.json(); // Load events into the local `events` array
+            // Corrected line to assign the fetched events to the `events` array
+            events = (await response.json()).map(event => ({
+                id: event.event_id,
+                date: event.event_date,
+                title: event.event_title,
+                description: event.description
+            }));
+            
             displayReminders(); // Display reminders on the sidebar
+            console.log("Loaded events:", events); // Debug: check loaded events
             showCalendar(currentMonth, currentYear); // Refresh calendar view
         } else {
             console.error("Failed to load events:", await response.text());
@@ -53,9 +61,12 @@ function addEvent() {
         const pathParts = window.location.pathname.split("/");
         const groupCode = pathParts[pathParts.length - 1];
         console.log("group code: ", groupCode);
-        addEventToDatabase(groupCode, date, title, description)
 
-        showCalendar(currentMonth, currentYear);
+        addEventToDatabase(groupCode, date, title, description)
+            .then(() => {
+                events.push({ date, title, description }); // Store as plain string
+            });
+        
         eventDateInput.value = "";
         eventTitleInput.value = "";
         eventDescriptionInput.value = "";
@@ -117,7 +128,7 @@ function displayReminders() {
             deleteButton.className = "delete-event";
             deleteButton.textContent = "Delete";
             deleteButton.onclick = function () {
-                deleteEventFromDatabase(eventId);
+                deleteEventFromDatabase(event.id);
             };
 
             listItem.appendChild(deleteButton);
@@ -208,6 +219,7 @@ function jump() {
 
 // Function to display the calendar
 function showCalendar(month, year) {
+    console.log("Events for calendar:", events); // Debug: check events for display
     let firstDay = new Date(year, month, 1).getDay();
     tbl = document.getElementById("calendar-body");
     tbl.innerHTML = "";
@@ -265,6 +277,7 @@ function showCalendar(month, year) {
 function createEventTooltip(date, month, year) {
     let tooltip = document.createElement("div");
     tooltip.className = "event-tooltip";
+
     let eventsOnDate = getEventsOnDate(date, month, year);
     for (let i = 0; i < eventsOnDate.length; i++) {
         let event = eventsOnDate[i];
@@ -313,5 +326,4 @@ document.addEventListener("DOMContentLoaded", function() {
     } else {
         console.error("No group codename found in the URL.");
     }
-    showCalendar(currentMonth, currentYear);
 });
