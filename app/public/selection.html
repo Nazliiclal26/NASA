@@ -25,7 +25,19 @@
       </div>
       <div id="navButtons">
         <div id="buttonContainer">
-          <div id="watchlist">My Watchlist</div>
+          <div id="watchlist">
+            <a href="#" id="watchlistLink">My Watchlist</a>
+          </div>
+          <script>
+            document.getElementById("watchlistLink").addEventListener("click", () => {
+              const userId = localStorage.getItem("userId");
+              if (userId) {
+                window.location.href = `/${userId}/watchlist.html`;
+              } else {
+                alert("User not logged in.");
+              }
+            });
+          </script>
           <div id="account">Account</div>
           <div id="logout">
             <img src="images/logout.png" width="30px" />
