@@ -22,6 +22,7 @@ const messages = require("../models/Messages");
 const user = require("../models/user");
 
 let { Server } = require("socket.io");
+const { timeStamp } = require("console");
 let io = new Server(server);
 
 pool.connect().then(() => {
@@ -973,6 +974,35 @@ app.post("/bookVote", async (req, res) => {
     res.status(200).json({ message: "Vote recorded" });
   } catch (error) {
     res.status(500).json({ message: "Error recording vote" });
+  }
+});
+
+app.post("/addToWatchlist", async (req, res) => {
+  let { type, title, userId } = req.body;
+
+  try {
+    let checkWatch = await pool.query(
+      "SELECT * FROM user_watchlists WHERE item_type = $1 AND item_id = $2 AND user_id = $3",
+      [type, title, userId]
+    );
+
+    if (checkWatch.rows.length > 0) {
+      return res
+        .status(400)
+        .json({ status: "error", message: "Item already in watchlist" });
+    }
+
+    let result = await pool.query(
+      "INSERT INTO user_watchlists (item_type, item_id, user_id) VALUES ($1, $2, $3)",
+      [type, title, userId]
+    );
+
+    res.status(200).json({ status: "success", message: "Adding to watchlist" });
+  } catch (error) {
+    console.error("Error adding to watchlist:", error);
+    res
+      .status(500)
+      .json({ status: "error", message: "Error adding to watchlist" });
   }
 });
 
