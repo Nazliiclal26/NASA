@@ -64,6 +64,10 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
+app.get("/:userId/watchlist.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "watchlist.html"));
+});
+
 app.post("/startVoting/:groupCode", async (req, res) => {
   let groupCode = req.params.groupCode;
   let fullGroupName = `Group ${groupCode}`;
