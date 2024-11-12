@@ -40,6 +40,18 @@ tokenOptions = {
   sameSite: "strict"
 };
 
+/*
+  New Token Storage:
+  tokenStorage = {
+  "--random Token here --" : 
+    {
+      "username" : "--user's username here--",
+      "currentPage" "either 'books' or 'movies'", // Unimplemented
+      other attributes to follow
+    }
+  }
+*/
+
 function makeToken() {
   return crypto.randomBytes(32).toString("hex");
 }
@@ -217,8 +229,11 @@ app.post("/login", async (req, res) => {
 
     if (match) {
       console.log("Login Success");
-      tokenStorage[username] = makeToken();
-      return res.cookie("token", tokenStorage[username], tokenOptions).json({
+      let token = makeToken();
+      tokenStorage[token] = {}
+      tokenStorage[token]["username"] = username;
+      console.log(tokenStorage);
+      return res.cookie("token", token, tokenOptions).json({
         status: "success",
         message: "Login Successful",
         userId: user.id,
@@ -268,8 +283,11 @@ app.post("/signUp", async (req, res) => {
         [firstName, lastName, username, hash, preferred_genres]
       );
       let user = result.rows[0];
-      tokenStorage[username] = makeToken();
-      res.cookie("token", tokenStorage[username], tokenOptions).json({
+      let token = makeToken();
+      tokenStorage[token] = {};
+      tokenStorage[token]["username"] = username;
+      console.log(tokenStorage);
+      res.cookie("token", token, tokenOptions).json({
         status: "success",
         message: "Sign Up Successful",
         userId: user.id,
@@ -550,113 +568,6 @@ app.get("/movieGroup/:groupCode", (req, res) => {
           </div>
       </main>
       <script src="/socket.io/socket.io.js"></script>
-      <script>
-        let username = null;
-        let socket = io();
-        socket.on("connect", () => { console.log("Socket has been connected."); });
-        let send = document.getElementById("sendButton");
-        let input = document.getElementById("messageInput");
-        let messages = document.getElementById("messages");
-        send.addEventListener("click", () => {
-          let message = input.value;
-          if (message === '') {
-            return;
-          }
-
-          // Add to successful return body for add message fetch
-          // appendSentMessage(message, username);
-
-          console.log("Sending message:", message);
-          fetch('/addMessage', { 
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              sentUser: username,
-              message: message,
-              groupName: '${groupCode}' 
-            })
-          }).then((response) => {
-            console.log(response);
-            return response.json().then((body) => {
-                console.log('Successful message addition. Now appending and sending to room:');
-                appendSentMessage(message, username);
-                socket.emit('sendMessageToRoom', { message, username });
-              }).catch((error) => {
-                console.error(error);
-              }); 
-          }).catch((error) => {
-            console.error(error);
-          });
-
-          // Add this to successful return body for add message fetch
-          // socket.emit('sendMessageToRoom', { message });
-        });
-
-        // Sets username based on token storage in server
-        fetch('/getUsernameForGroup').then((response) => {
-          return response.json();
-        }).then((body) => {
-          username = body["username"];
-        }).catch((error) => {
-          console.error(error);
-        });
-
-        fetch('/getMessages?groupName=${groupCode}').then((response) => {
-          return response.json();
-        }).then((body) => {
-          displayExistingMessages(body);
-        }).catch((error) => { console.error(error); });
-
-        // Ideally you receive a username of who sent it, send a token, return the username
-        socket.on("receive", (data, userWhoSent) => {
-          console.log("Received message:", data, "from:", userWhoSent);
-          appendReceivedMessage(data, userWhoSent); 
-        });
-        
-        function appendReceivedMessage(msg, defaultUser="") {
-          let msgBox = document.createElement("li");
-          let usernameDiv = document.createElement("div");
-          let usernameEffect = document.createElement("strong");
-          usernameEffect.textContent = defaultUser;
-          usernameDiv.appendChild(usernameEffect);
-          let messageDiv = document.createElement("div");
-          messageDiv.textContent = msg;
-          msgBox.appendChild(usernameDiv);
-          msgBox.appendChild(messageDiv);
-          msgBox.style.textAlign = "left";
-          msgBox.style.listStyleType = "none";
-          messages.appendChild(msgBox);
-        }
-
-        function appendSentMessage(msg, defaultUser="") {
-          let msgBox = document.createElement("li");
-          let usernameDiv = document.createElement("div");
-          let usernameEffect = document.createElement("strong");
-          usernameEffect.textContent = defaultUser;
-          usernameDiv.appendChild(usernameEffect);
-          let messageDiv = document.createElement("div");
-          messageDiv.textContent = msg;
-          msgBox.appendChild(usernameDiv);
-          msgBox.appendChild(messageDiv);
-          msgBox.style.textAlign = "right";
-          msgBox.style.listStyleType = "none";
-          messages.appendChild(msgBox);
-        }
-
-        function displayExistingMessages(body) {
-          let sentUser = body["username"];
-          // checks if global variable on whether to append to left 
-          let messageCollection = body["messages"];
-          for (let row of messageCollection) {
-            if (sentUser === row["username"]) {
-              appendSentMessage(row["user_message"], row["username"]);
-            }
-            else {
-              appendReceivedMessage(row["user_message"], row["username"]);
-            }
-          }
-        }
-      </script>
     </body>
     </html>
   `);
@@ -689,6 +600,8 @@ app.get("/bookGroup/:groupCode", (req, res) => {
                   padding: 5px;
                   cursor: pointer;
               }
+              #messages { list-style-type: none; padding: 0; }
+              #messages li { margin: 10px 0; }
           </style>
       </head>
       <body>
@@ -723,113 +636,6 @@ app.get("/bookGroup/:groupCode", (req, res) => {
           </div>
       </main>
       <script src="/socket.io/socket.io.js"></script>
-      <script>
-        let username = null;
-        let socket = io();
-        socket.on("connect", () => { console.log("Socket has been connected."); });
-        let send = document.getElementById("sendButton");
-        let input = document.getElementById("messageInput");
-        let messages = document.getElementById("messages");
-        send.addEventListener("click", () => {
-          let message = input.value;
-          if (message === '') {
-            return;
-          }
-
-          // Add to successful return body for add message fetch
-          // appendSentMessage(message, username);
-
-          console.log("Sending message:", message);
-          fetch('/addMessage', { 
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              sentUser: username,
-              message: message,
-              groupName: '${groupCode}' 
-            })
-          }).then((response) => {
-            console.log(response);
-            return response.json().then((body) => {
-                console.log('Successful message addition. Now appending and sending to room:');
-                appendSentMessage(message, username);
-                socket.emit('sendMessageToRoom', { message, username });
-              }).catch((error) => {
-                console.error(error);
-              }); 
-          }).catch((error) => {
-            console.error(error);
-          });
-
-          // Add this to successful return body for add message fetch
-          // socket.emit('sendMessageToRoom', { message });
-        });
-
-        // Sets username based on token storage in server
-        fetch('/getUsernameForGroup').then((response) => {
-          return response.json();
-        }).then((body) => {
-          username = body["username"];
-        }).catch((error) => {
-          console.error(error);
-        });
-
-        fetch('/getMessages?groupName=${groupCode}').then((response) => {
-          return response.json();
-        }).then((body) => {
-          displayExistingMessages(body);
-        }).catch((error) => { console.error(error); });
-
-        // Ideally you receive a username of who sent it, send a token, return the username
-        socket.on("receive", (data, userWhoSent) => {
-          console.log("Received message:", data, "from:", userWhoSent);
-          appendReceivedMessage(data, userWhoSent); 
-        });
-        
-        function appendReceivedMessage(msg, defaultUser="") {
-          let msgBox = document.createElement("li");
-          let usernameDiv = document.createElement("div");
-          let usernameEffect = document.createElement("strong");
-          usernameEffect.textContent = defaultUser;
-          usernameDiv.appendChild(usernameEffect);
-          let messageDiv = document.createElement("div");
-          messageDiv.textContent = msg;
-          msgBox.appendChild(usernameDiv);
-          msgBox.appendChild(messageDiv);
-          msgBox.style.textAlign = "left";
-          msgBox.style.listStyleType = "none";
-          messages.appendChild(msgBox);
-        }
-
-        function appendSentMessage(msg, defaultUser="") {
-          let msgBox = document.createElement("li");
-          let usernameDiv = document.createElement("div");
-          let usernameEffect = document.createElement("strong");
-          usernameEffect.textContent = defaultUser;
-          usernameDiv.appendChild(usernameEffect);
-          let messageDiv = document.createElement("div");
-          messageDiv.textContent = msg;
-          msgBox.appendChild(usernameDiv);
-          msgBox.appendChild(messageDiv);
-          msgBox.style.textAlign = "right";
-          msgBox.style.listStyleType = "none";
-          messages.appendChild(msgBox);
-        }
-
-        function displayExistingMessages(body) {
-          let sentUser = body["username"];
-          // checks if global variable on whether to append to left 
-          let messageCollection = body["messages"];
-          for (let row of messageCollection) {
-            if (sentUser === row["username"]) {
-              appendSentMessage(row["user_message"], row["username"]);
-            }
-            else {
-              appendReceivedMessage(row["user_message"], row["username"]);
-            }
-          }
-        }
-      </script>
       </body>
       </html>
   `);
@@ -886,12 +692,12 @@ app.get('/getUsernameForGroup', (req, res) => {
     console.log("No cookies set for this username.");
     return res.status(500).json({error: "No cookie set for this user, internal issue with user setup."});
   }
-  else if (getKeyByValue(tokenStorage, token) === undefined) {
+  else if (tokenStorage[token] === undefined) {
     console.log("Server storage not properly accounting for this username.");
     return res.status(400).json({error: "No cookie set for this user, ensure user was initialized properly."});
   }
 
-  return res.status(200).json({username: getKeyByValue(tokenStorage, token)});
+  return res.status(200).json({username: tokenStorage[token]["username"]});
 });
 
 app.get('/getMessages', async (req, res) => {
@@ -902,15 +708,14 @@ app.get('/getMessages', async (req, res) => {
     console.log("No cookies set for this username.");
     return res.status(500).json({error: "No cookie set for this user, internal issue with user setup."});
   }
-  else if (getKeyByValue(tokenStorage, token) === undefined) {
+  else if (tokenStorage[token] === undefined) {
     console.log("Server storage not properly accounting for this username.");
     return res.status(500).json({error: "No cookie set for this user, ensure user was initialized properly."});
   }
   else {
     console.log(token);
   }
-  console.log("Received getMessages request, If works, i'll do the get key from value function and return the username");
-  let username = getKeyByValue(tokenStorage, token);
+  let username = tokenStorage[token]["username"];
 
   // Get group id given group name
   let groupId = null;
@@ -1140,14 +945,13 @@ io.on("connection", (socket) => {
     `Numbers of members in room ${roomId}: ${Object.keys(rooms[roomId]).length}`
   );
 
-  socket.on("sendMessageToRoom", ({ message }) => {
+  socket.on("sendMessageToRoom", ({ message, username }) => {
     console.log("Sending", message, "to room:", roomId);
     for (let roommateId of Object.keys(rooms[roomId])) {
       if (roommateId === socket.id) {
         continue;
       }
-      console.log("Sending", message, "to member", roommateId);
-      rooms[roomId][roommateId].emit("receive", message);
+      rooms[roomId][roommateId].emit("receive", message, username);
     }
   });
 

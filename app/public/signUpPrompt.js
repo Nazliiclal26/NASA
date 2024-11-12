@@ -17,7 +17,7 @@ buttons.forEach((button) => {
 });
 
 async function submitGenres() {
-  let userId = localStorage.getItem("userID");
+  let userId = localStorage.getItem("userId");
 
   if (selectedGenres.length === 0) {
     alert("Select at least one genre.");
@@ -189,7 +189,7 @@ function changeView() {
         let groupCodeData = {
           type: "random",
           code: "",
-          userId: localStorage.getItem("userID"),
+          userId: localStorage.getItem("userId"),
         };
         alert("join random");
         fetch("/joinGroup", {
@@ -216,7 +216,7 @@ function changeView() {
         let groupCodeData = {
           type: "code",
           code: groupCodeVal,
-          userId: localStorage.getItem("userID"),
+          userId: localStorage.getItem("userId"),
         };
         alert(`joing with code ${groupCodeVal}`);
         fetch("/joinGroup", {
