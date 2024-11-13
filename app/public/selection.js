@@ -1279,7 +1279,11 @@ async function populateCatalogBooks() {
               if (!response.ok) throw new Error("Book not found");
 
               let data = await response.json();
-              let info = [data.poster, data.title, data.authors, data.rating];
+              let avgRating = data.rating;
+              if (avgRating === undefined){
+                avgRating = "N/A ";
+              }
+              let info = [data.poster, data.title, data.authors, avgRating];
               bookApiData.push(info);
             } catch (error) {
               searchResult.innerText = "Book not found or an error occurred.";
@@ -1442,7 +1446,11 @@ async function populateCatalogBooks() {
               if (!response.ok) throw new Error("Book not found");
 
               let data = await response.json();
-              let info = [data.poster, data.title, data.authors, data.rating];
+              let avgRating = data.rating;
+              if (avgRating === undefined){
+                avgRating = "N/A ";
+              }
+              let info = [data.poster, data.title, data.authors, avgRating];
               bookApiData.push(info);
             } catch (error) {
               searchResult.innerText = "Book not found or an error occurred.";
