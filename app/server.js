@@ -8,7 +8,6 @@ const http = require("http");
 const app = express();
 
 const server = http.createServer(app);
-const session = require('express-session');
 
 const path = require("path");
 
