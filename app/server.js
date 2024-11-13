@@ -22,6 +22,7 @@ const messages = require("../models/Messages");
 const user = require("../models/user");
 
 let { Server } = require("socket.io");
+const { timeStamp } = require("console");
 let io = new Server(server);
 
 pool.connect().then(() => {
@@ -35,9 +36,9 @@ app.use(cookieParser());
 // structure of "username": "cookie-token"
 let tokenStorage = {};
 tokenOptions = {
-  httpOnly: true, 
-  secure: true, 
-  sameSite: "strict"
+  httpOnly: true,
+  secure: true,
+  sameSite: "strict",
 };
 
 /*
@@ -57,7 +58,7 @@ function makeToken() {
 }
 
 function getKeyByValue(object, value) {
-  return Object.keys(object).find(key => object[key] === value);
+  return Object.keys(object).find((key) => object[key] === value);
 }
 
 app.get("/", (req, res) => {
@@ -89,7 +90,6 @@ app.post("/startVoting/:groupCode", async (req, res) => {
   }
 });
 
-
 app.get("/getVotingStatus/:groupCode", async (req, res) => {
   let groupCode = req.params.groupCode;
   let fullGroupName = `Group ${groupCode}`;
@@ -98,7 +98,7 @@ app.get("/getVotingStatus/:groupCode", async (req, res) => {
     let result = await pool.query(
       "SELECT voting_status FROM groups WHERE group_name = $1 OR group_name = $2",
       [groupCode, fullGroupName]
-    ); 
+    );
 
     res.status(200).json({ votingStatus: result.rows[0].voting_status });
   } catch (error) {
@@ -114,7 +114,7 @@ app.post("/stopVoting/:groupCode", async (req, res) => {
     //console.log("here");
     await pool.query(
       "UPDATE groups SET voting_status = TRUE WHERE group_name = $1 or group_name = $2",
-      [groupCode,fullGroupName]
+      [groupCode, fullGroupName]
     );
     res.status(200).json({ message: "Voting stopped" });
   } catch (error) {
@@ -127,7 +127,7 @@ app.post("/codeValid", async (req, res) => {
   let { code } = req.body;
   try {
     let result = await pool.query(
-      "SELECT * FROM groups WHERE group_name = $1",
+      "SELECT * FROM groups WHERE secret_code = $1",
       [code]
     );
 
@@ -234,7 +234,7 @@ app.post("/login", async (req, res) => {
     if (match) {
       console.log("Login Success");
       let token = makeToken();
-      tokenStorage[token] = {}
+      tokenStorage[token] = {};
       tokenStorage[token]["username"] = username;
       console.log(tokenStorage);
       return res.cookie("token", token, tokenOptions).json({
@@ -328,6 +328,12 @@ app.post("/signUpPrompt", async (req, res) => {
 app.post("/createGroup", async (req, res) => {
   let { groupName, groupType, access, leaderId } = req.body;
   let memberList = [leaderId];
+  let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let code = "";
+  for (let i = 0; i < 5; i++) {
+    let rand = Math.floor(Math.random() * chars.length);
+    code += chars.charAt(rand);
+  }
 
   if (!leaderId) {
     return res.status(400).json({ message: "Leader ID is missing" });
@@ -345,9 +351,9 @@ app.post("/createGroup", async (req, res) => {
   } else {
     try {
       let result = await pool.query(
-        `INSERT INTO groups (group_name, leader_id, group_type, privacy, members) 
-           VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-        [groupName, leaderId, groupType, access, memberList]
+        `INSERT INTO groups (group_name, leader_id, group_type, privacy, members, secret_code) 
+           VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+        [groupName, leaderId, groupType, access, memberList, code]
       );
 
       res.status(200).json({
@@ -374,7 +380,7 @@ app.post("/joinGroup", async (req, res) => {
       }
 
       let groupCheck = await pool.query(
-        "SELECT * FROM groups WHERE group_name = $1",
+        "SELECT * FROM groups WHERE secret_code = $1",
         [code]
       );
 
@@ -392,23 +398,31 @@ app.post("/joinGroup", async (req, res) => {
           .json({ status: "error", message: "user already in group" });
       }
 
-      let update;
-      if (group.members) {
-        update = [...group.members, userId];
+      if (group.privacy !== "private") {
+        let update;
+        if (group.members) {
+          update = [...group.members, userId];
+        } else {
+          update = [userId];
+        }
+
+        let updateRes = await pool.query(
+          "UPDATE groups SET members = $1 WHERE secret_code = $2 RETURNING *",
+          [update, code]
+        );
+
+        res.status(200).json({
+          status: "success",
+          message: "joined group",
+          group: updateRes.rows[0],
+        });
       } else {
-        update = [userId];
+        res.status(400).json({
+          status: "error",
+          message: "group is private",
+          group: updateRes.rows[0],
+        });
       }
-
-      let updateRes = await pool.query(
-        "UPDATE groups SET members = $1 WHERE group_name = $2 RETURNING *",
-        [update, code]
-      );
-
-      res.status(200).json({
-        status: "success",
-        message: "joined group",
-        group: updateRes.rows[0],
-      });
     } catch (error) {
       console.error("Error joining group:", error);
       res.status(500).json({ message: "Error joining group" });
@@ -645,24 +659,29 @@ app.get("/bookGroup/:groupCode", (req, res) => {
   `);
 });
 
-app.post('/addMessage', async (req, res) => {
-  
+app.post("/addMessage", async (req, res) => {
   let sentUser = req.body["sentUser"];
   let message = req.body["message"];
   let groupName = req.body["groupName"];
   if (sentUser === undefined || sentUser === null) {
-    return res.status(400).json({error: 'sentUser is not defined'});
+    return res.status(400).json({ error: "sentUser is not defined" });
   }
 
   if (message === undefined || message === null) {
-    return res.status(400).json({error: 'message is not defined'});
+    return res.status(400).json({ error: "message is not defined" });
   }
 
   if (groupName === undefined || groupName === null) {
-    return res.status(400).json({error: 'group name is not defined'});
-  } 
+    return res.status(400).json({ error: "group name is not defined" });
+  }
 
-  console.log("Attempting to add message:", message, ", in group",  groupName, ", to db");
+  console.log(
+    "Attempting to add message:",
+    message,
+    ", in group",
+    groupName,
+    ", to db"
+  );
 
   let groupId = null;
   await group.findByName(groupName).then((body) => {
@@ -681,42 +700,46 @@ app.post('/addMessage', async (req, res) => {
 
   if (result) {
     return res.status(200).json({});
+  } else {
+    return res.status(500).json({ error: "Internal server error!" });
   }
-  else {
-    return res.status(500).json({error: 'Internal server error!'});
-  }
-   
 });
 
-
-app.get('/getUsernameForGroup', (req, res) => {
+app.get("/getUsernameForGroup", (req, res) => {
   // Utilize cookies to return username
   let { token } = req.cookies;
   if (token === undefined) {
     console.log("No cookies set for this username.");
-    return res.status(500).json({error: "No cookie set for this user, internal issue with user setup."});
-  }
-  else if (tokenStorage[token] === undefined) {
+    return res.status(500).json({
+      error: "No cookie set for this user, internal issue with user setup.",
+    });
+  } else if (tokenStorage[token] === undefined) {
     console.log("Server storage not properly accounting for this username.");
-    return res.status(400).json({error: "No cookie set for this user, ensure user was initialized properly."});
+    return res.status(400).json({
+      error:
+        "No cookie set for this user, ensure user was initialized properly.",
+    });
   }
 
-  return res.status(200).json({username: tokenStorage[token]["username"]});
+  return res.status(200).json({ username: tokenStorage[token]["username"] });
 });
 
-app.get('/getMessages', async (req, res) => {
-  let groupName = req.query.groupName; 
+app.get("/getMessages", async (req, res) => {
+  let groupName = req.query.groupName;
 
   let { token } = req.cookies;
   if (token === undefined) {
     console.log("No cookies set for this username.");
-    return res.status(500).json({error: "No cookie set for this user, internal issue with user setup."});
-  }
-  else if (tokenStorage[token] === undefined) {
+    return res.status(500).json({
+      error: "No cookie set for this user, internal issue with user setup.",
+    });
+  } else if (tokenStorage[token] === undefined) {
     console.log("Server storage not properly accounting for this username.");
-    return res.status(500).json({error: "No cookie set for this user, ensure user was initialized properly."});
-  }
-  else {
+    return res.status(500).json({
+      error:
+        "No cookie set for this user, ensure user was initialized properly.",
+    });
+  } else {
     console.log(token);
   }
   let username = tokenStorage[token]["username"];
@@ -732,10 +755,10 @@ app.get('/getMessages', async (req, res) => {
     messageCollection = rows;
   });
   // Create message object
-  let messageObj = { 
+  let messageObj = {
     username: username,
-    messages: messageCollection
-  }
+    messages: messageCollection,
+  };
   // data gon be like { username: "username", messages: [{ username: "message" }] }
   return res.status(200).json(messageObj);
 });
@@ -847,6 +870,45 @@ app.get("/getGroups/:userId", async (req, res) => {
   }
 });
 
+app.get("/getGenres/:userId", async (req, res) => {
+  let userId = req.params.userId;
+  try {
+    let { rows } = await pool.query(
+      "SELECT preferred_genres FROM users WHERE id = $1",
+      [userId]
+    );
+
+    res.json({
+      status: "success",
+      rows: rows,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: "error",
+    });
+  }
+});
+
+app.get("/getUsername/:userId", async (req, res) => {
+  let userId = req.params.userId;
+  try {
+    let { rows } = await pool.query(
+      "SELECT username FROM users WHERE id = $1",
+      [userId]
+    );
+    res.json({
+      status: "success",
+      rows: rows,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: "username not available",
+    });
+  }
+});
+
 app.get("/bookVotes/:groupCode", async (req, res) => {
   let groupCode = req.params.groupCode;
 
@@ -924,6 +986,35 @@ app.post("/bookVote", async (req, res) => {
     res.status(200).json({ message: "Vote recorded" });
   } catch (error) {
     res.status(500).json({ message: "Error recording vote" });
+  }
+});
+
+app.post("/addToWatchlist", async (req, res) => {
+  let { type, title, userId } = req.body;
+
+  try {
+    let checkWatch = await pool.query(
+      "SELECT * FROM user_watchlists WHERE item_type = $1 AND item_id = $2 AND user_id = $3",
+      [type, title, userId]
+    );
+
+    if (checkWatch.rows.length > 0) {
+      return res
+        .status(400)
+        .json({ status: "error", message: "Item already in watchlist" });
+    }
+
+    let result = await pool.query(
+      "INSERT INTO user_watchlists (item_type, item_id, user_id) VALUES ($1, $2, $3)",
+      [type, title, userId]
+    );
+
+    res.status(200).json({ status: "success", message: "Adding to watchlist" });
+  } catch (error) {
+    console.error("Error adding to watchlist:", error);
+    res
+      .status(500)
+      .json({ status: "error", message: "Error adding to watchlist" });
   }
 });
 

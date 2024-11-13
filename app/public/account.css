@@ -1,5 +1,5 @@
 body {
-  height: 100vh;
+  height: 110vh;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
 }
@@ -134,7 +134,9 @@ body {
 #main {
   display: flex;
   justify-content: center;
-  height: 770px;
+  height: 900px;
+  flex-direction: column;
+  align-items: center;
 }
 
 #groupButton {
@@ -398,8 +400,9 @@ body {
   border: 2px solid;
 }
 
-#settingsBlock {
-  height: 600px;
+#settingsBlock,
+#profileBlock {
+  height: 630px;
   width: 450px;
   background-color: rgb(202, 238, 251);
   border-radius: 40px;
@@ -411,7 +414,6 @@ body {
   padding-left: 20px;
   padding-right: 20px;
   padding-bottom: 20px;
-  margin-top: 120px;
 }
 
 .paramBlock {
@@ -459,4 +461,124 @@ body {
 
 #confirmUser {
   margin-top: 0px;
+}
+
+#actionButtons {
+  width: 300px;
+  height: 100px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  font-size: 22px;
+}
+
+.actionButton {
+  width: 140px;
+  height: 50px;
+  border: 2px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-weight: 400;
+}
+
+.actionButton:hover {
+  cursor: pointer;
+  background-color: rgb(235, 235, 235);
+}
+
+.actionClicked {
+  background-color: rgb(235, 235, 235);
+}
+
+#content {
+  width: 500px;
+  height: 370px;
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.row {
+  height: 50px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 21px;
+  gap: 15px;
+  font-weight: 400;
+}
+
+.button {
+  height: 100%;
+  background-color: rgb(202, 238, 251);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-left: 10px;
+  padding-right: 10px;
+  min-width: 70px;
+  border-radius: 10px;
+}
+
+.button:hover {
+  cursor: pointer;
+  background-color: rgb(175, 231, 252);
+}
+
+.button:selection {
+  border: 3px solid black;
+}
+
+.clicked {
+  border: 2px solid black;
+}
+
+#actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+#submit {
+  font-size: 25px;
+  width: 150px;
+  background-color: rgb(15, 158, 213);
+  height: 50px;
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 40px;
+  color: white;
+}
+
+#submit:hover {
+  cursor: pointer;
+  background-color: rgb(5, 134, 185);
+}
+#title {
+  margin-top: 30px;
+  font-size: 32px;
+  width: 250px;
+  text-align: center;
+}
+
+#mainBox {
+  width: 530px;
+  height: 690px;
+  background-color: white;
+  border-radius: 70px;
+  border: 3px solid black;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: top;
 }
