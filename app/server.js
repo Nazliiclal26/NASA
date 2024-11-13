@@ -1093,6 +1093,7 @@ app.get("/groupSearchBook", (req, res) => {
         poster: book.imageLinks ? book.imageLinks.thumbnail : "",
         authors: book.authors ? book.authors.join(", ") : "N/A",
         publishedDate: book.publishedDate,
+        rating: book.averageRating,
         description: book.description
           ? book.description
           : "No description available.",
