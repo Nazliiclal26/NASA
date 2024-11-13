@@ -22,8 +22,8 @@ const messages = require("../models/Messages");
 const user = require("../models/user");
 
 //const authRoutes = require('../routes/authRoutes');
-const calendarRoutes = require('../routes/calendarRoutes');
-app.use('/calendar', calendarRoutes);
+//const calendarRoutes = require('../routes/calendarRoutes');
+//app.use('/calendar', calendarRoutes);
 
 let { Server } = require("socket.io");
 const { timeStamp } = require("console");
@@ -35,7 +35,7 @@ pool.connect().then(() => {
 
 app.use(express.static("public", { index: false }));
 app.use(express.json());
-app.use(authRoutes);
+//app.use(authRoutes);
 app.use(cookieParser());
 
 // structure of "username": "cookie-token"
