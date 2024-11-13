@@ -158,6 +158,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           console.log('Successful message addition. Now appending and sending to room:');
           appendSentMessage(message, username);
           socket.emit('sendMessageToRoom', { message, username });
+          input.value = '';
         }).catch((error) => {
           console.error(error);
         }); 
