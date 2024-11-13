@@ -27,33 +27,65 @@ let booksButton = document.getElementById("books");
 let moviesButton = document.getElementById("movies");
 
 searchButton.addEventListener("click", async () => {
-  let title = document.getElementById("search").value;
+  if (localStorage.getItem("type") === "movies"){
+    let title = document.getElementById("search").value;
 
-  if (!title) {
-    searchResult.innerText = "Please enter a film title.";
-    return;
+    if (!title) {
+      searchResult.innerText = "Please enter a film title.";
+      return;
+    }
+
+    try {
+      let response = await fetch(
+        `/groupSearch?title=${encodeURIComponent(title)}`
+      );
+      if (!response.ok) throw new Error("Film not found");
+
+      let data = await response.json();
+      searchResult.innerHTML = `
+        <div class="film-card">
+          <img src="${data.poster}" alt="${data.title} poster">
+          <button class="watchlist-btn" data-title="${data.title}" data-genre="${data.genre}">+</button>
+          <h3>${data.title}</h3>
+          <p>IMDb Rating: ${data.rating}</p>
+          <p>Genre: ${data.genre}</p>x
+          <p>Plot: ${data.plot}</p>
+        </div>
+      `;
+    } catch (error) {
+      searchResult.innerText = "Film not found or an error occurred.";
+      console.error("Error fetching film:", error);
+    }
   }
+  else{
+    let title = document.getElementById("search").value;
 
-  try {
-    let response = await fetch(
-      `/groupSearch?title=${encodeURIComponent(title)}`
-    );
-    if (!response.ok) throw new Error("Film not found");
+    if (!title) {
+      searchResult.innerText = "Please enter a book title.";
+      return;
+    }
 
-    let data = await response.json();
-    searchResult.innerHTML = `
-      <div class="film-card">
-        <img src="${data.poster}" alt="${data.title} poster">
-        <button class="watchlist-btn" data-title="${data.title}" data-genre="${data.genre}">+</button>
-        <h3>${data.title}</h3>
-        <p>IMDb Rating: ${data.rating}</p>
-        <p>Genre: ${data.genre}</p>x
-        <p>Plot: ${data.plot}</p>
-      </div>
-    `;
-  } catch (error) {
-    searchResult.innerText = "Film not found or an error occurred.";
-    console.error("Error fetching film:", error);
+    try {
+      let response = await fetch(
+        `/groupSearchBook?title=${encodeURIComponent(title)}`
+      );
+      if (!response.ok) throw new Error("Book not found");
+
+      let data = await response.json();
+      searchResult.innerHTML = `
+      <div class="book-card">
+      <img src="${data.poster}" alt="${data.title} poster">
+      <button class="vote-btn" data-title="${data.title}">+</button>
+      <h3>${data.title}</h3>
+      <p>Author(s): ${data.authors}</p>
+      <p>Date Published: ${data.publishedDate}</p>
+      <p>Description: ${data.description}</p>
+    </div>
+      `;
+    } catch (error) {
+      searchResult.innerText = "Book not found or an error occurred.";
+      console.error("Error fetching book:", error);
+    }
   }
 });
 
@@ -1562,6 +1594,8 @@ async function populateCatalogBooks() {
 }
 
 booksButton.addEventListener("click", () => {
+  searchResult.innerHTML = ``;
+  document.getElementById("search").value = ``;
   moviesButton.classList.remove("typeClicked");
   booksButton.classList.add("typeClicked");
   localStorage.setItem("type", "books");
@@ -1569,6 +1603,8 @@ booksButton.addEventListener("click", () => {
 });
 
 moviesButton.addEventListener("click", () => {
+  searchResult.innerHTML = ``;
+  document.getElementById("search").value = ``;
   booksButton.classList.remove("typeClicked");
   moviesButton.classList.add("typeClicked");
   localStorage.setItem("type", "movies");
