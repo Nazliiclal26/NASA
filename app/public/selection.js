@@ -1279,7 +1279,7 @@ async function populateCatalogBooks() {
               if (!response.ok) throw new Error("Book not found");
 
               let data = await response.json();
-              let info = [data.poster, data.title, data.authors, "rating"];
+              let info = [data.poster, data.title, data.authors, data.rating];
               bookApiData.push(info);
             } catch (error) {
               searchResult.innerText = "Book not found or an error occurred.";
@@ -1303,7 +1303,7 @@ async function populateCatalogBooks() {
       <div class="title" id="oneTitle">${bookApiData[0][1]}</div>
       <div class="miniTitle">${bookApiData[0][2]}</div>
       <div class="subBlock">
-        <div class="rating">${bookApiData[0][3]}</div>
+        <div class="rating">${bookApiData[0][3]}/5</div>
         <div class="watchlistButton" id="oneTitle">+</div>
       </div>
     </div>
@@ -1314,7 +1314,7 @@ async function populateCatalogBooks() {
       <div class="title" id="twoTitle">${bookApiData[1][1]}</div>
       <div class="miniTitle">${bookApiData[1][2]}</div>
       <div class="subBlock">
-        <div class="rating">${bookApiData[1][3]}</div>
+        <div class="rating">${bookApiData[1][3]}/5</div>
         <div class="watchlistButton" id="twoTitle">+</div>
       </div>
     </div>
@@ -1325,7 +1325,7 @@ async function populateCatalogBooks() {
       <div class="title" id="threeTitle">${bookApiData[2][1]}</div>
       <div class="miniTitle">${bookApiData[2][2]}</div>
       <div class="subBlock">
-        <div class="rating">${bookApiData[2][3]}</div>
+        <div class="rating">${bookApiData[2][3]}/5</div>
         <div class="watchlistButton" id="threeTitle">+</div>
       </div>
     </div>
@@ -1336,7 +1336,7 @@ async function populateCatalogBooks() {
       <div class="title" id="fourTitle">${bookApiData[3][1]}</div>
       <div class="miniTitle">${bookApiData[3][2]}</div>
       <div class="subBlock">
-        <div class="rating">${bookApiData[3][3]}</div>
+        <div class="rating">${bookApiData[3][3]}/5</div>
         <div class="watchlistButton" id="fourTitle">+</div>
       </div>
     </div>
@@ -1347,7 +1347,7 @@ async function populateCatalogBooks() {
       <div class="title" id="fiveTitle">${bookApiData[4][1]}</div>
       <div class="miniTitle">${bookApiData[4][2]}</div>
       <div class="subBlock">
-        <div class="rating">${bookApiData[4][3]}</div>
+        <div class="rating">${bookApiData[4][3]}/5</div>
         <div class="watchlistButton" id="fiveTitle">+</div>
       </div>
     </div>
@@ -1442,7 +1442,7 @@ async function populateCatalogBooks() {
               if (!response.ok) throw new Error("Book not found");
 
               let data = await response.json();
-              let info = [data.poster, data.title, data.authors, "rating"];
+              let info = [data.poster, data.title, data.authors, data.rating];
               bookApiData.push(info);
             } catch (error) {
               searchResult.innerText = "Book not found or an error occurred.";
@@ -1466,7 +1466,7 @@ async function populateCatalogBooks() {
                 <div class="title" id="oneTitle">${bookApiData[0][1]}</div>
                 <div class="miniTitle">${bookApiData[0][2]}</div>
                 <div class="subBlock">
-                  <div class="rating">${bookApiData[0][3]}</div>
+                  <div class="rating">${bookApiData[0][3]}/5</div>
                   <div class="watchlistButton" id="oneTitle">+</div>
                 </div>
               </div>
@@ -1477,7 +1477,7 @@ async function populateCatalogBooks() {
                 <div class="title" id="twoTitle">${bookApiData[1][1]}</div>
                 <div class="miniTitle">${bookApiData[1][2]}</div>
                 <div class="subBlock">
-                  <div class="rating">${bookApiData[1][3]}</div>
+                  <div class="rating">${bookApiData[1][3]}/5</div>
                   <div class="watchlistButton" id="twoTitle">+</div>
                 </div>
               </div>
@@ -1488,7 +1488,7 @@ async function populateCatalogBooks() {
                 <div class="title" id="threeTitle">${bookApiData[2][1]}</div>
                 <div class="miniTitle">${bookApiData[2][2]}</div>
                 <div class="subBlock">
-                  <div class="rating">${bookApiData[2][3]}</div>
+                  <div class="rating">${bookApiData[2][3]}/5</div>
                   <div class="watchlistButton" id="threeTitle">+</div>
                 </div>
               </div>
@@ -1499,7 +1499,7 @@ async function populateCatalogBooks() {
                 <div class="title" id="fourTitle">${bookApiData[3][1]}</div>
                 <div class="miniTitle">${bookApiData[3][2]}</div>
                 <div class="subBlock">
-                  <div class="rating">${bookApiData[3][3]}</div>
+                  <div class="rating">${bookApiData[3][3]}/5</div>
                   <div class="watchlistButton" id="fourTitle">+</div>
                 </div>
               </div>
@@ -1510,7 +1510,7 @@ async function populateCatalogBooks() {
                 <div class="title" id="fiveTitle">${bookApiData[4][1]}</div>
                 <div class="miniTitle">${bookApiData[4][2]}</div>
                 <div class="subBlock">
-                  <div class="rating">${bookApiData[4][3]}</div>
+                  <div class="rating">${bookApiData[4][3]}/5</div>
                   <div class="watchlistButton" id="fiveTitle">+</div>
                 </div>
               </div>
