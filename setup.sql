@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS group_watchlists (
 CREATE TABLE IF NOT EXISTS groups (
     id SERIAL PRIMARY KEY,
     group_name VARCHAR(255) UNIQUE NOT NULL,
+    secret_code VARCHAR(255) NOT NULL,
     leader_id INT REFERENCES users(id) ON DELETE SET NULL,
     group_type VARCHAR(10) NOT NULL CHECK (group_type IN ('book', 'movie')),
     privacy VARCHAR(10) NOT NULL DEFAULT 'public' CHECK (privacy IN ('public', 'private')),
@@ -50,8 +51,8 @@ CREATE TABLE IF NOT EXISTS groups (
 -- Votes Table
 CREATE TABLE IF NOT EXISTS votes (
     id SERIAL PRIMARY KEY,
-    group_code VARCHAR(10) NOT NULL,  -- Identifier for each group
-    film_title VARCHAR(255),
+    group_code VARCHAR(10) NOT NULL,  
+    film_title VARCHAR(255) NOT NULL, 
     book_title VARCHAR(255),
     num_votes INTEGER DEFAULT 1,
     poster VARCHAR(255) NOT NULL,

@@ -9,22 +9,40 @@ document.addEventListener("DOMContentLoaded", async () => {
   let mostVotedFilmSection = document.getElementById("mostVotedFilm");
   
   try {
-    let response = await fetch(`/getMostVoted/${groupCode}`);
-    if (response.ok) {
-      let mostVoted = await response.json();
-      if (mostVoted) {
-        mostVotedFilmSection.innerHTML = `
-          <h2>Most Voted Film</h2>
-          <p>${mostVoted.film_title} with ${mostVoted.num_votes} votes!</p>
-          <img src="${mostVoted.poster}" alt="${mostVoted.film_title} poster" style="max-width: 200px;">
-        `;
-        searchSection.style.display = "none"; 
-      }
+    let votingStatusResponse = await fetch(`/getVotingStatus/${groupCode}`);
+    let { votingStatus } = await votingStatusResponse.json();
+
+    if (votingStatus) {
+      console.log("hereeee");
+      await displayMostVotedFilm();
+      searchSection.style.display = "none";
     } else {
-      console.log("No most voted film");
+      searchSection.style.display = "block";
     }
   } catch (error) {
-    console.error("Error fetching the most voted film:", error);
+    console.error("Error initializing page:", error);
+  }
+  
+  async function displayMostVotedFilm() {
+    try {
+      let response = await fetch(`/votes/${groupCode}`);
+      if (response.ok) {
+        let data = await response.json();
+        if (data.length > 0) {
+          let mostVoted = data.reduce((a, b) => (a.num_votes > b.num_votes ? a : b));
+          mostVotedFilmSection.innerHTML = `
+            <h2>Most Voted Film</h2>
+            <p>${mostVoted.film_title} with ${mostVoted.num_votes} votes!</p>
+            <p>${mostVoted.film_genre}</p>
+            <img src="${mostVoted.poster}" alt="${mostVoted.film_title} poster" style="max-width: 200px;">
+          `;
+        } else {
+          mostVotedFilmSection.innerHTML = "<p>No votes yet.</p>";
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching the most voted film:", error);
+    }
   }
 
   searchButton.addEventListener("click", async () => {
@@ -43,7 +61,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       searchResult.innerHTML = `
         <div class="film-card">
           <img src="${data.poster}" alt="${data.title} poster">
-          <button class="vote-btn" data-title="${data.title}">+</button>
+          <button class="vote-btn" data-title="${data.title}" data-genre="${data.genre}">+</button>
           <h3>${data.title}</h3>
           <p>IMDb Rating: ${data.rating}</p>
           <p>Genre: ${data.genre}</p>
@@ -53,8 +71,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       document.querySelector(".vote-btn").addEventListener("click", (e) => {
         let filmTitle = e.target.dataset.title;
+        let film_genre = e.target.dataset.genre;
         let poster = e.target.closest('.film-card').querySelector('img').src; 
-        voteForFilm(filmTitle, poster);
+        voteForFilm(filmTitle, poster, film_genre);
       });
     } catch (error) {
       searchResult.innerText = "Film not found or an error occurred.";
@@ -62,12 +81,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  async function voteForFilm(title, poster) {
+  async function voteForFilm(title, poster, film_genre) {
     try {
       const response = await fetch("/vote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ groupCode, filmTitle: title, poster: poster }) 
+        body: JSON.stringify({ groupCode, filmTitle: title, poster: poster, filmGenre: film_genre }) 
       });
   
       if (!response.ok) throw new Error("Error voting");
@@ -89,7 +108,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       data.forEach((film) => {
         if (film.num_votes > 0) {
           const li = document.createElement("li");
-          li.textContent = `${film.film_title} - ${film.num_votes} votes`;
+          li.innerHTML = `${film.film_title} - ${film.num_votes} votes - <span style="color: blue;">${film.film_genre}</span>`;
           votedFilmsList.appendChild(li);
         }
       });
@@ -99,32 +118,137 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   stopVoteButton.addEventListener("click", async () => {
-    let response = await fetch(`/votes/${groupCode}`);
-    let data = await response.json();
-
-    if (data.length === 0) {
-      mostVotedFilmSection.innerHTML = "<p>No votes yet.</p>";
-      return;
+    try {
+      await fetch(`/stopVoting/${groupCode}`, { method: "POST", headers: { "Content-Type": "application/json" } });
+      await displayMostVotedFilm(); 
+      searchSection.style.display = "none";
+    } catch (error) {
+      console.error("Error stopping voting:", error);
     }
-
-    let mostVoted = data.reduce((a, b) => (a.num_votes > b.num_votes ? a : b));
-    mostVotedFilmSection.innerHTML = `
-      <h2>Most Voted Film</h2>
-      <p>${mostVoted.film_title} with ${mostVoted.num_votes} votes!</p>
-      <img src="${mostVoted.poster}" style="max-width: 200px;">
-    `;
-
-    searchSection.style.display = "none"; 
   });
 
   startVoteButton.addEventListener("click", async () => {
-    await fetch(`/clearVotes/${groupCode}`, { method: "DELETE" }); 
-    searchSection.style.display = "block"; 
-    mostVotedFilmSection.innerHTML = ""; 
-    fetchVotes(); 
+    try {
+      await fetch(`/clearVotes/${groupCode}`, { method: "DELETE" });
+      await fetch(`/startVoting/${groupCode}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+      });
+  
+      searchSection.style.display = "block";
+      mostVotedFilmSection.innerHTML = "";
+      fetchVotes(); 
+    } catch (error) {
+      console.error("Error starting voting:", error);
+    }
   });
 
   fetchVotes(); 
 });
 
+let groupCode = window.location.pathname.split("/").pop(); 
+let username = null;
+let socket = io();
+socket.on("connect", () => { console.log("Socket has been connected."); });
+let send = document.getElementById("sendButton");
+let input = document.getElementById("messageInput");
+let messages = document.getElementById("messages");
+send.addEventListener("click", () => {
+  let message = input.value;
+  if (message === '') {
+    return;
+  }
 
+  // Add to successful return body for add message fetch
+  // appendSentMessage(message, username);
+
+  console.log("Sending message:", message);
+  fetch('/addMessage', { 
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      sentUser: username,
+      message: message,
+      groupName: groupCode 
+    })
+  }).then((response) => {
+    console.log(response);
+    return response.json().then((body) => {
+        console.log('Successful message addition. Now appending and sending to room:');
+        appendSentMessage(message, username);
+        socket.emit('sendMessageToRoom', { message, username });
+      }).catch((error) => {
+        console.error(error);
+      }); 
+  }).catch((error) => {
+    console.error(error);
+  });
+
+  // Add this to successful return body for add message fetch
+  // socket.emit('sendMessageToRoom', { message });
+});
+
+// Sets username based on token storage in server
+fetch('/getUsernameForGroup').then((response) => {
+  return response.json();
+}).then((body) => {
+  username = body["username"];
+}).catch((error) => {
+  console.error(error);
+});
+
+fetch(`/getMessages?groupName=${groupCode}`).then((response) => {
+  return response.json();
+}).then((body) => {
+  displayExistingMessages(body);
+}).catch((error) => { console.error(error); });
+
+// Ideally you receive a username of who sent it, send a token, return the username
+socket.on("receive", (data, userWhoSent) => {
+  console.log("Received message:", data, "from:", userWhoSent);
+  appendReceivedMessage(data, userWhoSent); 
+});
+
+function appendReceivedMessage(msg, defaultUser="") {
+  let msgBox = document.createElement("li");
+  let usernameDiv = document.createElement("div");
+  let usernameEffect = document.createElement("strong");
+  usernameEffect.textContent = defaultUser;
+  usernameDiv.appendChild(usernameEffect);
+  let messageDiv = document.createElement("div");
+  messageDiv.textContent = msg;
+  msgBox.appendChild(usernameDiv);
+  msgBox.appendChild(messageDiv);
+  msgBox.style.textAlign = "left";
+  msgBox.style.listStyleType = "none";
+  messages.appendChild(msgBox);
+}
+
+function appendSentMessage(msg, defaultUser="") {
+  let msgBox = document.createElement("li");
+  let usernameDiv = document.createElement("div");
+  let usernameEffect = document.createElement("strong");
+  usernameEffect.textContent = defaultUser;
+  usernameDiv.appendChild(usernameEffect);
+  let messageDiv = document.createElement("div");
+  messageDiv.textContent = msg;
+  msgBox.appendChild(usernameDiv);
+  msgBox.appendChild(messageDiv);
+  msgBox.style.textAlign = "right";
+  msgBox.style.listStyleType = "none";
+  messages.appendChild(msgBox);
+}
+
+function displayExistingMessages(body) {
+  let sentUser = body["username"];
+  // checks if global variable on whether to append to left 
+  let messageCollection = body["messages"];
+  for (let row of messageCollection) {
+    if (sentUser === row["username"]) {
+      appendSentMessage(row["user_message"], row["username"]);
+    }
+    else {
+      appendReceivedMessage(row["user_message"], row["username"]);
+    }
+  }
+}

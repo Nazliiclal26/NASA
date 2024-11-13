@@ -20,8 +20,23 @@ loginButton.addEventListener("click", () => {
         alert(data.message);
       }
     })
-    .catch((error) => console.error("Error:", error));
+    .then(response => response.json())
+    .then(data => {
+        if(data.status === "success") {
+            status.textContent = data.message;
+            status.style.color = "green";
+        }else{
+            status.textContent = data.message;
+            status.style.color = "red";
+        }
+
+        // make call to store authorization token
+    })
+    .catch(error => console.log(error))
+
 });
+
+// cookie storage function
 
 signUpButton.addEventListener("click", () => {
   window.location.href = "/signUp.html";

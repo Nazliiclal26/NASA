@@ -34,8 +34,18 @@ signUpButton.addEventListener("click", () => {
       } else {
         status.textContent = data.message;
         status.style.color = "green";
-        localStorage.setItem("userID", data.userId);
+        localStorage.setItem("userId", data.userId);
         window.location.href = "/signUpPrompt.html";
+      }
+    })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.status === "error") {
+        status.textContent = data.message;
+        status.style.color = "red";
+      } else {
+        status.textContent = data.message;
+        status.style.color = "green";
       }
     })
     .catch((error) => console.log(error));

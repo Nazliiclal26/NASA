@@ -17,10 +17,40 @@ buttons.forEach((button) => {
 });
 
 async function submitGenres() {
-  let userId = localStorage.getItem("userID");
+  let userId = localStorage.getItem("userId");
 
   if (selectedGenres.length === 0) {
-    alert("Select at least one genre.");
+    let selectedGenres = [];
+
+    fetch("/signUpPrompt", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userID: userId,
+        genres: selectedGenres,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status === "success") {
+          mainBox.innerHTML = `
+          <div id="innerGroup">
+          <div class="titleGroup" id="title">Join or Create Group?</div>
+          <div class="mainButton" id="join">Join</div>
+          <div class="mainButton" id="create">Create</div>
+          <div id="skip">Skip</div>
+        </div>
+          `;
+
+          changeView();
+        } else {
+          console.log(data);
+          alert(data.message);
+        }
+      })
+      .catch((error) => console.error("Error:", error));
     return;
   }
 
@@ -189,7 +219,7 @@ function changeView() {
         let groupCodeData = {
           type: "random",
           code: "",
-          userId: localStorage.getItem("userID"),
+          userId: localStorage.getItem("userId"),
         };
         alert("join random");
         fetch("/joinGroup", {
@@ -216,7 +246,7 @@ function changeView() {
         let groupCodeData = {
           type: "code",
           code: groupCodeVal,
-          userId: localStorage.getItem("userID"),
+          userId: localStorage.getItem("userId"),
         };
         alert(`joing with code ${groupCodeVal}`);
         fetch("/joinGroup", {
@@ -325,7 +355,7 @@ function changeView() {
         groupName: groupName,
         groupType: groupType,
         access: access,
-        leaderId: localStorage.getItem("userID"),
+        leaderId: localStorage.getItem("userId"),
       };
 
       fetch("/createGroup", {

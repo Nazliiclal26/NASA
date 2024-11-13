@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Watchlist</title>
+  <style>
+  </style>
+</head>
+<body>
+  <header>
+    <h1>My Watchlist</h1>
+    <a href="#" id="selection">Back to Home Page</a>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("selection").addEventListener("click", () => {
+        window.location.href = "/selection.html"; 
+      });
+    });
+    </script>
+  </header>
+  <main>
+    <section>
+      <h2>Films</h2>
+      <ul id="filmWatchlist"></ul>
+    </section>
+    <section>
+      <h2>Books</h2>
+      <ul id="bookWatchlist"></ul>
+    </section>
+  </main>
+  
+  <script src="watchlist.js"></script>
+</body>
+</html>

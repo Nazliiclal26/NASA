@@ -2,10 +2,15 @@ let axios = require("axios");
 let argon2 = require("argon2");
 const pg = require("pg");
 const express = require("express");
+const crypto = require("crypto");
+const cookieParser = require("cookie-parser");
 const http = require("http");
 const app = express();
+
 const server = http.createServer(app);
 const session = require('express-session');
+
+const path = require("path");
 
 const port = 3000;
 const hostname = "localhost";
@@ -14,36 +19,121 @@ const env = require("../env.json");
 const Pool = pg.Pool;
 const pool = new Pool(env);
 const group = require("../models/Group");
+const messages = require("../models/Messages");
+const user = require("../models/user");
 
 const authRoutes = require('../routes/authRoutes');
 const calendarRoutes = require('../routes/calendarRoutes');
 app.use('/calendar', calendarRoutes);
 
 let { Server } = require("socket.io");
+const { timeStamp } = require("console");
 let io = new Server(server);
 
 pool.connect().then(() => {
   console.log(`Connected to database ${env.database}`);
 });
 
-app.use(express.static("public"));
+app.use(express.static("public", { index: false }));
 app.use(express.json());
 app.use(authRoutes);
+app.use(cookieParser());
 
-// Setup sessions for storing auth tokens
-app.use(session({
-  secret: 'your_secret_key',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { secure: true } // set to true if using https
-}));
+// structure of "username": "cookie-token"
+let tokenStorage = {};
+tokenOptions = {
+  httpOnly: true,
+  secure: true,
+  sameSite: "strict",
+};
 
-app.post("/codeValid", async (req, res) => {
-  let { code } = req.body;
+/*
+  New Token Storage:
+  tokenStorage = {
+  "--random Token here --" : 
+    {
+      "username" : "--user's username here--",
+      "currentPage" "either 'books' or 'movies'", // Unimplemented
+      other attributes to follow
+    }
+  }
+*/
+
+function makeToken() {
+  return crypto.randomBytes(32).toString("hex");
+}
+
+function getKeyByValue(object, value) {
+  return Object.keys(object).find((key) => object[key] === value);
+}
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "login.html"));
+});
+
+app.get("/:userId/watchlist.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "watchlist.html"));
+});
+
+app.post("/startVoting/:groupCode", async (req, res) => {
+  let groupCode = req.params.groupCode;
+  let fullGroupName = `Group ${groupCode}`;
 
   try {
     let result = await pool.query(
-      "SELECT * FROM groups WHERE group_name = $1",
+      "UPDATE groups SET voting_status = FALSE WHERE group_name = $1 or group_name = $2",
+      [groupCode, fullGroupName]
+    );
+
+    if (result.rowCount === 0 || result2.rowCount === 0) {
+      return res.status(404).json({ message: "Group not found" });
+    }
+
+    res.status(200).json({ message: "Voting started" });
+  } catch (error) {
+    console.error("Error starting voting:", error);
+    res.status(500).json({ message: "Error starting voting" });
+  }
+});
+
+app.get("/getVotingStatus/:groupCode", async (req, res) => {
+  let groupCode = req.params.groupCode;
+  let fullGroupName = `Group ${groupCode}`;
+
+  try {
+    let result = await pool.query(
+      "SELECT voting_status FROM groups WHERE group_name = $1 OR group_name = $2",
+      [groupCode, fullGroupName]
+    );
+
+    res.status(200).json({ votingStatus: result.rows[0].voting_status });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching voting status" });
+  }
+});
+
+app.post("/stopVoting/:groupCode", async (req, res) => {
+  let groupCode = req.params.groupCode;
+  let fullGroupName = `Group ${groupCode}`;
+
+  try {
+    //console.log("here");
+    await pool.query(
+      "UPDATE groups SET voting_status = TRUE WHERE group_name = $1 or group_name = $2",
+      [groupCode, fullGroupName]
+    );
+    res.status(200).json({ message: "Voting stopped" });
+  } catch (error) {
+    console.error("Error stopping voting:", error);
+    res.status(500).json({ message: "Error stopping voting" });
+  }
+});
+
+app.post("/codeValid", async (req, res) => {
+  let { code } = req.body;
+  try {
+    let result = await pool.query(
+      "SELECT * FROM groups WHERE secret_code = $1",
       [code]
     );
 
@@ -54,6 +144,53 @@ app.post("/codeValid", async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+app.post("/changeUser", async (req, res) => {
+  let { userId, username } = req.body;
+
+  console.log(username, userId);
+
+  let result = await pool.query("SELECT * FROM users WHERE username = $1", [
+    username,
+  ]);
+  if (result.rows.length > 0) {
+    return res.json({ status: "error", message: "username already exists" });
+  } else {
+    await pool.query("UPDATE users SET username = $1 WHERE id = $2", [
+      username,
+      userId,
+    ]);
+    return res.json({ status: "success", message: "username changed" });
+  }
+});
+
+app.post("/changePass", async (req, res) => {
+  let { userId, password } = req.body;
+
+  let result = await pool.query("SELECT * FROM users WHERE id = $1", [userId]);
+
+  if (result.rows.length > 0) {
+    let userHash = result.rows[0].password;
+    let match = await argon2.verify(userHash, password);
+
+    if (match) {
+      return res.json({
+        status: "error",
+        message: "password is the same as before",
+      });
+    } else {
+      let newPassHash = await argon2.hash(password);
+
+      await pool.query("UPDATE users SET password = $1 WHERE id = $2", [
+        newPassHash,
+        userId,
+      ]);
+      return res.json({ status: "success", message: "password changed" });
+    }
+  } else {
+    return res.json({ status: "error", message: "users not found" });
   }
 });
 
@@ -102,7 +239,11 @@ app.post("/login", async (req, res) => {
 
     if (match) {
       console.log("Login Success");
-      return res.json({
+      let token = makeToken();
+      tokenStorage[token] = {};
+      tokenStorage[token]["username"] = username;
+      console.log(tokenStorage);
+      return res.cookie("token", token, tokenOptions).json({
         status: "success",
         message: "Login Successful",
         userId: user.id,
@@ -152,7 +293,11 @@ app.post("/signUp", async (req, res) => {
         [firstName, lastName, username, hash, preferred_genres]
       );
       let user = result.rows[0];
-      res.json({
+      let token = makeToken();
+      tokenStorage[token] = {};
+      tokenStorage[token]["username"] = username;
+      console.log(tokenStorage);
+      res.cookie("token", token, tokenOptions).json({
         status: "success",
         message: "Sign Up Successful",
         userId: user.id,
@@ -189,6 +334,12 @@ app.post("/signUpPrompt", async (req, res) => {
 app.post("/createGroup", async (req, res) => {
   let { groupName, groupType, access, leaderId } = req.body;
   let memberList = [leaderId];
+  let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let code = "";
+  for (let i = 0; i < 5; i++) {
+    let rand = Math.floor(Math.random() * chars.length);
+    code += chars.charAt(rand);
+  }
 
   if (!leaderId) {
     return res.status(400).json({ message: "Leader ID is missing" });
@@ -206,9 +357,9 @@ app.post("/createGroup", async (req, res) => {
   } else {
     try {
       let result = await pool.query(
-        `INSERT INTO groups (group_name, leader_id, group_type, privacy, members) 
-           VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-        [groupName, leaderId, groupType, access, memberList]
+        `INSERT INTO groups (group_name, leader_id, group_type, privacy, members, secret_code) 
+           VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+        [groupName, leaderId, groupType, access, memberList, code]
       );
 
       res.status(200).json({
@@ -235,7 +386,7 @@ app.post("/joinGroup", async (req, res) => {
       }
 
       let groupCheck = await pool.query(
-        "SELECT * FROM groups WHERE group_name = $1",
+        "SELECT * FROM groups WHERE secret_code = $1",
         [code]
       );
 
@@ -253,23 +404,31 @@ app.post("/joinGroup", async (req, res) => {
           .json({ status: "error", message: "user already in group" });
       }
 
-      let update;
-      if (group.members) {
-        update = [...group.members, userId];
+      if (group.privacy !== "private") {
+        let update;
+        if (group.members) {
+          update = [...group.members, userId];
+        } else {
+          update = [userId];
+        }
+
+        let updateRes = await pool.query(
+          "UPDATE groups SET members = $1 WHERE secret_code = $2 RETURNING *",
+          [update, code]
+        );
+
+        res.status(200).json({
+          status: "success",
+          message: "joined group",
+          group: updateRes.rows[0],
+        });
       } else {
-        update = [userId];
+        res.status(400).json({
+          status: "error",
+          message: "group is private",
+          group: updateRes.rows[0],
+        });
       }
-
-      let updateRes = await pool.query(
-        "UPDATE groups SET members = $1 WHERE group_name = $2 RETURNING *",
-        [update, code]
-      );
-
-      res.status(200).json({
-        status: "success",
-        message: "joined group",
-        group: updateRes.rows[0],
-      });
     } catch (error) {
       console.error("Error joining group:", error);
       res.status(500).json({ message: "Error joining group" });
@@ -369,7 +528,7 @@ app.post("/create", async (req, res) => {
 });
 
 // Adding client-side room functionality here - is called upon redirect to 'group/:groupId' in movies.js
-app.get("/group/:groupCode", (req, res) => {
+app.get("/movieGroup/:groupCode", (req, res) => {
   const groupCode = req.params.groupCode;
 
   res.send(`
@@ -422,7 +581,7 @@ app.get("/group/:groupCode", (req, res) => {
         <button id="stopVote">Stop Vote</button>
         <button id="startVote">Start Voting</button>
 
-        <a href="/">Back to Home</a>
+        <a href="/selection.html">Back to Home</a>
 
         <div id="chatSection">
           <h2>Chat</h2>
@@ -433,42 +592,6 @@ app.get("/group/:groupCode", (req, res) => {
           </div>
       </main>
       <script src="/socket.io/socket.io.js"></script>
-      <script>
-        let socket = io();
-        socket.on("connect", () => { console.log("Socket has been connected."); });
-        let send = document.getElementById("sendButton");
-        let input = document.getElementById("messageInput");
-        let messages = document.getElementById("messages");
-        send.addEventListener("click", () => {
-          let message = input.value;
-          if (message === '') {
-            return;
-          }
-          appendSentMessage(message);  
-          console.log("Sending message:", message);
-          socket.emit('sendMessageToRoom', {message});
-        });
-
-        socket.on("receive", (data) => {
-          console.log("Received message:", data);
-          appendReceivedMessage(data); 
-        });
-        
-        function appendReceivedMessage(msg) {
-          let msgBox = document.createElement("li");
-          msgBox.textContent = msg;
-          msgBox.style.textAlign = "left";
-          msgBox.style.listStyleType = "none";
-          messages.appendChild(msgBox);
-        }
-
-        function appendSentMessage(msg) {
-          let msgBox = document.createElement("li");
-          msgBox.textContent = msg;
-          msgBox.style.textAlign = "right";
-          messages.appendChild(msgBox);
-        }
-      </script>
     </body>
     </html>
   `);
@@ -501,6 +624,8 @@ app.get("/bookGroup/:groupCode", (req, res) => {
                   padding: 5px;
                   cursor: pointer;
               }
+              #messages { list-style-type: none; padding: 0; }
+              #messages li { margin: 10px 0; }
           </style>
           <link rel="stylesheet" href="/calendar.css">
           <script src="/calendar.js" defer></script>
@@ -526,7 +651,7 @@ app.get("/bookGroup/:groupCode", (req, res) => {
 
               <button id="stopVote">Stop Vote</button>
               <button id="startVote">Start Voting</button>
-
+              
               <div class="wrapper">
                 <div class="container-calendar">
                   <div id="left">
@@ -596,7 +721,7 @@ app.get("/bookGroup/:groupCode", (req, res) => {
                 </div>
               </div>
 
-              <a href="/">Back to Home</a>
+              <a href="/selection.html">Back to Home</a>
               <div id="chatSection">
           <h2>Chat</h2>
           <ul id="messages"></ul>
@@ -606,45 +731,113 @@ app.get("/bookGroup/:groupCode", (req, res) => {
           </div>
       </main>
       <script src="/socket.io/socket.io.js"></script>
-      <script>
-        let socket = io();
-        socket.on("connect", () => { console.log("Socket has been connected."); });
-        let send = document.getElementById("sendButton");
-        let input = document.getElementById("messageInput");
-        let messages = document.getElementById("messages");
-        send.addEventListener("click", () => {
-          let message = input.value;
-          if (message === '') {
-            return;
-          }
-          appendSentMessage(message);  
-          console.log("Sending message:", message);
-          socket.emit('sendMessageToRoom', {message});
-        });
-
-        socket.on("receive", (data) => {
-          console.log("Received message:", data);
-          appendReceivedMessage(data); 
-        });
-        
-        function appendReceivedMessage(msg) {
-          let msgBox = document.createElement("li");
-          msgBox.textContent = msg;
-          msgBox.style.textAlign = "left";
-          msgBox.style.listStyleType = "none";
-          messages.appendChild(msgBox);
-        }
-
-        function appendSentMessage(msg) {
-          let msgBox = document.createElement("li");
-          msgBox.textContent = msg;
-          msgBox.style.textAlign = "right";
-          messages.appendChild(msgBox);
-        }
-      </script>
       </body>
       </html>
   `);
+});
+
+app.post("/addMessage", async (req, res) => {
+  let sentUser = req.body["sentUser"];
+  let message = req.body["message"];
+  let groupName = req.body["groupName"];
+  if (sentUser === undefined || sentUser === null) {
+    return res.status(400).json({ error: "sentUser is not defined" });
+  }
+
+  if (message === undefined || message === null) {
+    return res.status(400).json({ error: "message is not defined" });
+  }
+
+  if (groupName === undefined || groupName === null) {
+    return res.status(400).json({ error: "group name is not defined" });
+  }
+
+  console.log(
+    "Attempting to add message:",
+    message,
+    ", in group",
+    groupName,
+    ", to db"
+  );
+
+  let groupId = null;
+  await group.findByName(groupName).then((body) => {
+    groupId = body.id; // Returns a singular row from group table so we just pass the id
+  });
+
+  let userId = null;
+  await user.findByUsername(sentUser).then((body) => {
+    userId = body.id;
+  });
+
+  let result = false;
+  await messages.add(groupId, userId, message).then((body) => {
+    result = true;
+  });
+
+  if (result) {
+    return res.status(200).json({});
+  } else {
+    return res.status(500).json({ error: "Internal server error!" });
+  }
+});
+
+app.get("/getUsernameForGroup", (req, res) => {
+  // Utilize cookies to return username
+  let { token } = req.cookies;
+  if (token === undefined) {
+    console.log("No cookies set for this username.");
+    return res.status(500).json({
+      error: "No cookie set for this user, internal issue with user setup.",
+    });
+  } else if (tokenStorage[token] === undefined) {
+    console.log("Server storage not properly accounting for this username.");
+    return res.status(400).json({
+      error:
+        "No cookie set for this user, ensure user was initialized properly.",
+    });
+  }
+
+  return res.status(200).json({ username: tokenStorage[token]["username"] });
+});
+
+app.get("/getMessages", async (req, res) => {
+  let groupName = req.query.groupName;
+
+  let { token } = req.cookies;
+  if (token === undefined) {
+    console.log("No cookies set for this username.");
+    return res.status(500).json({
+      error: "No cookie set for this user, internal issue with user setup.",
+    });
+  } else if (tokenStorage[token] === undefined) {
+    console.log("Server storage not properly accounting for this username.");
+    return res.status(500).json({
+      error:
+        "No cookie set for this user, ensure user was initialized properly.",
+    });
+  } else {
+    console.log(token);
+  }
+  let username = tokenStorage[token]["username"];
+
+  // Get group id given group name
+  let groupId = null;
+  await group.findByName(groupName).then((body) => {
+    groupId = body.id; // Returns a singular row from group table so we just pass the id
+  });
+  // Get messages by group id
+  let messageCollection = {};
+  await messages.getMessagesByGroupId(groupId).then((rows) => {
+    messageCollection = rows;
+  });
+  // Create message object
+  let messageObj = {
+    username: username,
+    messages: messageCollection,
+  };
+  // data gon be like { username: "username", messages: [{ username: "message" }] }
+  return res.status(200).json(messageObj);
 });
 
 app.get("/groupSearch", (req, res) => {
@@ -681,7 +874,7 @@ app.get("/groupSearch", (req, res) => {
 });
 
 app.post("/vote", async (req, res) => {
-  let { groupCode, filmTitle, poster } = req.body;
+  let { groupCode, filmTitle, poster, filmGenre } = req.body;
 
   try {
     let result = await pool.query(
@@ -695,9 +888,10 @@ app.post("/vote", async (req, res) => {
         [groupCode, filmTitle]
       );
     } else {
+      //console.log("Data for vote insertion:", { groupCode, filmTitle, poster, filmGenre });
       await pool.query(
-        "INSERT INTO votes (group_code, film_title, poster, num_votes) VALUES ($1, $2, $3, 1)",
-        [groupCode, filmTitle, poster]
+        "INSERT INTO votes (group_code, film_title, poster, num_votes, film_genre) VALUES ($1, $2, $3, 1, $4)",
+        [groupCode, filmTitle, poster, filmGenre]
       );
     }
 
@@ -712,7 +906,7 @@ app.get("/votes/:groupCode", async (req, res) => {
 
   try {
     let result = await pool.query(
-      "SELECT film_title, poster, num_votes FROM votes WHERE group_code = $1",
+      "SELECT film_title, poster, num_votes, film_genre FROM votes WHERE group_code = $1",
       [groupCode]
     );
 
@@ -749,6 +943,45 @@ app.get("/getGroups/:userId", async (req, res) => {
     res.status(500).json({
       status: "error",
       message: "user not in any groups",
+    });
+  }
+});
+
+app.get("/getGenres/:userId", async (req, res) => {
+  let userId = req.params.userId;
+  try {
+    let { rows } = await pool.query(
+      "SELECT preferred_genres FROM users WHERE id = $1",
+      [userId]
+    );
+
+    res.json({
+      status: "success",
+      rows: rows,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: "error",
+    });
+  }
+});
+
+app.get("/getUsername/:userId", async (req, res) => {
+  let userId = req.params.userId;
+  try {
+    let { rows } = await pool.query(
+      "SELECT username FROM users WHERE id = $1",
+      [userId]
+    );
+    res.json({
+      status: "success",
+      rows: rows,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: "username not available",
     });
   }
 });
@@ -833,6 +1066,35 @@ app.post("/bookVote", async (req, res) => {
   }
 });
 
+app.post("/addToWatchlist", async (req, res) => {
+  let { type, title, userId } = req.body;
+
+  try {
+    let checkWatch = await pool.query(
+      "SELECT * FROM user_watchlists WHERE item_type = $1 AND item_id = $2 AND user_id = $3",
+      [type, title, userId]
+    );
+
+    if (checkWatch.rows.length > 0) {
+      return res
+        .status(400)
+        .json({ status: "error", message: "Item already in watchlist" });
+    }
+
+    let result = await pool.query(
+      "INSERT INTO user_watchlists (item_type, item_id, user_id) VALUES ($1, $2, $3)",
+      [type, title, userId]
+    );
+
+    res.status(200).json({ status: "success", message: "Adding to watchlist" });
+  } catch (error) {
+    console.error("Error adding to watchlist:", error);
+    res
+      .status(500)
+      .json({ status: "error", message: "Error adding to watchlist" });
+  }
+});
+
 /* SOCKET FUNCTIONALITY */
 // The key:value pairs of Rooms has the structure: { "groupId" : {socketId : socket} }
 let rooms = {};
@@ -855,14 +1117,13 @@ io.on("connection", (socket) => {
     `Numbers of members in room ${roomId}: ${Object.keys(rooms[roomId]).length}`
   );
 
-  socket.on("sendMessageToRoom", ({ message }) => {
+  socket.on("sendMessageToRoom", ({ message, username }) => {
     console.log("Sending", message, "to room:", roomId);
     for (let roommateId of Object.keys(rooms[roomId])) {
       if (roommateId === socket.id) {
         continue;
       }
-      console.log("Sending", message, "to member", roommateId);
-      rooms[roomId][roommateId].emit("receive", message);
+      rooms[roomId][roommateId].emit("receive", message, username);
     }
   });
 
