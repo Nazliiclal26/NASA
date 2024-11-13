@@ -148,7 +148,7 @@ function processJoinModal() {
         code: "",
         userId: localStorage.getItem("userId"),
       };
-      console.log(groupCodeData.userId);
+      //console.log(groupCodeData.userId);
 
       alert("join random");
       fetch("/joinGroup", {
@@ -255,7 +255,7 @@ function processCreateModal() {
       leaderId: localStorage.getItem("userId"),
     };
 
-    console.log(groupData);
+    //console.log(groupData);
 
     fetch("/createGroup", {
       method: "POST",
@@ -635,6 +635,9 @@ async function populateCatalog() {
     ],
   };
 
+  let catalogLoading = document.getElementById("catalog");
+  catalogLoading.textContent = "Loading...";
+
   fetch(`/getGenres/${userId}`, {
     method: "GET",
     headers: {
@@ -656,12 +659,12 @@ async function populateCatalog() {
           let movieApiData = [];
 
           for (let i = 0; i < 5; i++) {
-            console.log(genreList[randomGenre]);
+            //console.log(genreList[randomGenre]);
             let movies = genreList[randomGenre];
             let randomInt = Math.floor(Math.random() * 5);
             let title = movies[randomInt];
 
-            console.log(title);
+            //console.log(title);
 
             try {
               let response = await fetch(
@@ -680,7 +683,7 @@ async function populateCatalog() {
             selectedMovies.push(movies[randomInt]);
           }
 
-          console.log(movieApiData);
+          //console.log(movieApiData);
 
           let catalog = document.getElementById("catalog");
           catalog.innerHTML = `
@@ -775,33 +778,33 @@ async function populateCatalog() {
             });
           });
 
-          console.log(randomGenre);
+          //console.log(randomGenre);
         } else {
           let genres = [
-            "Action",
-            "Adventure",
-            "Animation",
-            "Biography",
-            "Comedy",
-            "Crime",
-            "Documentary",
-            "Drama",
-            "Family",
-            "Fantasy",
-            "Film Noir",
-            "History",
-            "Horror",
-            "Music",
-            "Musical",
-            "Mystery",
-            "Romance",
-            "Sci-Fi",
-            "Short",
-            "Sport",
-            "Superhero",
-            "Thriller",
-            "War",
-            "Western",
+            "action",
+            "adventure",
+            "animation",
+            "biography",
+            "comedy",
+            "crime",
+            "documentary",
+            "drama",
+            "family",
+            "fantasy",
+            "noir",
+            "history",
+            "horror",
+            "music",
+            "musical",
+            "mystery",
+            "romance",
+            "scifi",
+            "short",
+            "sport",
+            "superhero",
+            "thriller",
+            "war",
+            "western",
           ];
           let numGenres = genres.length;
 
@@ -821,11 +824,12 @@ async function populateCatalog() {
 
           for (let i = 0; i < outputGenres.length; i++) {
             let genre = outputGenres[i];
+            //console.log(genre);
             let movies = genreList[genre];
             let randomInt = Math.floor(Math.random() * movies.length);
             let title = movies[randomInt];
 
-            console.log(title);
+            //console.log(title);
 
             try {
               let response = await fetch(
@@ -844,7 +848,7 @@ async function populateCatalog() {
             selectedMovies.push(movies[randomInt]);
           }
 
-          console.log(movieApiData);
+          //console.log(movieApiData);
 
           let catalog = document.getElementById("catalog");
           catalog.innerHTML = `
@@ -1237,6 +1241,8 @@ async function populateCatalogBooks() {
       "The Assassination of Jesse James by Ron Hansen",
     ],
   };
+  catalogLoading = document.getElementById("catalog");
+  catalogLoading.textContent = "Loading...";
 
   fetch(`/getGenres/${userId}`, {
     method: "GET",
@@ -1259,12 +1265,12 @@ async function populateCatalogBooks() {
           let bookApiData = [];
 
           for (let i = 0; i < 5; i++) {
-            console.log(genreList[randomGenre]);
+            //console.log(genreList[randomGenre]);
             let books = genreList[randomGenre];
             let randomInt = Math.floor(Math.random() * 5);
             let title = books[randomInt];
 
-            console.log(title);
+            //console.log(title);
 
             try {
               let response = await fetch(
@@ -1283,7 +1289,7 @@ async function populateCatalogBooks() {
             selectedBooks.push(books[randomInt]);
           }
 
-          console.log(bookApiData);
+          //console.log(bookApiData);
 
           let catalog = document.getElementById("catalog");
           catalog.innerHTML = `
@@ -1377,33 +1383,33 @@ async function populateCatalogBooks() {
                 });
             });
           });
-          console.log(randomGenre);
+          //console.log(randomGenre);
         } else {
           let genres = [
-            "Action",
-            "Adventure",
-            "Animation",
-            "Biography",
-            "Comedy",
-            "Crime",
-            "Documentary",
-            "Drama",
-            "Family",
-            "Fantasy",
-            "Film Noir",
-            "History",
-            "Horror",
-            "Music",
-            "Musical",
-            "Mystery",
-            "Romance",
-            "Sci-Fi",
-            "Short",
-            "Sport",
-            "Superhero",
-            "Thriller",
-            "War",
-            "Western",
+            "action",
+            "adventure",
+            "animation",
+            "biography",
+            "comedy",
+            "crime",
+            "documentary",
+            "drama",
+            "family",
+            "fantasy",
+            "noir",
+            "history",
+            "horror",
+            "music",
+            "musical",
+            "mystery",
+            "romance",
+            "scifi",
+            "short",
+            "sport",
+            "superhero",
+            "thriller",
+            "war",
+            "western",
           ];
           let numGenres = genres.length;
 
@@ -1427,7 +1433,7 @@ async function populateCatalogBooks() {
             let randomInt = Math.floor(Math.random() * books.length);
             let title = books[randomInt];
 
-            console.log(title);
+            //console.log(title);
 
             try {
               let response = await fetch(
@@ -1446,12 +1452,12 @@ async function populateCatalogBooks() {
             selectedBooks.push(movies[randomInt]);
           }
 
-          console.log(bookApiData);
+          //console.log(bookApiData);
 
           let catalog = document.getElementById("catalog");
           catalog.innerHTML = `
           <div id="catalogBlock">
-            <div id="listingTitle">Books by Preferences</div>
+            <div id="listingTitle">Random Books</div>
             <div id="listings">
               <div class="listing" id="1">
                 <div class="poster">

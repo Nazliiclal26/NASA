@@ -394,23 +394,31 @@ app.post("/joinGroup", async (req, res) => {
           .json({ status: "error", message: "user already in group" });
       }
 
-      let update;
-      if (group.members) {
-        update = [...group.members, userId];
+      if (group.privacy !== "private") {
+        let update;
+        if (group.members) {
+          update = [...group.members, userId];
+        } else {
+          update = [userId];
+        }
+
+        let updateRes = await pool.query(
+          "UPDATE groups SET members = $1 WHERE secret_code = $2 RETURNING *",
+          [update, code]
+        );
+
+        res.status(200).json({
+          status: "success",
+          message: "joined group",
+          group: updateRes.rows[0],
+        });
       } else {
-        update = [userId];
+        res.status(400).json({
+          status: "error",
+          message: "group is private",
+          group: updateRes.rows[0],
+        });
       }
-
-      let updateRes = await pool.query(
-        "UPDATE groups SET members = $1 WHERE secret_code = $2 RETURNING *",
-        [update, code]
-      );
-
-      res.status(200).json({
-        status: "success",
-        message: "joined group",
-        group: updateRes.rows[0],
-      });
     } catch (error) {
       console.error("Error joining group:", error);
       res.status(500).json({ message: "Error joining group" });
