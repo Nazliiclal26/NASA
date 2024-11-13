@@ -558,6 +558,8 @@ app.get("/movieGroup/:groupCode", (req, res) => {
         #messages { list-style-type: none; padding: 0; }
         #messages li { margin: 10px 0; }
       </style>
+      <link rel="stylesheet" href="/calendar.css">
+      <script src="/calendar.js" defer></script>
     </head>
     <body>
       <header>
