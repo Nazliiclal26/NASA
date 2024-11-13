@@ -21,7 +21,7 @@ const group = require("../models/Group");
 const messages = require("../models/Messages");
 const user = require("../models/user");
 
-const authRoutes = require('../routes/authRoutes');
+//const authRoutes = require('../routes/authRoutes');
 const calendarRoutes = require('../routes/calendarRoutes');
 app.use('/calendar', calendarRoutes);
 
