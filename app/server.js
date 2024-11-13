@@ -8,6 +8,7 @@ const http = require("http");
 const app = express();
 
 const server = http.createServer(app);
+const session = require('express-session');
 
 const path = require("path");
 
@@ -21,6 +22,10 @@ const group = require("../models/Group");
 const messages = require("../models/Messages");
 const user = require("../models/user");
 
+const authRoutes = require('../routes/authRoutes');
+const calendarRoutes = require('../routes/calendarRoutes');
+app.use('/calendar', calendarRoutes);
+
 let { Server } = require("socket.io");
 const { timeStamp } = require("console");
 let io = new Server(server);
@@ -31,6 +36,7 @@ pool.connect().then(() => {
 
 app.use(express.static("public", { index: false }));
 app.use(express.json());
+app.use(authRoutes);
 app.use(cookieParser());
 
 // structure of "username": "cookie-token"
@@ -621,6 +627,8 @@ app.get("/bookGroup/:groupCode", (req, res) => {
               #messages { list-style-type: none; padding: 0; }
               #messages li { margin: 10px 0; }
           </style>
+          <link rel="stylesheet" href="/calendar.css">
+          <script src="/calendar.js" defer></script>
       </head>
       <body>
           <header>
@@ -643,6 +651,75 @@ app.get("/bookGroup/:groupCode", (req, res) => {
 
               <button id="stopVote">Stop Vote</button>
               <button id="startVote">Start Voting</button>
+              
+              <div class="wrapper">
+                <div class="container-calendar">
+                  <div id="left">
+                    <h1>Calendar</h1>
+                    <div id="event-section">
+                      <h3>Add Event</h3>
+                      <input type="date" id="eventDate">
+                      <input type="text"
+                        id="eventTitle"
+                        placeholder="Event Title">
+                      <input type="text"
+                        id="eventDescription"
+                        placeholder="Event Description">
+                      <button id="addEvent" onclick="addEvent()">
+                        Add
+                      </button>
+                  </div>
+                  <div id="reminder-section">
+                    <h3>Reminders For This Month</h3>
+                    <!-- List to display reminders -->
+                    <ul id="reminderList">
+                        <li data-event-id="1">
+                            <strong>Event Title</strong>
+                            - Event Description on Event Date
+                            <button class="delete-event"
+                                onclick="deleteEvent(1)">
+                                Delete
+                            </button>
+                          </li>
+                        </ul>
+                    </div>
+                  </div>
+                <div id="right">
+                  <h3 id="monthAndYear"></h3>
+                  <div class="button-container-calendar">
+                    <button id="previous" onclick="previous()">‹</button>
+                    <button id="next" onclick="next()">›</button>
+                  </div>
+                  <table class="table-calendar"
+                    id="calendar"
+                    data-lang="en">
+                    <thead id="thead-month"></thead>
+                    <!-- Table body for displaying the calendar -->
+                    <tbody id="calendar-body"></tbody>
+                  </table>
+                  <div class="footer-container-calendar">
+                      <label for="month">Jump To: </label>
+                      <!-- Dropdowns to select a specific month and year -->
+                      <select id="month" onchange="jump()">
+                        <option value=0>Jan</option>
+                        <option value=1>Feb</option>
+                        <option value=2>Mar</option>
+                        <option value=3>Apr</option>
+                        <option value=4>May</option>
+                        <option value=5>Jun</option>
+                        <option value=6>Jul</option>
+                        <option value=7>Aug</option>
+                        <option value=8>Sep</option>
+                        <option value=9>Oct</option>
+                        <option value=10>Nov</option>
+                        <option value=11>Dec</option>
+                      </select>
+                      <!-- Dropdown to select a specific year -->
+                      <select id="year" onchange="jump()"></select>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               <a href="/selection.html">Back to Home</a>
               <div id="chatSection">
@@ -914,7 +991,7 @@ app.get("/bookVotes/:groupCode", async (req, res) => {
 
   try {
     let result = await pool.query(
-      "SELECT title, poster, num_votes FROM votes WHERE group_code = $1",
+      "SELECT book_title, num_votes, poster FROM votes WHERE group_code = $1",
       [groupCode]
     );
 
@@ -967,18 +1044,18 @@ app.post("/bookVote", async (req, res) => {
 
   try {
     let result = await pool.query(
-      "SELECT * FROM votes WHERE group_code = $1 AND title = $2",
+      "SELECT * FROM votes WHERE group_code = $1 AND book_title = $2",
       [groupCode, filmTitle]
     );
 
     if (result.rows.length > 0) {
       await pool.query(
-        "UPDATE votes SET num_votes = num_votes + 1 WHERE group_code = $1 AND title = $2",
+        "UPDATE votes SET num_votes = num_votes + 1 WHERE group_code = $1 AND book_title = $2",
         [groupCode, filmTitle]
       );
     } else {
       await pool.query(
-        "INSERT INTO votes (group_code, title, poster, num_votes) VALUES ($1, $2, $3, 1)",
+        "INSERT INTO votes (group_code, book_title, num_votes, poster) VALUES ($1, $2, $3, 1)",
         [groupCode, filmTitle, poster]
       );
     }
@@ -1054,6 +1131,59 @@ io.on("connection", (socket) => {
     console.log(`${socket.id} of room ${roomId} has disconnected`);
     delete rooms[roomId][socket.id];
   });
+});
+
+const db = require('../config/db'); 
+
+// Endpoint to add an event
+app.post('/api/addEvent', async (req, res) => {
+  const { groupCode, eventDate, eventTitle, description } = req.body;
+
+  // Debugging: Log received data
+  console.log("Received data on server:", { groupCode, eventDate, eventTitle, description });
+
+  if (!eventDate || !eventTitle || !groupCode) {
+      return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  try {
+      const query = `
+          INSERT INTO group_events (group_code, event_date, event_title, description)
+          VALUES ($1, $2, $3, $4) RETURNING *`;
+      const values = [groupCode, eventDate, eventTitle, description];
+
+      const result = await db.query(query, values);
+      res.status(201).json(result.rows[0]); // Respond with the newly created event
+  } catch (err) {
+      console.error("Database error:", err); // Log any errors
+      res.status(500).json({ error: err.message });
+  }
+});
+
+// Endpoint to get events for a specific group
+app.get("/api/getEvents/:groupCode", async (req, res) => {
+  const { groupCode } = req.params;
+  try {
+      const result = await pool.query(
+          "SELECT * FROM group_events WHERE group_code = $1 ORDER BY event_date",
+          [groupCode]
+      );
+      res.json(result.rows);
+  } catch (err) {
+      console.error("Error retrieving events:", err.stack);
+      res.status(500).json({ error: err.message });
+  }
+});
+
+// Endpoint to delete an event
+app.delete("/api/deleteEvent/:eventId", async (req, res) => {
+  const { eventId } = req.params;
+  try {
+      await pool.query("DELETE FROM group_events WHERE event_id = $1", [eventId]);
+      res.status(204).send();
+  } catch (err) {
+      res.status(500).json({ error: err.message });
+  }
 });
 
 server.listen(port, hostname, () => {
