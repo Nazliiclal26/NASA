@@ -47,6 +47,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             <h3>${data.title}</h3>
             <p>Author(s): ${data.authors}</p>
             <p>Date Published: ${data.publishedDate}</p>
+            <p>Rating: ${data.rating}/5<p>
             <p>Description: ${data.description}</p>
           </div>
         `;
