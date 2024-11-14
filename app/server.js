@@ -548,8 +548,19 @@ app.post("/create", async (req, res) => {
 });
 
 // Adding client-side room functionality here - is called upon redirect to 'group/:groupId' in movies.js
-app.get("/movieGroup/:groupCode", (req, res) => {
+app.get("/movieGroup/:groupCode", async (req, res) => {
   const groupCode = req.params.groupCode;
+  let name = "";
+
+  try {
+    let result = await pool.query(
+      "SELECT * FROM groups WHERE secret_code = $1",
+      [groupCode.substring(1)]
+    );
+    name = result.rows[0].group_name;
+  } catch (error) {
+    console.log(error);
+  }
 
   res.send(`
     <!DOCTYPE html>
@@ -557,7 +568,7 @@ app.get("/movieGroup/:groupCode", (req, res) => {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Group ${groupCode}</title>
+      <title>Group ${name}</title>
       <script src="/groupSearchMovie.js" defer></script>
       <style>
         .film-card {
@@ -583,7 +594,7 @@ app.get("/movieGroup/:groupCode", (req, res) => {
     </head>
     <body>
       <header>
-        <h1>Welcome to Group ${groupCode}</h1>
+        <h1>Welcome to Group ${name}</h1>
       </header>
       <main>
         <div id="searchSection">
@@ -684,8 +695,19 @@ app.get("/movieGroup/:groupCode", (req, res) => {
   `);
 });
 
-app.get("/bookGroup/:groupCode", (req, res) => {
+app.get("/bookGroup/:groupCode", async (req, res) => {
   const groupCode = req.params.groupCode;
+  let name = "";
+
+  try {
+    let result = await pool.query(
+      "SELECT * FROM groups WHERE secret_code = $1",
+      [groupCode.substring(1)]
+    );
+    name = result.rows[0].group_name;
+  } catch (error) {
+    console.log(error);
+  }
 
   res.send(`
       <!DOCTYPE html>
@@ -693,7 +715,7 @@ app.get("/bookGroup/:groupCode", (req, res) => {
       <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Group ${groupCode}</title>
+          <title>Group ${name}</title>
           <script src="/groupSearchBook.js" defer></script>
           <style>
               .film-card {
@@ -719,7 +741,7 @@ app.get("/bookGroup/:groupCode", (req, res) => {
       </head>
       <body>
           <header>
-              <h1>Welcome to Group ${groupCode}</h1>
+              <h1>Welcome to Group ${name}</h1>
           </header>
           <main>
               <div id="searchSection">

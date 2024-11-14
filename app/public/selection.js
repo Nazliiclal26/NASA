@@ -192,6 +192,13 @@ function processJoinModal() {
             closeModals();
             mainModal.classList.remove("hidden");
             displayGroups();
+            let type = data.group.group_type;
+            let groupCode = data.group.secret_code;
+            if (type === "book") {
+              window.location.href = `/bookGroup/:${groupCode}`;
+            } else {
+              window.location.href = `/movieGroup/:${groupCode}`;
+            }
           } else {
             console.log(data);
             alert(data.message);
@@ -686,6 +693,34 @@ async function populateCatalog() {
           //console.log(movieApiData);
 
           let catalog = document.getElementById("catalog");
+
+          let originalTitle1 = movieApiData[0][1];
+          let originalTitle2 = movieApiData[1][1];
+          let originalTitle3 = movieApiData[2][1];
+          let originalTitle4 = movieApiData[3][1];
+          let originalTitle5 = movieApiData[4][1];
+
+          let title1 =
+            originalTitle1.length > 15
+              ? originalTitle1.substring(0, 15) + "..."
+              : originalTitle1;
+          let title2 =
+            originalTitle2.length > 15
+              ? originalTitle2.substring(0, 15) + "..."
+              : originalTitle2;
+          let title3 =
+            originalTitle3.length > 15
+              ? originalTitle3.substring(0, 15) + "..."
+              : originalTitle3;
+          let title4 =
+            originalTitle4.length > 15
+              ? originalTitle4.substring(0, 15) + "..."
+              : originalTitle4;
+          let title5 =
+            originalTitle5.length > 15
+              ? originalTitle5.substring(0, 15) + "..."
+              : originalTitle5;
+
           catalog.innerHTML = `
 <div id="catalogBlock">
   <div id="listingTitle">Movies by Preferences</div>
@@ -694,7 +729,7 @@ async function populateCatalog() {
       <div class="poster">
       <img src="${movieApiData[0][0]}"/>
       </div>
-      <div class="title" id="oneTitle">${movieApiData[0][1]}</div>
+      <div class="title" id="oneTitle">${title1}</div>
       <div class="miniTitle">${movieApiData[0][2]}</div>
       <div class="subBlock">
         <div class="rating">${movieApiData[0][3]}</div>
@@ -705,7 +740,7 @@ async function populateCatalog() {
       <div class="poster">
       <img src="${movieApiData[1][0]}"/>
       </div>
-      <div class="title" id="twoTitle">${movieApiData[1][1]}</div>
+      <div class="title" id="twoTitle">${title2}</div>
       <div class="miniTitle">${movieApiData[1][2]}</div>
       <div class="subBlock">
         <div class="rating">${movieApiData[1][3]}</div>
@@ -716,7 +751,7 @@ async function populateCatalog() {
       <div class="poster">
       <img src="${movieApiData[2][0]}"/>
       </div>
-      <div class="title" id="threeTitle">${movieApiData[2][1]}</div>
+      <div class="title" id="threeTitle">${title3}</div>
       <div class="miniTitle">${movieApiData[2][2]}</div>
       <div class="subBlock">
         <div class="rating">${movieApiData[2][3]}</div>
@@ -727,7 +762,7 @@ async function populateCatalog() {
       <div class="poster">
       <img src="${movieApiData[3][0]}"/>
       </div>
-      <div class="title" id="fourTitle">${movieApiData[3][1]}</div>
+      <div class="title" id="fourTitle">${title4}</div>
       <div class="miniTitle">${movieApiData[3][2]}</div>
       <div class="subBlock">
         <div class="rating">${movieApiData[3][3]}</div>
@@ -738,7 +773,7 @@ async function populateCatalog() {
       <div class="poster">
       <img src="${movieApiData[4][0]}"/>
       </div>
-      <div class="title" id="fiveTitle">${movieApiData[4][1]}</div>
+      <div class="title" id="fiveTitle">${title5}</div>
       <div class="miniTitle">${movieApiData[4][2]}</div>
       <div class="subBlock">
         <div class="rating">${movieApiData[4][3]}</div>
@@ -851,6 +886,34 @@ async function populateCatalog() {
           //console.log(movieApiData);
 
           let catalog = document.getElementById("catalog");
+
+          let originalTitle1 = movieApiData[0][1];
+          let originalTitle2 = movieApiData[1][1];
+          let originalTitle3 = movieApiData[2][1];
+          let originalTitle4 = movieApiData[3][1];
+          let originalTitle5 = movieApiData[4][1];
+
+          let title1 =
+            originalTitle1.length > 15
+              ? originalTitle1.substring(0, 15) + "..."
+              : originalTitle1;
+          let title2 =
+            originalTitle2.length > 15
+              ? originalTitle2.substring(0, 15) + "..."
+              : originalTitle2;
+          let title3 =
+            originalTitle3.length > 15
+              ? originalTitle3.substring(0, 15) + "..."
+              : originalTitle3;
+          let title4 =
+            originalTitle4.length > 15
+              ? originalTitle4.substring(0, 15) + "..."
+              : originalTitle4;
+          let title5 =
+            originalTitle5.length > 15
+              ? originalTitle5.substring(0, 15) + "..."
+              : originalTitle5;
+
           catalog.innerHTML = `
 <div id="catalogBlock">
   <div id="listingTitle">Random Movies</div>
@@ -859,7 +922,7 @@ async function populateCatalog() {
       <div class="poster">
       <img src="${movieApiData[0][0]}"/>
       </div>
-      <div class="title" id="oneTitle">${movieApiData[0][1]}</div>
+      <div class="title" id="oneTitle">${title1}</div>
       <div class="miniTitle">${movieApiData[0][2]}</div>
       <div class="subBlock">
         <div class="rating">${movieApiData[0][3]}</div>
@@ -870,7 +933,7 @@ async function populateCatalog() {
       <div class="poster">
       <img src="${movieApiData[1][0]}"/>
       </div>
-      <div class="title" id="twoTitle">${movieApiData[1][1]}</div>
+      <div class="title" id="twoTitle">${title2}</div>
       <div class="miniTitle">${movieApiData[1][2]}</div>
       <div class="subBlock">
         <div class="rating">${movieApiData[1][3]}</div>
@@ -881,7 +944,7 @@ async function populateCatalog() {
       <div class="poster">
       <img src="${movieApiData[2][0]}"/>
       </div>
-      <div class="title" id="threeTitle">${movieApiData[2][1]}</div>
+      <div class="title" id="threeTitle">${title3}</div>
       <div class="miniTitle">${movieApiData[2][2]}</div>
       <div class="subBlock">
         <div class="rating">${movieApiData[2][3]}</div>
@@ -892,7 +955,7 @@ async function populateCatalog() {
       <div class="poster">
       <img src="${movieApiData[3][0]}"/>
       </div>
-      <div class="title" id="fourTitle">${movieApiData[3][1]}</div>
+      <div class="title" id="fourTitle">${title4}</div>
       <div class="miniTitle">${movieApiData[3][2]}</div>
       <div class="subBlock">
         <div class="rating">${movieApiData[3][3]}</div>
@@ -903,7 +966,7 @@ async function populateCatalog() {
       <div class="poster">
       <img src="${movieApiData[4][0]}"/>
       </div>
-      <div class="title" id="fiveTitle">${movieApiData[4][1]}</div>
+      <div class="title" id="fiveTitle">${title5}</div>
       <div class="miniTitle">${movieApiData[4][2]}</div>
       <div class="subBlock">
         <div class="rating">${movieApiData[4][3]}</div>
@@ -1292,67 +1355,95 @@ async function populateCatalogBooks() {
           //console.log(bookApiData);
 
           let catalog = document.getElementById("catalog");
+
+          let originalTitle1 = bookApiData[0][1];
+          let originalTitle2 = bookApiData[1][1];
+          let originalTitle3 = bookApiData[2][1];
+          let originalTitle4 = bookApiData[3][1];
+          let originalTitle5 = bookApiData[4][1];
+
+          let title1 =
+            originalTitle1.length > 15
+              ? originalTitle1.substring(0, 15) + "..."
+              : originalTitle1;
+          let title2 =
+            originalTitle2.length > 15
+              ? originalTitle2.substring(0, 15) + "..."
+              : originalTitle2;
+          let title3 =
+            originalTitle3.length > 15
+              ? originalTitle3.substring(0, 15) + "..."
+              : originalTitle3;
+          let title4 =
+            originalTitle4.length > 15
+              ? originalTitle4.substring(0, 15) + "..."
+              : originalTitle4;
+          let title5 =
+            originalTitle5.length > 15
+              ? originalTitle5.substring(0, 15) + "..."
+              : originalTitle5;
+
           catalog.innerHTML = `
-<div id="catalogBlock">
-  <div id="listingTitle">Books by Preferences</div>
-  <div id="listings">
-    <div class="listing" id="1">
-      <div class="poster">
-      <img src="${bookApiData[0][0]}"/>
-      </div>
-      <div class="title" id="oneTitle">${bookApiData[0][1]}</div>
-      <div class="miniTitle">${bookApiData[0][2]}</div>
-      <div class="subBlock">
-        <div class="rating">${bookApiData[0][3]}</div>
-        <div class="watchlistButton" id="oneTitle">+</div>
-      </div>
-    </div>
-    <div class="listing" id="2">
-      <div class="poster">
-      <img src="${bookApiData[1][0]}"/>
-      </div>
-      <div class="title" id="twoTitle">${bookApiData[1][1]}</div>
-      <div class="miniTitle">${bookApiData[1][2]}</div>
-      <div class="subBlock">
-        <div class="rating">${bookApiData[1][3]}</div>
-        <div class="watchlistButton" id="twoTitle">+</div>
-      </div>
-    </div>
-    <div class="listing" id="3">
-      <div class="poster">
-      <img src="${bookApiData[2][0]}"/>
-      </div>
-      <div class="title" id="threeTitle">${bookApiData[2][1]}</div>
-      <div class="miniTitle">${bookApiData[2][2]}</div>
-      <div class="subBlock">
-        <div class="rating">${bookApiData[2][3]}</div>
-        <div class="watchlistButton" id="threeTitle">+</div>
-      </div>
-    </div>
-    <div class="listing" id="4">
-      <div class="poster">
-      <img src="${bookApiData[3][0]}"/>
-      </div>
-      <div class="title" id="fourTitle">${bookApiData[3][1]}</div>
-      <div class="miniTitle">${bookApiData[3][2]}</div>
-      <div class="subBlock">
-        <div class="rating">${bookApiData[3][3]}</div>
-        <div class="watchlistButton" id="fourTitle">+</div>
-      </div>
-    </div>
-    <div class="listing" id="5">
-      <div class="poster">
-      <img src="${bookApiData[4][0]}"/>
-      </div>
-      <div class="title" id="fiveTitle">${bookApiData[4][1]}</div>
-      <div class="miniTitle">${bookApiData[4][2]}</div>
-      <div class="subBlock">
-        <div class="rating">${bookApiData[4][3]}</div>
-        <div class="watchlistButton" id="fiveTitle">+</div>
-      </div>
-    </div>
-  </div>
-          `;
+          <div id="catalogBlock">
+            <div id="listingTitle">Books by Preferences</div>
+            <div id="listings">
+              <div class="listing" id="1">
+                <div class="poster">
+                <img src="${bookApiData[0][0]}"/>
+                </div>
+                <div class="title" id="oneTitle">${title1}</div>
+                <div class="miniTitle">${bookApiData[0][2]}</div>
+                <div class="subBlock">
+                  <div class="rating">${bookApiData[0][3]}</div>
+                  <div class="watchlistButton" id="oneTitle">+</div>
+                </div>
+              </div>
+              <div class="listing" id="2">
+                <div class="poster">
+                <img src="${bookApiData[1][0]}"/>
+                </div>
+                <div class="title" id="twoTitle">${title2}</div>
+                <div class="miniTitle">${bookApiData[1][2]}</div>
+                <div class="subBlock">
+                  <div class="rating">${bookApiData[1][3]}</div>
+                  <div class="watchlistButton" id="twoTitle">+</div>
+                </div>
+              </div>
+              <div class="listing" id="3">
+                <div class="poster">
+                <img src="${bookApiData[2][0]}"/>
+                </div>
+                <div class="title" id="threeTitle">${title3}</div>
+                <div class="miniTitle">${bookApiData[2][2]}</div>
+                <div class="subBlock">
+                  <div class="rating">${bookApiData[2][3]}</div>
+                  <div class="watchlistButton" id="threeTitle">+</div>
+                </div>
+              </div>
+              <div class="listing" id="4">
+                <div class="poster">
+                <img src="${bookApiData[3][0]}"/>
+                </div>
+                <div class="title" id="fourTitle">${title4}</div>
+                <div class="miniTitle">${bookApiData[3][2]}</div>
+                <div class="subBlock">
+                  <div class="rating">${bookApiData[3][3]}</div>
+                  <div class="watchlistButton" id="fourTitle">+</div>
+                </div>
+              </div>
+              <div class="listing" id="5">
+                <div class="poster">
+                <img src="${bookApiData[4][0]}"/>
+                </div>
+                <div class="title" id="fiveTitle">${title5}</div>
+                <div class="miniTitle">${bookApiData[4][2]}</div>
+                <div class="subBlock">
+                  <div class="rating">${bookApiData[4][3]}</div>
+                  <div class="watchlistButton" id="fiveTitle">+</div>
+                </div>
+              </div>
+            </div>
+                    `;
           let watchlist = document.querySelectorAll(".watchlistButton");
           watchlist.forEach((but) => {
             but.addEventListener("click", () => {
@@ -1455,6 +1546,34 @@ async function populateCatalogBooks() {
           //console.log(bookApiData);
 
           let catalog = document.getElementById("catalog");
+
+          let originalTitle1 = bookApiData[0][1];
+          let originalTitle2 = bookApiData[1][1];
+          let originalTitle3 = bookApiData[2][1];
+          let originalTitle4 = bookApiData[3][1];
+          let originalTitle5 = bookApiData[4][1];
+
+          let title1 =
+            originalTitle1.length > 15
+              ? originalTitle1.substring(0, 15) + "..."
+              : originalTitle1;
+          let title2 =
+            originalTitle2.length > 15
+              ? originalTitle2.substring(0, 15) + "..."
+              : originalTitle2;
+          let title3 =
+            originalTitle3.length > 15
+              ? originalTitle3.substring(0, 15) + "..."
+              : originalTitle3;
+          let title4 =
+            originalTitle4.length > 15
+              ? originalTitle4.substring(0, 15) + "..."
+              : originalTitle4;
+          let title5 =
+            originalTitle5.length > 15
+              ? originalTitle5.substring(0, 15) + "..."
+              : originalTitle5;
+
           catalog.innerHTML = `
           <div id="catalogBlock">
             <div id="listingTitle">Random Books</div>
@@ -1463,7 +1582,7 @@ async function populateCatalogBooks() {
                 <div class="poster">
                 <img src="${bookApiData[0][0]}"/>
                 </div>
-                <div class="title" id="oneTitle">${bookApiData[0][1]}</div>
+                <div class="title" id="oneTitle">${title1}</div>
                 <div class="miniTitle">${bookApiData[0][2]}</div>
                 <div class="subBlock">
                   <div class="rating">${bookApiData[0][3]}</div>
@@ -1474,7 +1593,7 @@ async function populateCatalogBooks() {
                 <div class="poster">
                 <img src="${bookApiData[1][0]}"/>
                 </div>
-                <div class="title" id="twoTitle">${bookApiData[1][1]}</div>
+                <div class="title" id="twoTitle">${title2}</div>
                 <div class="miniTitle">${bookApiData[1][2]}</div>
                 <div class="subBlock">
                   <div class="rating">${bookApiData[1][3]}</div>
@@ -1485,7 +1604,7 @@ async function populateCatalogBooks() {
                 <div class="poster">
                 <img src="${bookApiData[2][0]}"/>
                 </div>
-                <div class="title" id="threeTitle">${bookApiData[2][1]}</div>
+                <div class="title" id="threeTitle">${title3}</div>
                 <div class="miniTitle">${bookApiData[2][2]}</div>
                 <div class="subBlock">
                   <div class="rating">${bookApiData[2][3]}</div>
@@ -1496,7 +1615,7 @@ async function populateCatalogBooks() {
                 <div class="poster">
                 <img src="${bookApiData[3][0]}"/>
                 </div>
-                <div class="title" id="fourTitle">${bookApiData[3][1]}</div>
+                <div class="title" id="fourTitle">${title4}</div>
                 <div class="miniTitle">${bookApiData[3][2]}</div>
                 <div class="subBlock">
                   <div class="rating">${bookApiData[3][3]}</div>
@@ -1507,7 +1626,7 @@ async function populateCatalogBooks() {
                 <div class="poster">
                 <img src="${bookApiData[4][0]}"/>
                 </div>
-                <div class="title" id="fiveTitle">${bookApiData[4][1]}</div>
+                <div class="title" id="fiveTitle">${title5}</div>
                 <div class="miniTitle">${bookApiData[4][2]}</div>
                 <div class="subBlock">
                   <div class="rating">${bookApiData[4][3]}</div>
