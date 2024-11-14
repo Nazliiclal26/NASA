@@ -420,7 +420,7 @@ app.post("/joinGroup", async (req, res) => {
           [update, code]
         );
 
-        window.location.href = res.status(200).json({
+        res.status(200).json({
           status: "success",
           message: "joined group",
           group: updateRes.rows[0],
@@ -1136,6 +1136,7 @@ app.get("/groupSearchBook", (req, res) => {
         poster: book.imageLinks ? book.imageLinks.thumbnail : "",
         authors: book.authors ? book.authors.join(", ") : "N/A",
         publishedDate: book.publishedDate,
+        rating: book.averageRating,
         description: book.description
           ? book.description
           : "No description available.",
