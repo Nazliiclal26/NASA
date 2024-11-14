@@ -156,6 +156,7 @@ body {
   font-size: 27px;
   font-weight: 500;
   margin-bottom: 30px;
+  max-width: 200px;
 }
 
 #titleGroup,
@@ -393,7 +394,7 @@ body {
   margin-left: auto;
   margin-right: auto;
   background-color: white;
-  border: 0px solid #ddd;
+  border: 1px solid #ddd;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
@@ -459,13 +460,14 @@ body {
 
 .poster {
   width: 200px;
-  height: 280px;
-  background-color: red;
+  max-height: 300px;
+  min-width: 200px;
+  min-height: 300px;
 }
 
 .poster img {
   width: 100%;
-  height: auto;
+  height: 100%;
 }
 
 .title {
