@@ -14,6 +14,7 @@
           <div id="movies">Movies</div>
         </div>
       </div>
+      <div id="greeting"></div>
       <div id="searchBox">
         <input
           type="text"
@@ -21,10 +22,23 @@
           name="search"
           placeholder="Search a book or movie..."
         />
+        <button id="searchFilm">Search</button>
       </div>
       <div id="navButtons">
         <div id="buttonContainer">
-          <div id="watchlist">My Watchlist</div>
+          <div id="watchlist">
+            <a href="#" id="watchlistLink">My Watchlist</a>
+          </div>
+          <script>
+            document.getElementById("watchlistLink").addEventListener("click", () => {
+              const userId = localStorage.getItem("userId");
+              if (userId) {
+                window.location.href = `/${userId}/watchlist.html`;
+              } else {
+                alert("User not logged in.");
+              }
+            });
+          </script>
           <div id="account">Account</div>
           <div id="logout">
             <img src="images/logout.png" width="30px" />
@@ -33,23 +47,27 @@
       </div>
     </div>
     <div id="main">
-      <div id="catalog"></div>
-      <div id="modalButton">
-        <div id="groupButton">
-          <img id="groupIcon" src="images/group.png" height="50px" />
-        </div>
+      <div id="searchResult"></div>
+      <div id="catalog">Loading...</div>
       </div>
-
-      <div id="mainModal" class="hidden">
-        <div id="mainGroupModalButton">
-          <img id="closeIcon" src="images/arrowGroup.png" width="30px" />
+      <div id="groupModalMain">
+        <div id="modalButton">
+          <div id="groupButton">
+            <img id="groupIcon" src="images/group.png" height="50px" />
+          </div>
         </div>
-        <div id="groupModal">
-          <div id="title">My Groups</div>
-          <div id="groups"></div>
-          <div id="groupActions">
-            <div id="joinButton">Join</div>
-            <div id="addButton">Add</div>
+
+        <div id="mainModal" class="hidden">
+          <div id="mainGroupModalButton">
+            <img id="closeIcon" src="images/arrowGroup.png" width="30px" />
+          </div>
+          <div id="groupModal">
+            <div id="title">My Groups</div>
+            <div id="groups"></div>
+            <div id="groupActions">
+              <div id="joinButton">Join</div>
+              <div id="addButton">Add</div>
+            </div>
           </div>
         </div>
       </div>
