@@ -379,6 +379,7 @@ app.post("/joinGroup", async (req, res) => {
   if (type === "code") {
     try {
       if (!code || !userId) {
+        console.log("error 1");
         return res
           .status(400)
           .json({ status: "error", message: "missing code or userId" });
@@ -390,6 +391,7 @@ app.post("/joinGroup", async (req, res) => {
       );
 
       if (groupCheck.rows.length === 0) {
+        console.log("error 2");
         return res
           .status(404)
           .json({ status: "error", message: "group not found" });
@@ -398,12 +400,14 @@ app.post("/joinGroup", async (req, res) => {
       let group = groupCheck.rows[0];
 
       if (group.members && group.members.includes(userId)) {
+        console.log("error 2");
         return res
           .status(400)
           .json({ status: "error", message: "user already in group" });
       }
 
       if (group.privacy !== "private") {
+        console.log("error 1");
         let update;
         if (group.members) {
           update = [...group.members, userId];
@@ -416,17 +420,34 @@ app.post("/joinGroup", async (req, res) => {
           [update, code]
         );
 
-        res.status(200).json({
+        window.location.href = res.status(200).json({
           status: "success",
           message: "joined group",
           group: updateRes.rows[0],
         });
       } else {
-        res.status(400).json({
-          status: "error",
-          message: "group is private",
-          group: updateRes.rows[0],
-        });
+        if (code !== group.secret_code) {
+          console.error("Error joining group:", error);
+          res.status(500).json({ message: "Wrong code" });
+        } else {
+          let update;
+          if (group.members) {
+            update = [...group.members, userId];
+          } else {
+            update = [userId];
+          }
+
+          let updateRes = await pool.query(
+            "UPDATE groups SET members = $1 WHERE secret_code = $2 RETURNING *",
+            [update, code]
+          );
+
+          res.status(200).json({
+            status: "success",
+            message: "joined group",
+            group: updateRes.rows[0],
+          });
+        }
       }
     } catch (error) {
       console.error("Error joining group:", error);
@@ -527,8 +548,19 @@ app.post("/create", async (req, res) => {
 });
 
 // Adding client-side room functionality here - is called upon redirect to 'group/:groupId' in movies.js
-app.get("/movieGroup/:groupCode", (req, res) => {
+app.get("/movieGroup/:groupCode", async (req, res) => {
   const groupCode = req.params.groupCode;
+  let name = "";
+
+  try {
+    let result = await pool.query(
+      "SELECT * FROM groups WHERE secret_code = $1",
+      [groupCode.substring(1)]
+    );
+    name = result.rows[0].group_name;
+  } catch (error) {
+    console.log(error);
+  }
 
   res.send(`
     <!DOCTYPE html>
@@ -536,7 +568,7 @@ app.get("/movieGroup/:groupCode", (req, res) => {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Group ${groupCode}</title>
+      <title>Group ${name}</title>
       <script src="/groupSearchMovie.js" defer></script>
       <style>
         .film-card {
@@ -562,7 +594,7 @@ app.get("/movieGroup/:groupCode", (req, res) => {
     </head>
     <body>
       <header>
-        <h1>Welcome to Group ${groupCode}</h1>
+        <h1>Welcome to Group ${name}</h1>
       </header>
       <main>
         <div id="searchSection">
@@ -663,8 +695,19 @@ app.get("/movieGroup/:groupCode", (req, res) => {
   `);
 });
 
-app.get("/bookGroup/:groupCode", (req, res) => {
+app.get("/bookGroup/:groupCode", async (req, res) => {
   const groupCode = req.params.groupCode;
+  let name = "";
+
+  try {
+    let result = await pool.query(
+      "SELECT * FROM groups WHERE secret_code = $1",
+      [groupCode.substring(1)]
+    );
+    name = result.rows[0].group_name;
+  } catch (error) {
+    console.log(error);
+  }
 
   res.send(`
       <!DOCTYPE html>
@@ -672,7 +715,7 @@ app.get("/bookGroup/:groupCode", (req, res) => {
       <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Group ${groupCode}</title>
+          <title>Group ${name}</title>
           <script src="/groupSearchBook.js" defer></script>
           <style>
               .film-card {
@@ -698,7 +741,7 @@ app.get("/bookGroup/:groupCode", (req, res) => {
       </head>
       <body>
           <header>
-              <h1>Welcome to Group ${groupCode}</h1>
+              <h1>Welcome to Group ${name}</h1>
           </header>
           <main>
               <div id="searchSection">
@@ -1093,7 +1136,6 @@ app.get("/groupSearchBook", (req, res) => {
         poster: book.imageLinks ? book.imageLinks.thumbnail : "",
         authors: book.authors ? book.authors.join(", ") : "N/A",
         publishedDate: book.publishedDate,
-        rating: book.averageRating,
         description: book.description
           ? book.description
           : "No description available.",
@@ -1200,30 +1242,35 @@ io.on("connection", (socket) => {
   });
 });
 
-const db = require('../config/db'); 
+const db = require("../config/db");
 
 // Endpoint to add an event
-app.post('/api/addEvent', async (req, res) => {
+app.post("/api/addEvent", async (req, res) => {
   const { groupCode, eventDate, eventTitle, description } = req.body;
 
   // Debugging: Log received data
-  console.log("Received data on server:", { groupCode, eventDate, eventTitle, description });
+  console.log("Received data on server:", {
+    groupCode,
+    eventDate,
+    eventTitle,
+    description,
+  });
 
   if (!eventDate || !eventTitle || !groupCode) {
-      return res.status(400).json({ error: "Missing required fields" });
+    return res.status(400).json({ error: "Missing required fields" });
   }
 
   try {
-      const query = `
+    const query = `
           INSERT INTO group_events (group_code, event_date, event_title, description)
           VALUES ($1, $2, $3, $4) RETURNING *`;
-      const values = [groupCode, eventDate, eventTitle, description];
+    const values = [groupCode, eventDate, eventTitle, description];
 
-      const result = await db.query(query, values);
-      res.status(201).json(result.rows[0]); // Respond with the newly created event
+    const result = await db.query(query, values);
+    res.status(201).json(result.rows[0]); // Respond with the newly created event
   } catch (err) {
-      console.error("Database error:", err); // Log any errors
-      res.status(500).json({ error: err.message });
+    console.error("Database error:", err); // Log any errors
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -1231,14 +1278,14 @@ app.post('/api/addEvent', async (req, res) => {
 app.get("/api/getEvents/:groupCode", async (req, res) => {
   const { groupCode } = req.params;
   try {
-      const result = await pool.query(
-          "SELECT * FROM group_events WHERE group_code = $1 ORDER BY event_date",
-          [groupCode]
-      );
-      res.json(result.rows);
+    const result = await pool.query(
+      "SELECT * FROM group_events WHERE group_code = $1 ORDER BY event_date",
+      [groupCode]
+    );
+    res.json(result.rows);
   } catch (err) {
-      console.error("Error retrieving events:", err.stack);
-      res.status(500).json({ error: err.message });
+    console.error("Error retrieving events:", err.stack);
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -1246,10 +1293,10 @@ app.get("/api/getEvents/:groupCode", async (req, res) => {
 app.delete("/api/deleteEvent/:eventId", async (req, res) => {
   const { eventId } = req.params;
   try {
-      await pool.query("DELETE FROM group_events WHERE event_id = $1", [eventId]);
-      res.status(204).send();
+    await pool.query("DELETE FROM group_events WHERE event_id = $1", [eventId]);
+    res.status(204).send();
   } catch (err) {
-      res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
