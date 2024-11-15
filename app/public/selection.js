@@ -232,6 +232,13 @@ function processJoinModal() {
             closeModals();
             mainModal.classList.remove("hidden");
             displayGroups();
+            let type = data.group.group_type;
+            let groupCode = data.group.secret_code;
+            if (type === "book") {
+              window.location.href = `/bookGroup/:${groupCode}`;
+            } else {
+              window.location.href = `/movieGroup/:${groupCode}`;
+            }
           } else {
             console.log(data);
             alert(data.message);
