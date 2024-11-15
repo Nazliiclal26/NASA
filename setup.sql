@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS group_watchlists (
 CREATE TABLE IF NOT EXISTS groups (
     id SERIAL PRIMARY KEY,
     group_name VARCHAR(255) UNIQUE NOT NULL,
+    secret_code VARCHAR(255) NOT NULL,
     leader_id INT REFERENCES users(id) ON DELETE SET NULL,
     group_type VARCHAR(10) NOT NULL CHECK (group_type IN ('book', 'movie')),
     privacy VARCHAR(10) NOT NULL DEFAULT 'public' CHECK (privacy IN ('public', 'private')),
@@ -55,7 +56,7 @@ CREATE TABLE IF NOT EXISTS votes (
     book_title VARCHAR(255),
     num_votes INTEGER DEFAULT 1,
     poster VARCHAR(255) NOT NULL,
-    film_genre VARCHAR(255) 
+    film_genre VARCHAR(255)
 );
 
 -- Messages Table
@@ -66,6 +67,16 @@ CREATE TABLE IF NOT EXISTS messages (
     user_message VARCHAR(512) NOT NULL,
     added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+--Group Calendar Events Table
+CREATE TABLE group_events (
+    event_id SERIAL PRIMARY KEY,
+    group_code VARCHAR(255) NOT NULL,
+    event_date DATE NOT NULL,
+    event_title VARCHAR(255) NOT NULL,
+    description TEXT
+);
+
 
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO book_club_user;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO book_club_user;

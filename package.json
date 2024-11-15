@@ -4,6 +4,7 @@
     "axios": "^1.7.7",
     "cookie-parser": "^1.4.7",
     "express": "^4.18.2",
+    "nodemon": "^3.1.7",
     "pg": "^8.8.0",
     "socket.io": "^4.8.1"
   },
@@ -12,4 +13,3 @@
     "setup": "psql -U postgres -f setup.sql"
   }
 }
-

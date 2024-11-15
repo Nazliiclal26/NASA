@@ -63,7 +63,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  width: 270px;
+  width: 336px;
 }
 
 #container .box {
@@ -141,7 +141,7 @@ input:hover {
 
 #leftPanel {
   background-color: rgb(202, 238, 251);
-  width: 65vw;
+  width: 56vw;
   display: flex;
   justify-content: center;
   align-items: center;
