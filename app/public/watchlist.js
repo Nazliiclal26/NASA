@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
   
-    fetch(`/getWatchlist/${userId}`)
+    /*fetch(`/getWatchlist/${userId}`)
       .then(response => response.json())
       .then(data => {
         if (data.status === "success") {
@@ -65,6 +65,75 @@ document.addEventListener("DOMContentLoaded", () => {
             div.appendChild(title);
             li.appendChild(removeBtn);
             li.appendChild(div);
+            bookList.appendChild(li);
+          });
+        } else {
+          alert("Failed to load watchlist.");
+        }
+      })
+      .catch(error => {
+        console.error("Error fetching watchlist:", error);
+      });*/
+      fetch(`/getWatchlist/${userId}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === "success") {
+          const filmList = document.getElementById("filmWatchlist");
+          const bookList = document.getElementById("bookWatchlist");
+  
+          // Handle films
+          data.items.filter(item => item.item_type === "movies").forEach(film => {
+            const li = document.createElement("li");
+            li.className = "watchlist-item";
+  
+            // Image and title container
+            const contentDiv = document.createElement("div");
+            contentDiv.className = "content";
+  
+            const img = document.createElement("img");
+            img.src = film.poster;
+            img.alt = film.item_id + " poster";
+            img.style = "width: 100px; height: auto; margin-right: 10px;";
+  
+            const title = document.createElement("div");
+            title.textContent = film.item_id;
+  
+            // Remove button
+            const removeBtn = document.createElement("button");
+            removeBtn.textContent = 'Remove From Watchlist';
+            removeBtn.onclick = () => removeItem(film.item_id, userId, li);
+  
+            contentDiv.appendChild(img);
+            contentDiv.appendChild(title);
+            li.appendChild(contentDiv);
+            li.appendChild(removeBtn);
+            filmList.appendChild(li);
+          });
+  
+          // Handle books similarly
+          data.items.filter(item => item.item_type === "books").forEach(book => {
+            const li = document.createElement("li");
+            li.className = "watchlist-item";
+  
+            const contentDiv = document.createElement("div");
+            contentDiv.className = "content";
+  
+            const img = document.createElement("img");
+            img.src = book.poster;
+            img.alt = book.item_id + " poster";
+            img.style = "width: 100px; height: auto; margin-right: 10px;";
+  
+            const title = document.createElement("div");
+            title.textContent = book.item_id;
+  
+            const removeBtn = document.createElement("button");
+            removeBtn.textContent = 'Remove From Watchlist';
+            removeBtn.onclick = () => removeItem(book.item_id, userId, li);
+  
+            contentDiv.appendChild(img);
+            contentDiv.appendChild(title);
+            li.appendChild(contentDiv);
+            li.appendChild(removeBtn);
             bookList.appendChild(li);
           });
         } else {
