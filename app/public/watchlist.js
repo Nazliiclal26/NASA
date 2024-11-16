@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
           films.forEach(film => {
             const li = document.createElement("li");
             li.style = "margin-bottom: 20px;"; // Adds space below each item
-            
+
             const div = document.createElement("div");
             const img = document.createElement("img");
             const title = document.createElement("div");
@@ -29,7 +29,6 @@ document.addEventListener("DOMContentLoaded", () => {
             img.style = "width: 100px; height: auto;"; // You can adjust style as needed
 
             title.textContent = film.item_id; // The title of the book
-            //title.style = "text-align: center;"; // Center align the text
 
             div.appendChild(img);
             div.appendChild(title);
@@ -50,7 +49,6 @@ document.addEventListener("DOMContentLoaded", () => {
             img.style = "width: 100px; height: auto;"; // You can adjust style as needed
 
             title.textContent = book.item_id; // The title of the book
-            //title.style = "text-align: center;"; // Center align the text
 
             div.appendChild(img);
             div.appendChild(title);
