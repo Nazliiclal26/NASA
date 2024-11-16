@@ -1177,12 +1177,12 @@ app.post("/bookVote", async (req, res) => {
 });
 
 app.post("/addToWatchlist", async (req, res) => {
-  let { type, title, userId } = req.body;
+  let { type, title, userId, poster } = req.body;
 
   try {
     let checkWatch = await pool.query(
-      "SELECT * FROM user_watchlists WHERE item_type = $1 AND item_id = $2 AND user_id = $3",
-      [type, title, userId]
+      "SELECT * FROM user_watchlists WHERE item_type = $1 AND item_id = $2 AND user_id = $3 AND poster = $4",
+      [type, title, userId, poster]
     );
 
     if (checkWatch.rows.length > 0) {
@@ -1192,8 +1192,8 @@ app.post("/addToWatchlist", async (req, res) => {
     }
 
     let result = await pool.query(
-      "INSERT INTO user_watchlists (item_type, item_id, user_id) VALUES ($1, $2, $3)",
-      [type, title, userId]
+      "INSERT INTO user_watchlists (item_type, item_id, user_id, poster) VALUES ($1, $2, $3, $4)",
+      [type, title, userId, poster]
     );
 
     res.status(200).json({ status: "success", message: "Adding to watchlist" });
@@ -1202,6 +1202,21 @@ app.post("/addToWatchlist", async (req, res) => {
     res
       .status(500)
       .json({ status: "error", message: "Error adding to watchlist" });
+  }
+});
+
+app.get("/getWatchlist/:userId", async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    const result = await pool.query(
+      "SELECT * FROM user_watchlists WHERE user_id = $1",
+      [userId]
+    );
+    res.json({ status: "success", items: result.rows });
+  } catch (error) {
+    console.error("Error fetching watchlist:", error);
+    res.status(500).json({ status: "error", message: "Error fetching watchlist" });
   }
 });
 
