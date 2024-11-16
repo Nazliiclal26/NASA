@@ -1220,6 +1220,23 @@ app.get("/getWatchlist/:userId", async (req, res) => {
   }
 });
 
+app.post('/removeFromWatchlist', async (req, res) => {
+  const { title, userId } = req.body;
+  try {
+    const result = await pool.query(
+      "DELETE FROM user_watchlists WHERE item_id = $1 AND user_id = $2",
+      [title, userId]
+    );
+    if (result.rowCount > 0) {
+      res.json({ status: "success", message: "Item removed successfully" });
+    } else {
+      res.status(404).json({ status: "error", message: "Item not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ status: "error", message: "Error removing item" });
+  }
+});
+
 /* SOCKET FUNCTIONALITY */
 // The key:value pairs of Rooms has the structure: { "groupId" : {socketId : socket} }
 let rooms = {};

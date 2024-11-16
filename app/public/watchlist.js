@@ -24,14 +24,20 @@ document.addEventListener("DOMContentLoaded", () => {
             const img = document.createElement("img");
             const title = document.createElement("div");
 
-            img.src = film.poster; // Assuming 'poster' is the name of the column that holds the image URL
+            img.src = film.poster; 
             img.alt = film.item_id + " poster";
-            img.style = "width: 100px; height: auto;"; // You can adjust style as needed
+            img.style = "width: 100px; height: auto;"; 
 
             title.textContent = film.item_id; // The title of the book
 
+            const removeBtn = document.createElement("button");
+            removeBtn.textContent = '-';
+            removeBtn.dataset.title = film.item_id; // Store the title in the button
+            removeBtn.onclick = () => removeItem(removeBtn.dataset.title, userId, li);
+
             div.appendChild(img);
             div.appendChild(title);
+            li.appendChild(removeBtn);
             li.appendChild(div);
             filmList.appendChild(li);
           });
@@ -44,14 +50,20 @@ document.addEventListener("DOMContentLoaded", () => {
             const img = document.createElement("img");
             const title = document.createElement("div");
             
-            img.src = book.poster; // Assuming 'poster' is the name of the column that holds the image URL
+            img.src = book.poster; 
             img.alt = book.item_id + " poster";
-            img.style = "width: 100px; height: auto;"; // You can adjust style as needed
+            img.style = "width: 100px; height: auto;"; 
 
             title.textContent = book.item_id; // The title of the book
 
+            const removeBtn = document.createElement("button");
+            removeBtn.textContent = '-';
+            removeBtn.dataset.title = book.item_id; // Store the title in the button
+            removeBtn.onclick = () => removeItem(removeBtn.dataset.title, userId, li);
+
             div.appendChild(img);
             div.appendChild(title);
+            li.appendChild(removeBtn);
             li.appendChild(div);
             bookList.appendChild(li);
           });
@@ -64,3 +76,22 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   });
   
+  function removeItem(title, userId, element) {
+    fetch(`/removeFromWatchlist`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ title: title, userId: userId })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === "success") {
+        alert('Item removed successfully');
+        element.remove();
+      } else {
+        alert('Failed to remove item');
+      }
+    })
+    .catch(error => console.error('Error removing item:', error));
+  }  
