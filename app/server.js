@@ -438,6 +438,29 @@ app.post("/createGroup", async (req, res) => {
   let memberList = [leaderId];
   let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let code = "";
+
+  async function syncUserWatchlistWithGroup(userId, groupName) {
+    try {
+      let userWatchlistQuery = await pool.query(
+        "SELECT item_id, item_type, poster FROM user_watchlists WHERE user_id = $1",
+        [userId]
+      );
+
+      let userWatchlist = userWatchlistQuery.rows;
+
+      for (let item of userWatchlist) {
+        await pool.query(
+          "INSERT INTO group_watchlists (group_id, item_id, item_type, poster) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING",
+          [groupName, item.item_id, item.item_type, item.poster]
+        );
+      }
+
+      console.log(`Synced ${userWatchlist.length} items to group ${groupName}`);
+    } catch (error) {
+      console.error("Error syncing user watchlist with group:", error);
+    }
+  }
+  
   for (let i = 0; i < 5; i++) {
     let rand = Math.floor(Math.random() * chars.length);
     code += chars.charAt(rand);
@@ -464,6 +487,7 @@ app.post("/createGroup", async (req, res) => {
         [groupName, leaderId, groupType, access, memberList, code]
       );
 
+      await syncUserWatchlistWithGroup(leaderId, groupName);
       res.status(200).json({
         status: "success",
         message: "Group created",
@@ -479,6 +503,40 @@ app.post("/createGroup", async (req, res) => {
 app.post("/joinGroup", async (req, res) => {
   let { type, code, userId } = req.body;
 
+  async function syncUserWatchlistWithGroup(userId, groupId) {
+    try {
+      let groupQuery = await pool.query(
+        "SELECT group_name FROM groups WHERE id = $1",
+        [groupId]
+      );
+  
+      if (groupQuery.rows.length === 0) {
+        console.error(`No group found with id: ${groupId}`);
+        return;
+      }
+  
+      let groupName = groupQuery.rows[0].group_name;
+  
+      let userWatchlistQuery = await pool.query(
+        "SELECT item_id, item_type, poster FROM user_watchlists WHERE user_id = $1",
+        [userId]
+      );
+  
+      let userWatchlist = userWatchlistQuery.rows;
+  
+      for (const item of userWatchlist) {
+        await pool.query(
+          "INSERT INTO group_watchlists (group_id, item_id, item_type, poster) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING",
+          [groupName, item.item_id, item.item_type, item.poster]
+        );
+      }
+  
+      console.log(`Synced ${userWatchlist.length} items to group ${groupName}`);
+    } catch (error) {
+      console.error("Error syncing user watchlist with group:", error);
+    }
+  }
+  
   if (type === "code") {
     try {
       if (!code || !userId) {
@@ -523,6 +581,7 @@ app.post("/joinGroup", async (req, res) => {
           [update, code]
         );
 
+        await syncUserWatchlistWithGroup(userId, group.id);
         res.status(200).json({
           status: "success",
           message: "joined group",
@@ -544,6 +603,8 @@ app.post("/joinGroup", async (req, res) => {
             "UPDATE groups SET members = $1 WHERE secret_code = $2 RETURNING *",
             [update, code]
           );
+
+          await syncUserWatchlistWithGroup(userId, group.id);
 
           res.status(200).json({
             status: "success",
@@ -609,6 +670,7 @@ app.post("/joinGroup", async (req, res) => {
         [updateRandom, chosenGroupId]
       );
 
+      await syncUserWatchlistWithGroup(userId, group.id);
       res.status(200).json({
         status: "success",
         message: "joined random group",
