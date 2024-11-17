@@ -38,6 +38,8 @@ app.use(express.json());
 //app.use(authRoutes);
 app.use(cookieParser());
 
+// I'm gonna have still store old session information - 
+//  old sessions will be marked by inclusion of "timeLoggedOut" key-value pair
 // structure of "username": "cookie-token"
 let tokenStorage = {};
 tokenOptions = {
@@ -68,6 +70,51 @@ function getKeyByValue(object, value) {
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
+});
+
+app.get("/clearCookie", (req, res) => {
+  let { token } = req.cookies;
+
+  if (token == undefined) {
+    return res.status(400).json({message: "User not logged in yet"});
+  }
+
+  if (tokenStorage[token] == undefined) {
+    return res.status(500).json({message: "Server issue, did not properly set cookie in local storage"});
+  }
+
+  let now = new Date();
+  tokenStorage[token]["timeLoggedOut"] = now.toLocaleString();
+  console.log(tokenStorage);
+  return res.clearCookie("token", tokenOptions).json({message: "Cookie properly cleared"});
+});
+
+app.get("/checkCookie", (req, res) => {
+  let { token } = req.cookies;
+
+  // User has yet to log in
+  if (token == undefined) {
+    return res.status(200).json({cookieExists: false});
+  }
+  // Clears up cookie from leftover session and creates new session instance
+  // Only occurs after server restart - should clear cookie if server restarted
+  else if (tokenStorage[token] == undefined) {
+    return res.status(200).clearCookie("token", tokenOptions).json({cookieExists: false});
+  }
+  else {
+    returnedUserId = null;
+    user.findByUsername(tokenStorage[token]["username"]).then((result) => {
+      if (result.id) {
+        returnedUserId = result.id;
+        return res.status(200).json({cookieExists: true, userId : returnedUserId});
+      }
+      else {
+        // Server issue
+        return res.status(500);
+      }
+    });
+  }
+
 });
 
 app.get("/:userId/watchlist.html", (req, res) => {
@@ -241,6 +288,10 @@ app.post("/login", async (req, res) => {
       let token = makeToken();
       tokenStorage[token] = {};
       tokenStorage[token]["username"] = username;
+      
+      let now = new Date();
+      tokenStorage[token]["timeLoggedIn"] = now.toLocaleString();
+
       console.log(tokenStorage);
       return res.cookie("token", token, tokenOptions).json({
         status: "success",
@@ -295,6 +346,10 @@ app.post("/signUp", async (req, res) => {
       let token = makeToken();
       tokenStorage[token] = {};
       tokenStorage[token]["username"] = username;
+
+      let now = new Date();
+      tokenStorage[token]["timeLoggedIn"] = now.toLocaleString();
+
       console.log(tokenStorage);
       res.cookie("token", token, tokenOptions).json({
         status: "success",
@@ -861,13 +916,13 @@ app.post("/addMessage", async (req, res) => {
     return res.status(400).json({ error: "group name is not defined" });
   }
 
-  console.log(
-    "Attempting to add message:",
-    message,
-    ", in group",
-    groupName,
-    ", to db"
-  );
+  // console.log(
+  //   "Attempting to add message:",
+  //   message,
+  //   ", in group",
+  //   groupName,
+  //   ", to db"
+  // );
 
   let groupId = null;
   await group.findByName(groupName).then((body) => {
@@ -925,9 +980,8 @@ app.get("/getMessages", async (req, res) => {
       error:
         "No cookie set for this user, ensure user was initialized properly.",
     });
-  } else {
-    console.log(token);
   }
+  
   let username = tokenStorage[token]["username"];
 
   // Get group id given group name
@@ -1243,7 +1297,7 @@ let rooms = {};
 
 io.on("connection", (socket) => {
   console.log("Socket ", socket.id, " has been connected.");
-  console.log("Adding socket to room...");
+  //console.log("Adding socket to room...");
 
   let url = socket.handshake.headers.referer;
   let pathParts = url.split("/");
@@ -1255,9 +1309,9 @@ io.on("connection", (socket) => {
   }
 
   rooms[roomId][socket.id] = socket;
-  console.log(
-    `Numbers of members in room ${roomId}: ${Object.keys(rooms[roomId]).length}`
-  );
+  // console.log(
+  //   `Numbers of members in room ${roomId}: ${Object.keys(rooms[roomId]).length}`
+  // );
 
   socket.on("sendMessageToRoom", ({ message, username }) => {
     console.log("Sending", message, "to room:", roomId);
