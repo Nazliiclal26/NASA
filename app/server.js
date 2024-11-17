@@ -660,7 +660,7 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
       "SELECT * FROM groups WHERE secret_code = $1",
       [groupCode.substring(1)]
     );
-    name = result.rows[0].group_name;
+    name = groupCode;
   } catch (error) {
     console.log(error);
   }
