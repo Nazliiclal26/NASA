@@ -21,7 +21,7 @@ logoutButton.addEventListener("click", () => {
   fetch('/clearCookie').then((response) => {
     return response.json();
   }).then((body) => {
-  window.location.href = "/";
+    window.location.href = "/";
     console.log(body.message);
   }).catch((error) => {
     console.error(error);
