@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS group_watchlists (
     group_id INT REFERENCES users(id) ON DELETE CASCADE,
     item_id VARCHAR(255) NOT NULL,
     item_type VARCHAR(50) NOT NULL,
+    poster TEXT,
     added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
