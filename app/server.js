@@ -673,26 +673,8 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Group ${name}</title>
       <script src="/groupSearchMovie.js" defer></script>
-      <style>
-        .film-card {
-          position: relative;
-          display: inline-block;
-          margin: 10px;
-        }
-        .vote-btn {
-          position: absolute;
-          top: 10px;
-          right: 10px;
-          background-color: red;
-          color: white;
-          border: none;
-          padding: 5px;
-          cursor: pointer;
-        }
-        #messages { list-style-type: none; padding: 0; }
-        #messages li { margin: 10px 0; }
-      </style>
       <link rel="stylesheet" href="/calendar.css">
+      <link rel="stylesheet" href="/group.css">
       <script src="/calendar.js" defer></script>
     </head>
     <body>
@@ -714,8 +696,10 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
 
         <div id="mostVotedFilm"></div>
 
-        <button id="stopVote">Stop Vote</button>
-        <button id="startVote">Start Voting</button>
+        <div id="buttonContainer">
+          <button id="stopVote">Stop Vote</button>
+          <button id="startVote">Start Voting</button>
+        </div>
 
         <div class="wrapper">
           <div class="container-calendar">
@@ -823,25 +807,7 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Group ${name}</title>
           <script src="/groupSearchBook.js" defer></script>
-          <style>
-              .film-card {
-                  position: relative;
-                  display: inline-block;
-                  margin: 10px;
-              }
-              .vote-btn {
-                  position: absolute;
-                  top: 10px;
-                  right: 10px;
-                  background-color: red;
-                  color: white;
-                  border: none;
-                  padding: 5px;
-                  cursor: pointer;
-              }
-              #messages { list-style-type: none; padding: 0; }
-              #messages li { margin: 10px 0; }
-          </style>
+          <link rel="stylesheet" href="/group.css">
           <link rel="stylesheet" href="/calendar.css">
           <script src="/calendar.js" defer></script>
       </head>
@@ -864,9 +830,11 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
 
               <div id="mostVotedBook"></div>
 
-              <button id="stopVote">Stop Vote</button>
-              <button id="startVote">Start Voting</button>
-              
+              <div id="buttonContainer">
+                <button id="stopVote">Stop Vote</button>
+                <button id="startVote">Start Voting</button>
+              </div>
+
               <div class="wrapper">
                 <div class="container-calendar">
                   <div id="left">
