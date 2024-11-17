@@ -121,6 +121,28 @@ app.get("/:userId/watchlist.html", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "watchlist.html"));
 });
 
+app.post("/checkIfLeader", async (req, res) => {
+  let body = req.body;
+  if (!body.hasOwnProperty("userId") || !body.hasOwnProperty("group")) {
+    return res.status(400).json({isLeader: null, message: 'Improper body for fetch request'});
+  }
+
+  let id = parseInt(body.userId);
+  let groupName = body.group;
+  group.findByName(groupName).then((result) => {
+    console.log(result);
+    if (result.leader_id === id) {
+      return res.status(200).json({isLeader: true, message: 'User is leader'});
+    }
+    else {
+      return res.status(200).json({isLeader: false, message: 'User is not leader'});
+    }
+  }).catch((error) => {
+    console.error(error);
+    return res.status(500).json({isLeader: null, message: 'Server error'});
+  });
+});
+
 app.post("/startVoting/:groupCode", async (req, res) => {
   let groupCode = req.params.groupCode;
   let fullGroupName = `Group ${groupCode}`;

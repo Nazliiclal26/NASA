@@ -98,6 +98,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.error("Error fetching votes:", error);
       }
     }
+
+    async function checkIfLeader() {
+      const response = await fetch(`/checkIfLeader`, {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({userId: localStorage.getItem("userId"), group: groupCode})
+      });
+      let data = await response.json();
+      console.log(data.message);
+      if (data.isLeader && response.ok) {
+        document.getElementById("buttonContainer").style.display = "block";
+      }
+    }   
   
     stopVoteButton.addEventListener("click", async () => {
       let response = await fetch(`/votes/${groupCode}`);
@@ -126,6 +139,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   
     fetchVotes(); 
+    checkIfLeader();
   });
 
   let groupCode = window.location.pathname.split("/").pop(); 
@@ -166,10 +180,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     }).catch((error) => {
       console.error(error);
     });
-
-    // Add this to successful return body for add message fetch
-    // socket.emit('sendMessageToRoom', { message });
-  });
+   
+});
 
   // Sets username based on token storage in server
   fetch('/getUsernameForGroup').then((response) => {
