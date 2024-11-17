@@ -18,7 +18,14 @@ homeButton.addEventListener("click", () => {
 
 logoutButton.addEventListener("click", () => {
   localStorage.clear("userId");
+  fetch('/clearCookie').then((response) => {
+    return response.json();
+  }).then((body) => {
   window.location.href = "/";
+    console.log(body.message);
+  }).catch((error) => {
+    console.error(error);
+  });
 });
 
 confirmUserButton.addEventListener("click", () => {
