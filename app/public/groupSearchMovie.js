@@ -162,6 +162,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+  async function checkIfLeader() {
+    const response = await fetch(`/checkIfLeader`, {
+      method: 'POST',
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({userId: localStorage.getItem("userId"), group: groupCode})
+    });
+    let data = await response.json();
+    console.log(data.message);
+    if (data.isLeader && response.ok) {
+      document.getElementById("buttonContainer").style.display = "block";
+    }
+  }
+  
   stopVoteButton.addEventListener("click", async () => {
     try {
       await fetch(`/stopVoting/${groupCode}`, { method: "POST", headers: { "Content-Type": "application/json" } });
@@ -188,7 +201,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  fetchVotes(); 
+  fetchVotes();
+  checkIfLeader(); 
 });
 
 let groupCode = window.location.pathname.split("/").pop(); 
