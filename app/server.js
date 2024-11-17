@@ -68,6 +68,54 @@ function getKeyByValue(object, value) {
   return Object.keys(object).find((key) => object[key] === value);
 }
 
+app.get("/getGroupWatchlistMovies/:groupCode", async (req, res) => {
+  let { groupCode } = req.params;
+
+  try {
+    let groupWatchlistQuery = `
+      SELECT DISTINCT item_id, item_type,poster
+      FROM group_watchlists
+      WHERE group_id = $1 and item_type = $2
+    `;
+
+    let result = await pool.query(groupWatchlistQuery, [groupCode, "movies"]);
+
+    if (result.rows.length === 0) {
+      console.log(`No items found for group_id: ${groupCode}`);
+    } else {
+      console.log(`Fetched ${result.rows.length} for ${groupCode}`);
+    }
+
+    res.status(200).json({ status: "success", items: result.rows });
+  } catch (error) {
+    res.status(500).json({ status: "error", message: "Error fetching group watchlist" });
+  }
+});
+
+app.get("/getGroupWatchlistBooks/:groupCode", async (req, res) => {
+  let { groupCode } = req.params;
+
+  try {
+    let groupWatchlistQuery = `
+      SELECT DISTINCT item_id, item_type, poster
+      FROM group_watchlists
+      WHERE group_id = $1 and item_type = $2
+    `;
+
+    let result = await pool.query(groupWatchlistQuery, [groupCode, "books"]);
+
+    if (result.rows.length === 0) {
+      console.log(`No items found for group_id: ${groupCode}`);
+    } else {
+      console.log(`Fetched ${result.rows.length} for ${groupCode}`);
+    }
+
+    res.status(200).json({ status: "success", items: result.rows });
+  } catch (error) {
+    res.status(500).json({ status: "error", message: "Error fetching group watchlist" });
+  }
+});
+
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
@@ -736,6 +784,9 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
 
         <a href="/selection.html">Back to Home</a>
 
+        <h2>Group Watchlist</h2>
+        <ul id="groupWatchlist"></ul>
+        
         <div id="chatSection">
           <h2>Chat</h2>
           <ul id="messages"></ul>
@@ -885,6 +936,9 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
                 </div>
               </div>
 
+              <h2>Group Watchlist</h2>
+              <ul id="groupWatchlist"></ul>
+        
               <a href="/selection.html">Back to Home</a>
               <div id="chatSection">
           <h2>Chat</h2>
@@ -1250,6 +1304,20 @@ app.post("/addToWatchlist", async (req, res) => {
       [type, title, userId, poster]
     );
 
+    let groupsQuery = await pool.query(
+      "SELECT id,group_name FROM groups WHERE $1 = ANY(members)", 
+      [userId]
+    );
+
+    let groups = groupsQuery.rows;
+
+    for (let group of groups) {
+      await pool.query(
+        "INSERT INTO group_watchlists (group_id, item_id, item_type,poster) VALUES ($1, $2, $3,$4) ON CONFLICT DO NOTHING",
+        [group.group_name, title, type,poster]
+      );
+    }
+
     res.status(200).json({ status: "success", message: "Adding to watchlist" });
   } catch (error) {
     console.error("Error adding to watchlist:", error);
@@ -1281,6 +1349,26 @@ app.post('/removeFromWatchlist', async (req, res) => {
       "DELETE FROM user_watchlists WHERE item_id = $1 AND user_id = $2",
       [title, userId]
     );
+
+    let groupsQuery = await pool.query(
+      "SELECT id,group_name FROM groups WHERE $1 = ANY(members)", 
+      [userId]
+    );
+
+    let groups = groupsQuery.rows;
+
+    for (let group of groups) {
+      await pool.query(
+        `DELETE FROM group_watchlists WHERE ctid IN (
+          SELECT ctid 
+          FROM group_watchlists 
+          WHERE item_id = $1 AND group_id = $2
+          LIMIT 1
+        )`,
+        [title, group.group_name]
+      );
+    }
+    
     if (result.rowCount > 0) {
       res.json({ status: "success", message: "Item removed successfully" });
     } else {
