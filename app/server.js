@@ -1142,6 +1142,32 @@ app.get("/groupSearch", (req, res) => {
     });
 });
 
+app.get("/movieSearchById", (req, res) => {
+  let imdbId = req.query.imdbId;
+  let url = `https://www.omdbapi.com/?i=${imdbId}&apikey=cba0ff47`;
+  axios.get(url)
+    .then(response => {
+      let data = response.data;
+
+      if (data.Response === "False") {
+        return res.status(404).json({ message: "Film not found" });
+      }
+
+      let information = {
+        title: data.Title,
+        poster: data.Poster,
+        rating: data.imdbRating,
+        genre: data.Genre,
+        plot: data.Plot,
+      };
+
+      res.status(200).json(information);
+    })
+    .catch(error => {
+      res.status(500).json({ message: "Error fetching film data" });
+    });
+});
+
 app.post("/vote", async (req, res) => {
   let { groupCode, filmTitle, poster, filmGenre } = req.body;
 
@@ -1305,6 +1331,74 @@ app.get("/groupSearchBook", (req, res) => {
       res.status(200).json(information);
     })
     .catch((error) => {
+      res.status(500).json({ message: "Error fetching book data" });
+    });
+});
+
+app.get("/bookSearchByAuthor", (req, res) => {
+  let author = req.query.author;
+
+  if (!author) {
+    return res.status(400).json({ message: "Input author" });
+  }
+
+  let url = `https://www.googleapis.com/books/v1/volumes?q=inauthor:${encodeURIComponent(author)}
+  &key=AIzaSyA7W8k35xcWplp6773PLBHKwqQyMPJ6VVY`;
+
+  axios.get(url)
+    .then(response => {
+      let books = response.data.items;
+      if (!books || books.length === 0) {
+        return res.status(404).json({ message: "Book not found" });
+      }
+      let book = books[0].volumeInfo;
+
+      let information = {
+        title: book.title,
+        poster: book.imageLinks ? book.imageLinks.thumbnail : "",
+        authors: book.authors ? book.authors.join(", ") : "N/A",
+        publishedDate: book.publishedDate,
+        rating: book.averageRating,
+        description: book.description ? book.description : "No description available."
+      };
+
+      res.status(200).json(information);
+    })
+    .catch(error => {
+      res.status(500).json({ message: "Error fetching book data" });
+    });
+});
+
+app.get("/bookSearchByISBN", (req, res) => {
+  let isbn = req.query.isbn;
+
+  if (!isbn) {
+    return res.status(400).json({ message: "Input ISBN" });
+  }
+
+  let url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${encodeURIComponent(isbn)}
+  &key=AIzaSyA7W8k35xcWplp6773PLBHKwqQyMPJ6VVY`;
+
+  axios.get(url)
+    .then(response => {
+      let books = response.data.items;
+      if (!books || books.length === 0) {
+        return res.status(404).json({ message: "Book not found" });
+      }
+      let book = books[0].volumeInfo;
+
+      let information = {
+        title: book.title,
+        poster: book.imageLinks ? book.imageLinks.thumbnail : "",
+        authors: book.authors ? book.authors.join(", ") : "N/A",
+        publishedDate: book.publishedDate,
+        rating: book.averageRating,
+        description: book.description ? book.description : "No description available."
+      };
+
+      res.status(200).json(information);
+    })
+    .catch(error => {
       res.status(500).json({ message: "Error fetching book data" });
     });
 });
