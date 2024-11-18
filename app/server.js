@@ -1148,6 +1148,7 @@ app.get("/movieSearchById", (req, res) => {
   axios.get(url)
     .then(response => {
       let data = response.data;
+      console.log(data); // Log the response data for debugging
 
       if (data.Response === "False") {
         return res.status(404).json({ message: "Film not found" });
@@ -1164,6 +1165,7 @@ app.get("/movieSearchById", (req, res) => {
       res.status(200).json(information);
     })
     .catch(error => {
+      console.error("Error fetching film data:", error);
       res.status(500).json({ message: "Error fetching film data" });
     });
 });
