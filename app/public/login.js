@@ -1,3 +1,20 @@
+document.addEventListener("DOMContentLoaded", checkCookie);
+
+function checkCookie () {
+  fetch('/checkCookie').then((response) => {
+    if (response.ok) {
+      return response.json().then((body) => {
+        if (body.cookieExists) {
+          localStorage.setItem("userId", body.userId);
+          window.location.href = "/selection.html";
+        }
+      });
+    }
+  }).catch((error) => {
+    console.error(error);
+  });
+}
+
 let loginButton = document.getElementById("login");
 let signUpButton = document.getElementById("signUp");
 

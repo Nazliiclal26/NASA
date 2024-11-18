@@ -38,6 +38,8 @@ app.use(express.json());
 //app.use(authRoutes);
 app.use(cookieParser());
 
+// I'm gonna have still store old session information - 
+//  old sessions will be marked by inclusion of "timeLoggedOut" key-value pair
 // structure of "username": "cookie-token"
 let tokenStorage = {};
 tokenOptions = {
@@ -66,12 +68,127 @@ function getKeyByValue(object, value) {
   return Object.keys(object).find((key) => object[key] === value);
 }
 
+app.get("/getGroupWatchlistMovies/:groupCode", async (req, res) => {
+  let { groupCode } = req.params;
+
+  try {
+    let groupWatchlistQuery = `
+      SELECT DISTINCT item_id, item_type,poster
+      FROM group_watchlists
+      WHERE group_id = $1 and item_type = $2
+    `;
+
+    let result = await pool.query(groupWatchlistQuery, [groupCode, "movies"]);
+
+    if (result.rows.length === 0) {
+      console.log(`No items found for group_id: ${groupCode}`);
+    } else {
+      console.log(`Fetched ${result.rows.length} for ${groupCode}`);
+    }
+
+    res.status(200).json({ status: "success", items: result.rows });
+  } catch (error) {
+    res.status(500).json({ status: "error", message: "Error fetching group watchlist" });
+  }
+});
+
+app.get("/getGroupWatchlistBooks/:groupCode", async (req, res) => {
+  let { groupCode } = req.params;
+
+  try {
+    let groupWatchlistQuery = `
+      SELECT DISTINCT item_id, item_type, poster
+      FROM group_watchlists
+      WHERE group_id = $1 and item_type = $2
+    `;
+
+    let result = await pool.query(groupWatchlistQuery, [groupCode, "books"]);
+
+    if (result.rows.length === 0) {
+      console.log(`No items found for group_id: ${groupCode}`);
+    } else {
+      console.log(`Fetched ${result.rows.length} for ${groupCode}`);
+    }
+
+    res.status(200).json({ status: "success", items: result.rows });
+  } catch (error) {
+    res.status(500).json({ status: "error", message: "Error fetching group watchlist" });
+  }
+});
+
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
+app.get("/clearCookie", (req, res) => {
+  let { token } = req.cookies;
+
+  if (token == undefined) {
+    return res.status(400).json({message: "User not logged in yet"});
+  }
+
+  if (tokenStorage[token] == undefined) {
+    return res.status(500).json({message: "Server issue, did not properly set cookie in local storage"});
+  }
+
+  let now = new Date();
+  tokenStorage[token]["timeLoggedOut"] = now.toLocaleString();
+  console.log(tokenStorage);
+  return res.clearCookie("token", tokenOptions).json({message: "Cookie properly cleared"});
+});
+
+app.get("/checkCookie", (req, res) => {
+  let { token } = req.cookies;
+
+  // User has yet to log in
+  if (token == undefined) {
+    return res.status(200).json({cookieExists: false});
+  }
+  // Clears up cookie from leftover session and creates new session instance
+  // Only occurs after server restart - should clear cookie if server restarted
+  else if (tokenStorage[token] == undefined) {
+    return res.status(200).clearCookie("token", tokenOptions).json({cookieExists: false});
+  }
+  else {
+    returnedUserId = null;
+    user.findByUsername(tokenStorage[token]["username"]).then((result) => {
+      if (result.id) {
+        returnedUserId = result.id;
+        return res.status(200).json({cookieExists: true, userId : returnedUserId});
+      }
+      else {
+        // Server issue
+        return res.status(500);
+      }
+    });
+  }
+
+});
+
 app.get("/:userId/watchlist.html", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "watchlist.html"));
+});
+
+app.post("/checkIfLeader", async (req, res) => {
+  let body = req.body;
+  if (!body.hasOwnProperty("userId") || !body.hasOwnProperty("group")) {
+    return res.status(400).json({isLeader: null, message: 'Improper body for fetch request'});
+  }
+
+  let id = parseInt(body.userId);
+  let groupName = body.group;
+  group.findByName(groupName).then((result) => {
+    console.log(result);
+    if (result.leader_id === id) {
+      return res.status(200).json({isLeader: true, message: 'User is leader'});
+    }
+    else {
+      return res.status(200).json({isLeader: false, message: 'User is not leader'});
+    }
+  }).catch((error) => {
+    console.error(error);
+    return res.status(500).json({isLeader: null, message: 'Server error'});
+  });
 });
 
 app.post("/startVoting/:groupCode", async (req, res) => {
@@ -241,6 +358,10 @@ app.post("/login", async (req, res) => {
       let token = makeToken();
       tokenStorage[token] = {};
       tokenStorage[token]["username"] = username;
+      
+      let now = new Date();
+      tokenStorage[token]["timeLoggedIn"] = now.toLocaleString();
+
       console.log(tokenStorage);
       return res.cookie("token", token, tokenOptions).json({
         status: "success",
@@ -295,6 +416,10 @@ app.post("/signUp", async (req, res) => {
       let token = makeToken();
       tokenStorage[token] = {};
       tokenStorage[token]["username"] = username;
+
+      let now = new Date();
+      tokenStorage[token]["timeLoggedIn"] = now.toLocaleString();
+
       console.log(tokenStorage);
       res.cookie("token", token, tokenOptions).json({
         status: "success",
@@ -335,6 +460,29 @@ app.post("/createGroup", async (req, res) => {
   let memberList = [leaderId];
   let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let code = "";
+
+  async function syncUserWatchlistWithGroup(userId, groupName) {
+    try {
+      let userWatchlistQuery = await pool.query(
+        "SELECT item_id, item_type, poster FROM user_watchlists WHERE user_id = $1",
+        [userId]
+      );
+
+      let userWatchlist = userWatchlistQuery.rows;
+
+      for (let item of userWatchlist) {
+        await pool.query(
+          "INSERT INTO group_watchlists (group_id, item_id, item_type, poster) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING",
+          [groupName, item.item_id, item.item_type, item.poster]
+        );
+      }
+
+      console.log(`Synced ${userWatchlist.length} items to group ${groupName}`);
+    } catch (error) {
+      console.error("Error syncing user watchlist with group:", error);
+    }
+  }
+  
   for (let i = 0; i < 5; i++) {
     let rand = Math.floor(Math.random() * chars.length);
     code += chars.charAt(rand);
@@ -361,6 +509,7 @@ app.post("/createGroup", async (req, res) => {
         [groupName, leaderId, groupType, access, memberList, code]
       );
 
+      await syncUserWatchlistWithGroup(leaderId, groupName);
       res.status(200).json({
         status: "success",
         message: "Group created",
@@ -376,6 +525,40 @@ app.post("/createGroup", async (req, res) => {
 app.post("/joinGroup", async (req, res) => {
   let { type, code, userId } = req.body;
 
+  async function syncUserWatchlistWithGroup(userId, groupId) {
+    try {
+      let groupQuery = await pool.query(
+        "SELECT group_name FROM groups WHERE id = $1",
+        [groupId]
+      );
+  
+      if (groupQuery.rows.length === 0) {
+        console.error(`No group found with id: ${groupId}`);
+        return;
+      }
+  
+      let groupName = groupQuery.rows[0].group_name;
+  
+      let userWatchlistQuery = await pool.query(
+        "SELECT item_id, item_type, poster FROM user_watchlists WHERE user_id = $1",
+        [userId]
+      );
+  
+      let userWatchlist = userWatchlistQuery.rows;
+  
+      for (const item of userWatchlist) {
+        await pool.query(
+          "INSERT INTO group_watchlists (group_id, item_id, item_type, poster) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING",
+          [groupName, item.item_id, item.item_type, item.poster]
+        );
+      }
+  
+      console.log(`Synced ${userWatchlist.length} items to group ${groupName}`);
+    } catch (error) {
+      console.error("Error syncing user watchlist with group:", error);
+    }
+  }
+  
   if (type === "code") {
     try {
       if (!code || !userId) {
@@ -420,6 +603,7 @@ app.post("/joinGroup", async (req, res) => {
           [update, code]
         );
 
+        await syncUserWatchlistWithGroup(userId, group.id);
         res.status(200).json({
           status: "success",
           message: "joined group",
@@ -441,6 +625,8 @@ app.post("/joinGroup", async (req, res) => {
             "UPDATE groups SET members = $1 WHERE secret_code = $2 RETURNING *",
             [update, code]
           );
+
+          await syncUserWatchlistWithGroup(userId, group.id);
 
           res.status(200).json({
             status: "success",
@@ -506,6 +692,7 @@ app.post("/joinGroup", async (req, res) => {
         [updateRandom, chosenGroupId]
       );
 
+      await syncUserWatchlistWithGroup(userId, group.id);
       res.status(200).json({
         status: "success",
         message: "joined random group",
@@ -557,7 +744,7 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
       "SELECT * FROM groups WHERE secret_code = $1",
       [groupCode.substring(1)]
     );
-    name = result.rows[0].group_name;
+    name = groupCode;
   } catch (error) {
     console.log(error);
   }
@@ -570,26 +757,8 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Group ${name}</title>
       <script src="/groupSearchMovie.js" defer></script>
-      <style>
-        .film-card {
-          position: relative;
-          display: inline-block;
-          margin: 10px;
-        }
-        .vote-btn {
-          position: absolute;
-          top: 10px;
-          right: 10px;
-          background-color: red;
-          color: white;
-          border: none;
-          padding: 5px;
-          cursor: pointer;
-        }
-        #messages { list-style-type: none; padding: 0; }
-        #messages li { margin: 10px 0; }
-      </style>
       <link rel="stylesheet" href="/calendar.css">
+      <link rel="stylesheet" href="/group.css">
       <script src="/calendar.js" defer></script>
     </head>
     <body>
@@ -611,8 +780,10 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
 
         <div id="mostVotedFilm"></div>
 
-        <button id="stopVote">Stop Vote</button>
-        <button id="startVote">Start Voting</button>
+        <div id="buttonContainer">
+          <button id="stopVote">Stop Vote</button>
+          <button id="startVote">Start Voting</button>
+        </div>
 
         <div class="wrapper">
           <div class="container-calendar">
@@ -681,6 +852,9 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
 
         <a href="/selection.html">Back to Home</a>
 
+        <h2>Group Watchlist</h2>
+        <ul id="groupWatchlist"></ul>
+        
         <div id="chatSection">
           <h2>Chat</h2>
           <ul id="messages"></ul>
@@ -704,7 +878,7 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
       "SELECT * FROM groups WHERE secret_code = $1",
       [groupCode.substring(1)]
     );
-    name = result.rows[0].group_name;
+    name = groupCode;
   } catch (error) {
     console.log(error);
   }
@@ -717,25 +891,7 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Group ${name}</title>
           <script src="/groupSearchBook.js" defer></script>
-          <style>
-              .film-card {
-                  position: relative;
-                  display: inline-block;
-                  margin: 10px;
-              }
-              .vote-btn {
-                  position: absolute;
-                  top: 10px;
-                  right: 10px;
-                  background-color: red;
-                  color: white;
-                  border: none;
-                  padding: 5px;
-                  cursor: pointer;
-              }
-              #messages { list-style-type: none; padding: 0; }
-              #messages li { margin: 10px 0; }
-          </style>
+          <link rel="stylesheet" href="/group.css">
           <link rel="stylesheet" href="/calendar.css">
           <script src="/calendar.js" defer></script>
       </head>
@@ -758,9 +914,11 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
 
               <div id="mostVotedBook"></div>
 
-              <button id="stopVote">Stop Vote</button>
-              <button id="startVote">Start Voting</button>
-              
+              <div id="buttonContainer">
+                <button id="stopVote">Stop Vote</button>
+                <button id="startVote">Start Voting</button>
+              </div>
+
               <div class="wrapper">
                 <div class="container-calendar">
                   <div id="left">
@@ -830,6 +988,9 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
                 </div>
               </div>
 
+              <h2>Group Watchlist</h2>
+              <ul id="groupWatchlist"></ul>
+        
               <a href="/selection.html">Back to Home</a>
               <div id="chatSection">
           <h2>Chat</h2>
@@ -861,13 +1022,13 @@ app.post("/addMessage", async (req, res) => {
     return res.status(400).json({ error: "group name is not defined" });
   }
 
-  console.log(
-    "Attempting to add message:",
-    message,
-    ", in group",
-    groupName,
-    ", to db"
-  );
+  // console.log(
+  //   "Attempting to add message:",
+  //   message,
+  //   ", in group",
+  //   groupName,
+  //   ", to db"
+  // );
 
   let groupId = null;
   await group.findByName(groupName).then((body) => {
@@ -925,9 +1086,8 @@ app.get("/getMessages", async (req, res) => {
       error:
         "No cookie set for this user, ensure user was initialized properly.",
     });
-  } else {
-    console.log(token);
   }
+  
   let username = tokenStorage[token]["username"];
 
   // Get group id given group name
@@ -1177,12 +1337,12 @@ app.post("/bookVote", async (req, res) => {
 });
 
 app.post("/addToWatchlist", async (req, res) => {
-  let { type, title, userId } = req.body;
+  let { type, title, userId, poster } = req.body;
 
   try {
     let checkWatch = await pool.query(
-      "SELECT * FROM user_watchlists WHERE item_type = $1 AND item_id = $2 AND user_id = $3",
-      [type, title, userId]
+      "SELECT * FROM user_watchlists WHERE item_type = $1 AND item_id = $2 AND user_id = $3 AND poster = $4",
+      [type, title, userId, poster]
     );
 
     if (checkWatch.rows.length > 0) {
@@ -1192,9 +1352,23 @@ app.post("/addToWatchlist", async (req, res) => {
     }
 
     let result = await pool.query(
-      "INSERT INTO user_watchlists (item_type, item_id, user_id) VALUES ($1, $2, $3)",
-      [type, title, userId]
+      "INSERT INTO user_watchlists (item_type, item_id, user_id, poster) VALUES ($1, $2, $3, $4)",
+      [type, title, userId, poster]
     );
+
+    let groupsQuery = await pool.query(
+      "SELECT id,group_name FROM groups WHERE $1 = ANY(members)", 
+      [userId]
+    );
+
+    let groups = groupsQuery.rows;
+
+    for (let group of groups) {
+      await pool.query(
+        "INSERT INTO group_watchlists (group_id, item_id, item_type,poster) VALUES ($1, $2, $3,$4) ON CONFLICT DO NOTHING",
+        [group.group_name, title, type,poster]
+      );
+    }
 
     res.status(200).json({ status: "success", message: "Adding to watchlist" });
   } catch (error) {
@@ -1205,13 +1379,65 @@ app.post("/addToWatchlist", async (req, res) => {
   }
 });
 
+app.get("/getWatchlist/:userId", async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    const result = await pool.query(
+      "SELECT * FROM user_watchlists WHERE user_id = $1",
+      [userId]
+    );
+    res.json({ status: "success", items: result.rows });
+  } catch (error) {
+    console.error("Error fetching watchlist:", error);
+    res.status(500).json({ status: "error", message: "Error fetching watchlist" });
+  }
+});
+
+app.post('/removeFromWatchlist', async (req, res) => {
+  const { title, userId } = req.body;
+  try {
+    const result = await pool.query(
+      "DELETE FROM user_watchlists WHERE item_id = $1 AND user_id = $2",
+      [title, userId]
+    );
+
+    let groupsQuery = await pool.query(
+      "SELECT id,group_name FROM groups WHERE $1 = ANY(members)", 
+      [userId]
+    );
+
+    let groups = groupsQuery.rows;
+
+    for (let group of groups) {
+      await pool.query(
+        `DELETE FROM group_watchlists WHERE ctid IN (
+          SELECT ctid 
+          FROM group_watchlists 
+          WHERE item_id = $1 AND group_id = $2
+          LIMIT 1
+        )`,
+        [title, group.group_name]
+      );
+    }
+    
+    if (result.rowCount > 0) {
+      res.json({ status: "success", message: "Item removed successfully" });
+    } else {
+      res.status(404).json({ status: "error", message: "Item not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ status: "error", message: "Error removing item" });
+  }
+});
+
 /* SOCKET FUNCTIONALITY */
 // The key:value pairs of Rooms has the structure: { "groupId" : {socketId : socket} }
 let rooms = {};
 
 io.on("connection", (socket) => {
   console.log("Socket ", socket.id, " has been connected.");
-  console.log("Adding socket to room...");
+  //console.log("Adding socket to room...");
 
   let url = socket.handshake.headers.referer;
   let pathParts = url.split("/");
@@ -1223,9 +1449,9 @@ io.on("connection", (socket) => {
   }
 
   rooms[roomId][socket.id] = socket;
-  console.log(
-    `Numbers of members in room ${roomId}: ${Object.keys(rooms[roomId]).length}`
-  );
+  // console.log(
+  //   `Numbers of members in room ${roomId}: ${Object.keys(rooms[roomId]).length}`
+  // );
 
   socket.on("sendMessageToRoom", ({ message, username }) => {
     console.log("Sending", message, "to room:", roomId);

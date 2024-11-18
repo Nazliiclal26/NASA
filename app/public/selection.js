@@ -52,6 +52,45 @@ searchButton.addEventListener("click", async () => {
           <p>Plot: ${data.plot}</p>
         </div>
       `;
+
+          // Attach event listeners to new watchlist buttons
+    document.querySelectorAll('.watchlist-btn').forEach(button => {
+      button.addEventListener('click', () => {
+        let userId = localStorage.getItem("userId");
+        if (!userId) {
+          alert("You need to be logged in to add to the watchlist.");
+          return;
+        }
+        
+        let productInfo = {
+          type: "movies",
+          title: button.getAttribute('data-title'),
+          poster: data.poster,
+          userId: userId
+        };
+
+        fetch(`/addToWatchlist`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(productInfo)
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === "success") {
+              alert("Added to watchlist!");
+            } else {
+              alert("Failed to add to watchlist: " + data.message);
+            }
+          })
+          .catch(error => {
+            console.error("Error adding to watchlist:", error);
+            alert("Error adding to watchlist.");
+          });
+      });
+    });
+
     } catch (error) {
       searchResult.innerText = "Film not found or an error occurred.";
       console.error("Error fetching film:", error);
@@ -74,13 +113,52 @@ searchButton.addEventListener("click", async () => {
       searchResult.innerHTML = `
       <div class="book-card">
       <img src="${data.poster}" alt="${data.title} poster">
-      <button class="vote-btn" data-title="${data.title}">+</button>
+      <button class="watchlist-btn" data-title="${data.title}">+</button>
       <h3>${data.title}</h3>
       <p>Author(s): ${data.authors}</p>
       <p>Date Published: ${data.publishedDate}</p>
       <p>Description: ${data.description}</p>
     </div>
       `;
+
+    // Attach event listeners to new watchlist buttons
+    document.querySelectorAll('.watchlist-btn').forEach(button => {
+      button.addEventListener('click', () => {
+        let userId = localStorage.getItem("userId");
+        if (!userId) {
+          alert("You need to be logged in to add to the watchlist.");
+          return;
+        }
+        
+        let productInfo = {
+          type: "books",
+          title: button.getAttribute('data-title'),
+          poster: data.poster,
+          userId: userId
+        };
+
+        fetch(`/addToWatchlist`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(productInfo)
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === "success") {
+              alert("Added to watchlist!");
+            } else {
+              alert("Failed to add to watchlist: " + data.message);
+            }
+          })
+          .catch(error => {
+            console.error("Error adding to watchlist:", error);
+            alert("Error adding to watchlist.");
+          });
+      });
+    });
+
     } catch (error) {
       searchResult.innerText = "Book not found or an error occurred.";
       console.error("Error fetching book:", error);
@@ -366,7 +444,15 @@ async function displayGroups() {
 
 logoutButton.addEventListener("click", () => {
   localStorage.clear("userId");
+  // make fetch request to clear the cookie as well fetch('/clearCookie')
+  fetch('/clearCookie').then((response) => {
+    return response.json();
+  }).then((body) => {
   window.location.href = "/";
+    console.log(body.message);
+  }).catch((error) => {
+    console.error(error);
+  });
 });
 
 async function addGreeting() {
@@ -740,6 +826,12 @@ async function populateCatalog() {
           let originalTitle4 = movieApiData[3][1];
           let originalTitle5 = movieApiData[4][1];
 
+          let moviePoster1 = movieApiData[0][0];
+          let moviePoster2 = movieApiData[1][0];
+          let moviePoster3 = movieApiData[2][0];
+          let moviePoster4 = movieApiData[3][0];
+          let moviePoster5 = movieApiData[4][0];
+
           let title1 =
             originalTitle1.length > 15
               ? originalTitle1.substring(0, 15) + "..."
@@ -831,12 +923,25 @@ async function populateCatalog() {
             but.addEventListener("click", () => {
               let productID = but.id;
               let titleID = document.querySelector(`.title#${productID}`);
-              let productTitle = titleID.textContent;
+              //let productTitle = titleID.textContent;
+              let productTitle;
+              let productPoster;
+              switch (productID) {
+                case 'oneTitle': productTitle = originalTitle1; productPoster = moviePoster1; break;
+                case 'twoTitle': productTitle = originalTitle2; productPoster = moviePoster2; break;
+                case 'threeTitle': productTitle = originalTitle3; productPoster = moviePoster3; break;
+                case 'fourTitle': productTitle = originalTitle4; productPoster = moviePoster4; break;
+                case 'fiveTitle': productTitle = originalTitle5; productPoster = moviePoster5; break;
+                default:
+                  console.error('Unexpected ID for watchlist button:', productID);
+                  return;
+              }
 
               let productInfo = {
                 type: "movies",
                 title: productTitle,
                 userId: userId,
+                poster: productPoster
               };
 
               fetch(`/addToWatchlist`, {
@@ -937,6 +1042,12 @@ async function populateCatalog() {
           let originalTitle4 = movieApiData[3][1];
           let originalTitle5 = movieApiData[4][1];
 
+          let moviePoster1 = movieApiData[0][0];
+          let moviePoster2 = movieApiData[1][0];
+          let moviePoster3 = movieApiData[2][0];
+          let moviePoster4 = movieApiData[3][0];
+          let moviePoster5 = movieApiData[4][0];
+
           let title1 =
             originalTitle1.length > 15
               ? originalTitle1.substring(0, 15) + "..."
@@ -1028,12 +1139,24 @@ async function populateCatalog() {
             but.addEventListener("click", () => {
               let productID = but.id;
               let titleID = document.querySelector(`.title#${productID}`);
-              let productTitle = titleID.textContent;
+              //let productTitle = titleID.textContent;
+              let productTitle;
+              switch (productID) {
+                case 'oneTitle': productTitle = originalTitle1; productPoster = moviePoster1; break;
+                case 'twoTitle': productTitle = originalTitle2; productPoster = moviePoster2; break;
+                case 'threeTitle': productTitle = originalTitle3; productPoster = moviePoster3; break;
+                case 'fourTitle': productTitle = originalTitle4; productPoster = moviePoster4; break;
+                case 'fiveTitle': productTitle = originalTitle5; productPoster = moviePoster5; break;
+                default:
+                  console.error('Unexpected ID for watchlist button:', productID);
+                  return;
+              }
 
               let productInfo = {
                 type: "movies",
                 title: productTitle,
                 userId: userId,
+                poster: productPoster
               };
 
               fetch(`/addToWatchlist`, {
@@ -1414,6 +1537,12 @@ async function populateCatalogBooks() {
           let originalTitle4 = bookApiData[3][1];
           let originalTitle5 = bookApiData[4][1];
 
+          let bookPoster1 = bookApiData[0][0];
+          let bookPoster2 = bookApiData[1][0];
+          let bookPoster3 = bookApiData[2][0];
+          let bookPoster4 = bookApiData[3][0];
+          let bookPoster5 = bookApiData[4][0];
+
           let title1 =
             originalTitle1.length > 15
               ? originalTitle1.substring(0, 15) + "..."
@@ -1505,12 +1634,24 @@ async function populateCatalogBooks() {
             but.addEventListener("click", () => {
               let productID = but.id;
               let titleID = document.querySelector(`.title#${productID}`);
-              let productTitle = titleID.textContent;
+              //let productTitle = titleID.textContent;
+              let productTitle;
+              switch (productID) {
+                case 'oneTitle': productTitle = originalTitle1; productPoster = bookPoster1; break;
+                case 'twoTitle': productTitle = originalTitle2; productPoster = bookPoster2; break;
+                case 'threeTitle': productTitle = originalTitle3; productPoster = bookPoster3; break;
+                case 'fourTitle': productTitle = originalTitle4; productPoster = bookPoster4; break;
+                case 'fiveTitle': productTitle = originalTitle5; productPoster = bookPoster5; break;
+                default:
+                  console.error('Unexpected ID for watchlist button:', productID);
+                  return;
+              }
 
               let productInfo = {
                 type: "books",
                 title: productTitle,
                 userId: userId,
+                poster: productPoster
               };
 
               fetch(`/addToWatchlist`, {
@@ -1612,6 +1753,12 @@ async function populateCatalogBooks() {
           let originalTitle4 = bookApiData[3][1];
           let originalTitle5 = bookApiData[4][1];
 
+          let bookPoster1 = bookApiData[0][0];
+          let bookPoster2 = bookApiData[1][0];
+          let bookPoster3 = bookApiData[2][0];
+          let bookPoster4 = bookApiData[3][0];
+          let bookPoster5 = bookApiData[4][0];
+
           let title1 =
             originalTitle1.length > 15
               ? originalTitle1.substring(0, 15) + "..."
@@ -1703,12 +1850,23 @@ async function populateCatalogBooks() {
             but.addEventListener("click", () => {
               let productID = but.id;
               let titleID = document.querySelector(`.title#${productID}`);
-              let productTitle = titleID.textContent;
+              //let productTitle = titleID.textContent;
+              switch (productID) {
+                case 'oneTitle': productTitle = originalTitle1; productPoster = bookPoster1; break;
+                case 'twoTitle': productTitle = originalTitle2; productPoster = bookPoster2; break;
+                case 'threeTitle': productTitle = originalTitle3; productPoster = bookPoster3; break;
+                case 'fourTitle': productTitle = originalTitle4; productPoster = bookPoster4; break;
+                case 'fiveTitle': productTitle = originalTitle5; productPoster = bookPoster5; break;
+                default:
+                  console.error('Unexpected ID for watchlist button:', productID);
+                  return;
+              }
 
               let productInfo = {
                 type: "books",
                 title: productTitle,
                 userId: userId,
+                poster: productPoster
               };
 
               fetch(`/addToWatchlist`, {

@@ -7,6 +7,51 @@ document.addEventListener("DOMContentLoaded", async () => {
     let stopVoteButton = document.getElementById("stopVote");
     let startVoteButton = document.getElementById("startVote");
     let mostVotedBookSection = document.getElementById("mostVotedBook");
+
+    async function fetchGroupWatchlist() {
+      try {
+        let response = await fetch(`/getGroupWatchlistBooks/${groupCode}`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch group watchlist: ${response.statusText}`);
+        }
+    
+        let data = await response.json();
+    
+        if (data.status === "success") {
+          let groupItems = data.items;
+    
+          groupWatchlist.innerHTML = "";
+    
+          groupItems.forEach(item => {
+            let li = document.createElement("li");
+            li.style = "margin-bottom: 20px;";
+    
+            let div = document.createElement("div");
+            let img = document.createElement("img");
+            let title = document.createElement("div");
+    
+            if (item.poster) {
+              img.src = item.poster;
+              img.alt = `${item.item_id} poster`;
+              img.style = "width: 100px; height: auto;";
+              div.appendChild(img);
+            }
+    
+            title.textContent = item.item_id;
+            div.appendChild(title);
+            li.appendChild(div);
+    
+            groupWatchlist.appendChild(li);
+          });
+        } else {
+          groupWatchlist.innerHTML = "<p>No items in group watchlist.</p>";
+        }
+      } catch (error) {
+        console.error("Error fetching group watchlist:", error);
+      }
+    }
+    
+    fetchGroupWatchlist();
     
     try {
       let response = await fetch(`/getMostVoted/${groupCode}`);
@@ -98,6 +143,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.error("Error fetching votes:", error);
       }
     }
+
+    async function checkIfLeader() {
+      const response = await fetch(`/checkIfLeader`, {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({userId: localStorage.getItem("userId"), group: groupCode})
+      });
+      let data = await response.json();
+      console.log(data.message);
+      if (data.isLeader && response.ok) {
+        document.getElementById("buttonContainer").style.display = "block";
+      }
+    }   
   
     stopVoteButton.addEventListener("click", async () => {
       let response = await fetch(`/votes/${groupCode}`);
@@ -126,6 +184,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   
     fetchVotes(); 
+    checkIfLeader();
   });
 
   let groupCode = window.location.pathname.split("/").pop(); 
@@ -166,10 +225,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     }).catch((error) => {
       console.error(error);
     });
-
-    // Add this to successful return body for add message fetch
-    // socket.emit('sendMessageToRoom', { message });
-  });
+   
+});
 
   // Sets username based on token storage in server
   fetch('/getUsernameForGroup').then((response) => {
