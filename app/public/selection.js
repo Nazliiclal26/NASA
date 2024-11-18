@@ -53,44 +53,43 @@ searchButton.addEventListener("click", async () => {
         </div>
       `;
 
-          // Attach event listeners to new watchlist buttons
-    document.querySelectorAll('.watchlist-btn').forEach(button => {
-      button.addEventListener('click', () => {
-        let userId = localStorage.getItem("userId");
-        if (!userId) {
-          alert("You need to be logged in to add to the watchlist.");
-          return;
-        }
-        
-        let productInfo = {
-          type: "movies",
-          title: button.getAttribute('data-title'),
-          poster: data.poster,
-          userId: userId
-        };
+      // Attach event listeners to new watchlist buttons
+      document.querySelectorAll(".watchlist-btn").forEach((button) => {
+        button.addEventListener("click", () => {
+          let userId = localStorage.getItem("userId");
+          if (!userId) {
+            alert("You need to be logged in to add to the watchlist.");
+            return;
+          }
 
-        fetch(`/addToWatchlist`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(productInfo)
-        })
-          .then(response => response.json())
-          .then(data => {
-            if (data.status === "success") {
-              alert("Added to watchlist!");
-            } else {
-              alert("Failed to add to watchlist: " + data.message);
-            }
+          let productInfo = {
+            type: "movies",
+            title: button.getAttribute("data-title"),
+            poster: data.poster,
+            userId: userId,
+          };
+
+          fetch(`/addToWatchlist`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(productInfo),
           })
-          .catch(error => {
-            console.error("Error adding to watchlist:", error);
-            alert("Error adding to watchlist.");
-          });
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.status === "success") {
+                alert("Added to watchlist!");
+              } else {
+                alert("Failed to add to watchlist: " + data.message);
+              }
+            })
+            .catch((error) => {
+              console.error("Error adding to watchlist:", error);
+              alert("Error adding to watchlist.");
+            });
+        });
       });
-    });
-
     } catch (error) {
       searchResult.innerText = "Film not found or an error occurred.";
       console.error("Error fetching film:", error);
@@ -121,44 +120,43 @@ searchButton.addEventListener("click", async () => {
     </div>
       `;
 
-    // Attach event listeners to new watchlist buttons
-    document.querySelectorAll('.watchlist-btn').forEach(button => {
-      button.addEventListener('click', () => {
-        let userId = localStorage.getItem("userId");
-        if (!userId) {
-          alert("You need to be logged in to add to the watchlist.");
-          return;
-        }
-        
-        let productInfo = {
-          type: "books",
-          title: button.getAttribute('data-title'),
-          poster: data.poster,
-          userId: userId
-        };
+      // Attach event listeners to new watchlist buttons
+      document.querySelectorAll(".watchlist-btn").forEach((button) => {
+        button.addEventListener("click", () => {
+          let userId = localStorage.getItem("userId");
+          if (!userId) {
+            alert("You need to be logged in to add to the watchlist.");
+            return;
+          }
 
-        fetch(`/addToWatchlist`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(productInfo)
-        })
-          .then(response => response.json())
-          .then(data => {
-            if (data.status === "success") {
-              alert("Added to watchlist!");
-            } else {
-              alert("Failed to add to watchlist: " + data.message);
-            }
+          let productInfo = {
+            type: "books",
+            title: button.getAttribute("data-title"),
+            poster: data.poster,
+            userId: userId,
+          };
+
+          fetch(`/addToWatchlist`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(productInfo),
           })
-          .catch(error => {
-            console.error("Error adding to watchlist:", error);
-            alert("Error adding to watchlist.");
-          });
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.status === "success") {
+                alert("Added to watchlist!");
+              } else {
+                alert("Failed to add to watchlist: " + data.message);
+              }
+            })
+            .catch((error) => {
+              console.error("Error adding to watchlist:", error);
+              alert("Error adding to watchlist.");
+            });
+        });
       });
-    });
-
     } catch (error) {
       searchResult.innerText = "Book not found or an error occurred.";
       console.error("Error fetching book:", error);
@@ -445,14 +443,17 @@ async function displayGroups() {
 logoutButton.addEventListener("click", () => {
   localStorage.clear("userId");
   // make fetch request to clear the cookie as well fetch('/clearCookie')
-  fetch('/clearCookie').then((response) => {
-    return response.json();
-  }).then((body) => {
-  window.location.href = "/";
-    console.log(body.message);
-  }).catch((error) => {
-    console.error(error);
-  });
+  fetch("/clearCookie")
+    .then((response) => {
+      return response.json();
+    })
+    .then((body) => {
+      window.location.href = "/";
+      console.log(body.message);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
 });
 
 async function addGreeting() {
@@ -790,11 +791,19 @@ async function populateCatalog() {
 
           let selectedMovies = [];
           let movieApiData = [];
+          let alreadySelected = [];
 
           for (let i = 0; i < 5; i++) {
             //console.log(genreList[randomGenre]);
             let movies = genreList[randomGenre];
-            let randomInt = Math.floor(Math.random() * 5);
+            let randomInt = Math.floor(Math.random() * 10);
+
+            while (alreadySelected.includes(randomInt)) {
+              randomInt = Math.floor(Math.random() * 10);
+            }
+
+            alreadySelected.push(randomInt);
+
             let title = movies[randomInt];
 
             //console.log(title);
@@ -927,13 +936,31 @@ async function populateCatalog() {
               let productTitle;
               let productPoster;
               switch (productID) {
-                case 'oneTitle': productTitle = originalTitle1; productPoster = moviePoster1; break;
-                case 'twoTitle': productTitle = originalTitle2; productPoster = moviePoster2; break;
-                case 'threeTitle': productTitle = originalTitle3; productPoster = moviePoster3; break;
-                case 'fourTitle': productTitle = originalTitle4; productPoster = moviePoster4; break;
-                case 'fiveTitle': productTitle = originalTitle5; productPoster = moviePoster5; break;
+                case "oneTitle":
+                  productTitle = originalTitle1;
+                  productPoster = moviePoster1;
+                  break;
+                case "twoTitle":
+                  productTitle = originalTitle2;
+                  productPoster = moviePoster2;
+                  break;
+                case "threeTitle":
+                  productTitle = originalTitle3;
+                  productPoster = moviePoster3;
+                  break;
+                case "fourTitle":
+                  productTitle = originalTitle4;
+                  productPoster = moviePoster4;
+                  break;
+                case "fiveTitle":
+                  productTitle = originalTitle5;
+                  productPoster = moviePoster5;
+                  break;
                 default:
-                  console.error('Unexpected ID for watchlist button:', productID);
+                  console.error(
+                    "Unexpected ID for watchlist button:",
+                    productID
+                  );
                   return;
               }
 
@@ -941,7 +968,7 @@ async function populateCatalog() {
                 type: "movies",
                 title: productTitle,
                 userId: userId,
-                poster: productPoster
+                poster: productPoster,
               };
 
               fetch(`/addToWatchlist`, {
@@ -1005,12 +1032,20 @@ async function populateCatalog() {
 
           let selectedMovies = [];
           let movieApiData = [];
+          let alreadySelected = [];
 
           for (let i = 0; i < outputGenres.length; i++) {
             let genre = outputGenres[i];
             //console.log(genre);
             let movies = genreList[genre];
             let randomInt = Math.floor(Math.random() * movies.length);
+
+            while (alreadySelected.includes(randomInt)) {
+              randomInt = Math.floor(Math.random() * 10);
+            }
+
+            alreadySelected.push(randomInt);
+
             let title = movies[randomInt];
 
             //console.log(title);
@@ -1142,13 +1177,31 @@ async function populateCatalog() {
               //let productTitle = titleID.textContent;
               let productTitle;
               switch (productID) {
-                case 'oneTitle': productTitle = originalTitle1; productPoster = moviePoster1; break;
-                case 'twoTitle': productTitle = originalTitle2; productPoster = moviePoster2; break;
-                case 'threeTitle': productTitle = originalTitle3; productPoster = moviePoster3; break;
-                case 'fourTitle': productTitle = originalTitle4; productPoster = moviePoster4; break;
-                case 'fiveTitle': productTitle = originalTitle5; productPoster = moviePoster5; break;
+                case "oneTitle":
+                  productTitle = originalTitle1;
+                  productPoster = moviePoster1;
+                  break;
+                case "twoTitle":
+                  productTitle = originalTitle2;
+                  productPoster = moviePoster2;
+                  break;
+                case "threeTitle":
+                  productTitle = originalTitle3;
+                  productPoster = moviePoster3;
+                  break;
+                case "fourTitle":
+                  productTitle = originalTitle4;
+                  productPoster = moviePoster4;
+                  break;
+                case "fiveTitle":
+                  productTitle = originalTitle5;
+                  productPoster = moviePoster5;
+                  break;
                 default:
-                  console.error('Unexpected ID for watchlist button:', productID);
+                  console.error(
+                    "Unexpected ID for watchlist button:",
+                    productID
+                  );
                   return;
               }
 
@@ -1156,7 +1209,7 @@ async function populateCatalog() {
                 type: "movies",
                 title: productTitle,
                 userId: userId,
-                poster: productPoster
+                poster: productPoster,
               };
 
               fetch(`/addToWatchlist`, {
@@ -1497,11 +1550,19 @@ async function populateCatalogBooks() {
 
           let selectedBooks = [];
           let bookApiData = [];
+          let alreadySelected = [];
 
           for (let i = 0; i < 5; i++) {
             //console.log(genreList[randomGenre]);
             let books = genreList[randomGenre];
-            let randomInt = Math.floor(Math.random() * 5);
+            let randomInt = Math.floor(Math.random() * 10);
+
+            while (alreadySelected.includes(randomInt)) {
+              randomInt = Math.floor(Math.random() * 10);
+            }
+
+            alreadySelected.push(randomInt);
+
             let title = books[randomInt];
 
             //console.log(title);
@@ -1637,13 +1698,31 @@ async function populateCatalogBooks() {
               //let productTitle = titleID.textContent;
               let productTitle;
               switch (productID) {
-                case 'oneTitle': productTitle = originalTitle1; productPoster = bookPoster1; break;
-                case 'twoTitle': productTitle = originalTitle2; productPoster = bookPoster2; break;
-                case 'threeTitle': productTitle = originalTitle3; productPoster = bookPoster3; break;
-                case 'fourTitle': productTitle = originalTitle4; productPoster = bookPoster4; break;
-                case 'fiveTitle': productTitle = originalTitle5; productPoster = bookPoster5; break;
+                case "oneTitle":
+                  productTitle = originalTitle1;
+                  productPoster = bookPoster1;
+                  break;
+                case "twoTitle":
+                  productTitle = originalTitle2;
+                  productPoster = bookPoster2;
+                  break;
+                case "threeTitle":
+                  productTitle = originalTitle3;
+                  productPoster = bookPoster3;
+                  break;
+                case "fourTitle":
+                  productTitle = originalTitle4;
+                  productPoster = bookPoster4;
+                  break;
+                case "fiveTitle":
+                  productTitle = originalTitle5;
+                  productPoster = bookPoster5;
+                  break;
                 default:
-                  console.error('Unexpected ID for watchlist button:', productID);
+                  console.error(
+                    "Unexpected ID for watchlist button:",
+                    productID
+                  );
                   return;
               }
 
@@ -1651,7 +1730,7 @@ async function populateCatalogBooks() {
                 type: "books",
                 title: productTitle,
                 userId: userId,
-                poster: productPoster
+                poster: productPoster,
               };
 
               fetch(`/addToWatchlist`, {
@@ -1714,11 +1793,19 @@ async function populateCatalogBooks() {
 
           let selectedBooks = [];
           let bookApiData = [];
+          let alreadySelected = [];
 
-          for (let i = 0; i < outputGenres.length; i++) {
-            let genre = outputGenres[i];
-            let books = genreList[genre];
-            let randomInt = Math.floor(Math.random() * books.length);
+          for (let i = 0; i < 5; i++) {
+            //console.log(genreList[randomGenre]);
+            let books = genreList[randomGenre];
+            let randomInt = Math.floor(Math.random() * 10);
+
+            while (alreadySelected.includes(randomInt)) {
+              randomInt = Math.floor(Math.random() * 10);
+            }
+
+            alreadySelected.push(randomInt);
+
             let title = books[randomInt];
 
             //console.log(title);
@@ -1852,13 +1939,31 @@ async function populateCatalogBooks() {
               let titleID = document.querySelector(`.title#${productID}`);
               //let productTitle = titleID.textContent;
               switch (productID) {
-                case 'oneTitle': productTitle = originalTitle1; productPoster = bookPoster1; break;
-                case 'twoTitle': productTitle = originalTitle2; productPoster = bookPoster2; break;
-                case 'threeTitle': productTitle = originalTitle3; productPoster = bookPoster3; break;
-                case 'fourTitle': productTitle = originalTitle4; productPoster = bookPoster4; break;
-                case 'fiveTitle': productTitle = originalTitle5; productPoster = bookPoster5; break;
+                case "oneTitle":
+                  productTitle = originalTitle1;
+                  productPoster = bookPoster1;
+                  break;
+                case "twoTitle":
+                  productTitle = originalTitle2;
+                  productPoster = bookPoster2;
+                  break;
+                case "threeTitle":
+                  productTitle = originalTitle3;
+                  productPoster = bookPoster3;
+                  break;
+                case "fourTitle":
+                  productTitle = originalTitle4;
+                  productPoster = bookPoster4;
+                  break;
+                case "fiveTitle":
+                  productTitle = originalTitle5;
+                  productPoster = bookPoster5;
+                  break;
                 default:
-                  console.error('Unexpected ID for watchlist button:', productID);
+                  console.error(
+                    "Unexpected ID for watchlist button:",
+                    productID
+                  );
                   return;
               }
 
@@ -1866,7 +1971,7 @@ async function populateCatalogBooks() {
                 type: "books",
                 title: productTitle,
                 userId: userId,
-                poster: productPoster
+                poster: productPoster,
               };
 
               fetch(`/addToWatchlist`, {
