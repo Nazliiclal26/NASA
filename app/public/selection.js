@@ -22,9 +22,27 @@ let logoutButton = document.getElementById("logout");
 let searchSection = document.getElementById("searchBox");
 let searchButton = document.getElementById("searchFilm");
 let searchResult = document.getElementById("searchResult");
+let searchType = document.getElementById("searchType");
 
 let booksButton = document.getElementById("books");
 let moviesButton = document.getElementById("movies");
+
+booksButton.addEventListener("click", () => {
+  localStorage.setItem("type", "books");
+  searchType.innerHTML = `
+    <option value="title">Title</option>
+    <option value="author">Author</option>
+    <option value="isbn">ISBN</option>
+  `;
+});
+
+moviesButton.addEventListener("click", () => {
+  localStorage.setItem("type", "movies");
+  searchType.innerHTML = `
+    <option value="title">Title</option>
+    <option value="imdbId">IMDb ID</option>
+  `;
+});
 
 searchButton.addEventListener("click", async () => {
   if (localStorage.getItem("type") === "movies") {
