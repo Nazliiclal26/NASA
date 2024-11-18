@@ -790,11 +790,19 @@ async function populateCatalog() {
 
           let selectedMovies = [];
           let movieApiData = [];
+          let alreadySelected = [];
 
           for (let i = 0; i < 5; i++) {
             //console.log(genreList[randomGenre]);
             let movies = genreList[randomGenre];
-            let randomInt = Math.floor(Math.random() * 5);
+            let randomInt = Math.floor(Math.random() * 10);
+
+            while (alreadySelected.includes(randomInt)) {
+              randomInt = Math.floor(Math.random() * 10);
+            }
+
+            alreadySelected.push(randomInt);
+
             let title = movies[randomInt];
 
             //console.log(title);
@@ -1005,12 +1013,20 @@ async function populateCatalog() {
 
           let selectedMovies = [];
           let movieApiData = [];
+          let alreadySelected = [];
 
           for (let i = 0; i < outputGenres.length; i++) {
             let genre = outputGenres[i];
             //console.log(genre);
             let movies = genreList[genre];
             let randomInt = Math.floor(Math.random() * movies.length);
+
+            while (alreadySelected.includes(randomInt)) {
+              randomInt = Math.floor(Math.random() * 10);
+            }
+
+            alreadySelected.push(randomInt);
+
             let title = movies[randomInt];
 
             //console.log(title);
@@ -1497,11 +1513,19 @@ async function populateCatalogBooks() {
 
           let selectedBooks = [];
           let bookApiData = [];
+          let alreadySelected = [];
 
           for (let i = 0; i < 5; i++) {
             //console.log(genreList[randomGenre]);
             let books = genreList[randomGenre];
-            let randomInt = Math.floor(Math.random() * 5);
+            let randomInt = Math.floor(Math.random() * 10);
+
+            while (alreadySelected.includes(randomInt)) {
+              randomInt = Math.floor(Math.random() * 10);
+            }
+
+            alreadySelected.push(randomInt);
+
             let title = books[randomInt];
 
             //console.log(title);
@@ -1714,11 +1738,19 @@ async function populateCatalogBooks() {
 
           let selectedBooks = [];
           let bookApiData = [];
+          let alreadySelected = [];
 
           for (let i = 0; i < outputGenres.length; i++) {
             let genre = outputGenres[i];
             let books = genreList[genre];
-            let randomInt = Math.floor(Math.random() * books.length);
+            let randomInt = Math.floor(Math.random() * 10);
+
+            while (alreadySelected.includes(randomInt)) {
+              randomInt = Math.floor(Math.random() * 10);
+            }
+
+            alreadySelected.push(randomInt);
+
             let title = books[randomInt];
 
             //console.log(title);
