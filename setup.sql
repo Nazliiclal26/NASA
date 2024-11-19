@@ -54,11 +54,14 @@ CREATE TABLE IF NOT EXISTS groups (
 CREATE TABLE IF NOT EXISTS votes (
     id SERIAL PRIMARY KEY,
     group_code VARCHAR(10) NOT NULL,  
-    film_title VARCHAR(255) NOT NULL, 
+    film_title VARCHAR(255), 
     book_title VARCHAR(255),
     num_votes INTEGER DEFAULT 1,
     poster VARCHAR(255) NOT NULL,
-    film_genre VARCHAR(255)
+    film_genre VARCHAR(255),
+    user_id INTEGER,
+    CONSTRAINT unique_user_vote UNIQUE (group_code, book_title, user_id),
+    CONSTRAINT unique_user_vote_2 UNIQUE (group_code, film_title, user_id)
 );
 
 -- Messages Table
