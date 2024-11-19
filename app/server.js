@@ -1171,26 +1171,28 @@ app.get("/movieSearchById", (req, res) => {
 });
 
 app.post("/vote", async (req, res) => {
-  let { groupCode, filmTitle, poster, filmGenre } = req.body;
+  let { groupCode, filmTitle, poster, filmGenre,userId } = req.body;
 
   try {
+    let existingVote = await pool.query(
+      "SELECT * FROM votes WHERE group_code = $1 AND film_title = $2 AND user_id = $3",
+      [groupCode, filmTitle, userId]
+    );
+
+    if (existingVote.rows.length > 0) {
+      return res.status(400).json({ message: "You have already voted for this film in this group." });
+    }
+
     let result = await pool.query(
       "SELECT * FROM votes WHERE group_code = $1 AND film_title = $2",
       [groupCode, filmTitle]
     );
 
-    if (result.rows.length > 0) {
-      await pool.query(
-        "UPDATE votes SET num_votes = num_votes + 1 WHERE group_code = $1 AND film_title = $2",
-        [groupCode, filmTitle]
-      );
-    } else {
-      //console.log("Data for vote insertion:", { groupCode, filmTitle, poster, filmGenre });
-      await pool.query(
-        "INSERT INTO votes (group_code, film_title, poster, num_votes, film_genre) VALUES ($1, $2, $3, 1, $4)",
-        [groupCode, filmTitle, poster, filmGenre]
-      );
-    }
+    await pool.query(
+      "INSERT INTO votes (group_code, film_title, poster, num_votes, film_genre, user_id) VALUES ($1, $2, $3, 1, $4,$5)",
+      [groupCode, filmTitle, poster, filmGenre,userId]
+    );
+
 
     res.status(200).json({ message: "Vote recorded" });
   } catch (error) {
@@ -1199,16 +1201,20 @@ app.post("/vote", async (req, res) => {
 });
 
 app.get("/votes/:groupCode", async (req, res) => {
-  let groupCode = req.params.groupCode;
+  const { groupCode } = req.params;
 
   try {
-    let result = await pool.query(
-      "SELECT film_title, poster, num_votes, film_genre FROM votes WHERE group_code = $1",
+    const result = await pool.query(
+      `SELECT film_title, book_title, SUM(num_votes) AS num_votes, film_genre
+       FROM votes
+       WHERE group_code = $1
+       GROUP BY film_title, book_title, film_genre`,
       [groupCode]
     );
 
     res.status(200).json(result.rows);
   } catch (error) {
+    console.error("Error fetching votes:", error);
     res.status(500).json({ message: "Error fetching votes" });
   }
 });
@@ -1288,12 +1294,16 @@ app.get("/bookVotes/:groupCode", async (req, res) => {
 
   try {
     let result = await pool.query(
-      "SELECT book_title, num_votes, poster FROM votes WHERE group_code = $1",
+      `SELECT book_title, SUM(num_votes) AS num_votes, poster
+       FROM votes
+       WHERE group_code = $1
+       GROUP BY book_title, poster`,
       [groupCode]
     );
 
     res.status(200).json(result.rows);
   } catch (error) {
+    console.error("Error fetching book votes:", error);
     res.status(500).json({ message: "Error fetching votes" });
   }
 });
@@ -1406,27 +1416,31 @@ app.get("/bookSearchByISBN", (req, res) => {
 });
 
 app.post("/bookVote", async (req, res) => {
-  let { groupCode, bookTitle, poster } = req.body;
+  let { groupCode, bookTitle, poster, userId } = req.body;
+
   try {
+    let existingVote = await pool.query(
+      "SELECT * FROM votes WHERE group_code = $1 AND book_title = $2 AND user_id = $3",
+      [groupCode, bookTitle, userId]
+    );
+
+    if (existingVote.rows.length > 0) {
+      return res.status(400).json({ message: "You have already voted for this book in this group." });
+    }
+
     let result = await pool.query(
       "SELECT * FROM votes WHERE group_code = $1 AND book_title = $2",
       [groupCode, bookTitle]
     );
 
-    if (result.rows.length > 0) {
-      await pool.query(
-        "UPDATE votes SET num_votes = num_votes + 1 WHERE group_code = $1 AND book_title = $2",
-        [groupCode, bookTitle]
-      );
-    } else {
-      await pool.query(
-        "INSERT INTO votes (group_code, book_title, poster, num_votes, film_title) VALUES ($1, $2, $3, 1, $4)",
-        [groupCode, bookTitle, poster, ""]
-      );
-    }
+    await pool.query(
+      "INSERT INTO votes (group_code, book_title, poster, num_votes, film_title, user_id) VALUES ($1, $2, $3, 1, '', $4)",
+      [groupCode, bookTitle, poster, userId]
+    );
 
     res.status(200).json({ message: "Vote recorded" });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Error recording vote" });
   }
 });
