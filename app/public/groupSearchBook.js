@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       let response = await fetch("/bookVote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ groupCode:groupCode, bookTitle: title, poster }),
+        body: JSON.stringify({ groupCode:groupCode, bookTitle: title, poster,userId: localStorage.getItem("userId") }),
       });
 
       if (!response.ok) throw new Error("Error voting");
@@ -61,21 +61,21 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function fetchVotes() {
     try {
-      let response = await fetch(`/bookVotes/${groupCode}`);
-      if (!response.ok) throw new Error("Error fetching votes");
-
-      let data = await response.json();
-      votedBooksList.innerHTML = "";
-
+      const response = await fetch(`/bookVotes/${groupCode}`);
+      if (!response.ok) throw new Error("Error fetching book votes");
+  
+      const data = await response.json();
+      votedBooksList.innerHTML = ""; 
+  
       data.forEach((book) => {
         if (book.num_votes > 0) {
-          let li = document.createElement("li");
+          const li = document.createElement("li");
           li.innerHTML = `${book.book_title} - ${book.num_votes} votes`;
           votedBooksList.appendChild(li);
         }
       });
     } catch (error) {
-      console.error("Error fetching votes:", error);
+      console.error("Error fetching book votes:", error);
     }
   }
 
