@@ -207,107 +207,110 @@ document.addEventListener("DOMContentLoaded", async () => {
     checkIfLeader();
   });
 
-  let username = null;
-  let socket = io();
-  socket.on("connect", () => { console.log("Socket has been connected."); });
-  let send = document.getElementById("sendButton");
-  let input = document.getElementById("messageInput");
-  let messages = document.getElementById("messages");
-  send.addEventListener("click", () => {
-    let message = input.value;
-    if (message === '') {
-      return;
-    }
+let groupCode = window.location.pathname.split("/").pop(); 
+let username = null;
+let socket = io();
+socket.on("connect", () => { console.log("Socket has been connected."); });
+let send = document.getElementById("sendButton");
+let input = document.getElementById("messageInput");
+let messages = document.getElementById("messages");
+send.addEventListener("click", () => {
+  let message = input.value;
+  if (message === '') {
+    return;
+  }
 
-    // Add to successful return body for add message fetch
-    // appendSentMessage(message, username);
+  // Add to successful return body for add message fetch
+  // appendSentMessage(message, username);
 
-    console.log("Sending message:", message);
-    fetch('/addMessage', { 
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sentUser: username,
-        message: message,
-        groupName: groupCode 
-      })
-    }).then((response) => {
-      console.log(response);
-      return response.json().then((body) => {
-          console.log('Successful message addition. Now appending and sending to room:');
-          appendSentMessage(message, username);
-          socket.emit('sendMessageToRoom', { message, username });
-          input.value = '';
-        }).catch((error) => {
-          console.error(error);
-        }); 
-    }).catch((error) => {
-      console.error(error);
-    });
-   
-});
-
-  // Sets username based on token storage in server
-  fetch('/getUsernameForGroup').then((response) => {
-    return response.json();
-  }).then((body) => {
-    username = body["username"];
+  console.log("Sending message:", message);
+  fetch('/addMessage', { 
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      sentUser: username,
+      message: message,
+      groupName: groupCode 
+    })
+  }).then((response) => {
+    console.log(response);
+    return response.json().then((body) => {
+        console.log('Successful message addition. Now appending and sending to room:');
+        appendSentMessage(message, username);
+        socket.emit('sendMessageToRoom', { message, username });
+        input.value = '';
+      }).catch((error) => {
+        console.error(error);
+      }); 
   }).catch((error) => {
     console.error(error);
   });
 
-  fetch(`/getMessages?groupName=${groupCode}`).then((response) => {
-    return response.json();
-  }).then((body) => {
-    displayExistingMessages(body);
-  }).catch((error) => { console.error(error); });
+  // Add this to successful return body for add message fetch
+  // socket.emit('sendMessageToRoom', { message });
+});
 
-  // Ideally you receive a username of who sent it, send a token, return the username
-  socket.on("receive", (data, userWhoSent) => {
-    console.log("Received message:", data, "from:", userWhoSent);
-    appendReceivedMessage(data, userWhoSent); 
-  });
-  
-  function appendReceivedMessage(msg, defaultUser="") {
-    let msgBox = document.createElement("li");
-    let usernameDiv = document.createElement("div");
-    let usernameEffect = document.createElement("strong");
-    usernameEffect.textContent = defaultUser;
-    usernameDiv.appendChild(usernameEffect);
-    let messageDiv = document.createElement("div");
-    messageDiv.textContent = msg;
-    msgBox.appendChild(usernameDiv);
-    msgBox.appendChild(messageDiv);
-    msgBox.style.textAlign = "left";
-    msgBox.style.listStyleType = "none";
-    messages.appendChild(msgBox);
-  }
+// Sets username based on token storage in server
+fetch('/getUsernameForGroup').then((response) => {
+  return response.json();
+}).then((body) => {
+  username = body["username"];
+}).catch((error) => {
+  console.error(error);
+});
 
-  function appendSentMessage(msg, defaultUser="") {
-    let msgBox = document.createElement("li");
-    let usernameDiv = document.createElement("div");
-    let usernameEffect = document.createElement("strong");
-    usernameEffect.textContent = defaultUser;
-    usernameDiv.appendChild(usernameEffect);
-    let messageDiv = document.createElement("div");
-    messageDiv.textContent = msg;
-    msgBox.appendChild(usernameDiv);
-    msgBox.appendChild(messageDiv);
-    msgBox.style.textAlign = "right";
-    msgBox.style.listStyleType = "none";
-    messages.appendChild(msgBox);
-  }
+fetch(`/getMessages?groupName=${groupCode}`).then((response) => {
+  return response.json();
+}).then((body) => {
+  displayExistingMessages(body);
+}).catch((error) => { console.error(error); });
 
-  function displayExistingMessages(body) {
-    let sentUser = body["username"];
-    // checks if global variable on whether to append to left 
-    let messageCollection = body["messages"];
-    for (let row of messageCollection) {
-      if (sentUser === row["username"]) {
-        appendSentMessage(row["user_message"], row["username"]);
-      }
-      else {
-        appendReceivedMessage(row["user_message"], row["username"]);
-      }
+// Ideally you receive a username of who sent it, send a token, return the username
+socket.on("receive", (data, userWhoSent) => {
+  console.log("Received message:", data, "from:", userWhoSent);
+  appendReceivedMessage(data, userWhoSent); 
+});
+
+function appendReceivedMessage(msg, defaultUser="") {
+  let msgBox = document.createElement("li");
+  let usernameDiv = document.createElement("div");
+  let usernameEffect = document.createElement("strong");
+  usernameEffect.textContent = defaultUser;
+  usernameDiv.appendChild(usernameEffect);
+  let messageDiv = document.createElement("div");
+  messageDiv.textContent = msg;
+  msgBox.appendChild(usernameDiv);
+  msgBox.appendChild(messageDiv);
+  msgBox.style.textAlign = "left";
+  msgBox.style.listStyleType = "none";
+  messages.appendChild(msgBox);
+}
+
+function appendSentMessage(msg, defaultUser="") {
+  let msgBox = document.createElement("li");
+  let usernameDiv = document.createElement("div");
+  let usernameEffect = document.createElement("strong");
+  usernameEffect.textContent = defaultUser;
+  usernameDiv.appendChild(usernameEffect);
+  let messageDiv = document.createElement("div");
+  messageDiv.textContent = msg;
+  msgBox.appendChild(usernameDiv);
+  msgBox.appendChild(messageDiv);
+  msgBox.style.textAlign = "right";
+  msgBox.style.listStyleType = "none";
+  messages.appendChild(msgBox);
+}
+
+function displayExistingMessages(body) {
+  let sentUser = body["username"];
+  // checks if global variable on whether to append to left 
+  let messageCollection = body["messages"];
+  for (let row of messageCollection) {
+    if (sentUser === row["username"]) {
+      appendSentMessage(row["user_message"], row["username"]);
     }
+    else {
+      appendReceivedMessage(row["user_message"], row["username"]);
+    }
+  }
   }
