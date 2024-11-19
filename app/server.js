@@ -908,7 +908,7 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
               </div>
 
               <div>
-                  <h2>Voted Book</h2>
+                  <h2>Voted Books</h2>
                   <ul id="votedBooks"></ul>
               </div>
 
