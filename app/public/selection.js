@@ -27,6 +27,10 @@ let searchType = document.getElementById("searchType");
 let booksButton = document.getElementById("books");
 let moviesButton = document.getElementById("movies");
 
+document.addEventListener("DOMContentLoaded", () => {
+  localStorage.removeItem("groupInfo");
+});
+
 booksButton.addEventListener("click", () => {
   localStorage.setItem("type", "books");
   searchType.innerHTML = `
@@ -449,7 +453,7 @@ async function displayGroups() {
           myGroups.push(row.group_name);
           divStruct += `
           <div>
-            <a href='/${row.group_type}Group/${row.group_name}'>${row.group_name}</a>
+            <a href='/${row.group_type}Group/${row.group_name}'>${row.group_name} (${row.privacy})</a>
           </div>
           `;
         });

@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     let stopVoteButton = document.getElementById("stopVote");
     let startVoteButton = document.getElementById("startVote");
     let mostVotedBookSection = document.getElementById("mostVotedBook");
+    let leaveGroupButton = document.getElementById("leaveGroup");
 
     async function fetchGroupWatchlist() {
       try {
@@ -155,8 +156,35 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (data.isLeader && response.ok) {
         document.getElementById("buttonContainer").style.display = "block";
       }
-    }   
-  
+    }
+
+    async function populateHeaderWithGroupInfo() {
+      let header = document.getElementById("pageHeader");
+      let attributeDisplay = document.createElement("h4");
+      let data = JSON.parse(localStorage.getItem("groupInfo"));
+      //console.log(data);
+      if (data.privacy === "public"){
+        attributeDisplay.textContent = `Privacy: Public - Code: ${data.secret_code}`;
+      }
+      else if (data.privacy === "private" && data.leader_id === parseInt(localStorage.getItem("userId"))) {
+        attributeDisplay.textContent = `Privacy: Private - Code: ${data.secret_code}`;
+      }
+      else if (data.privacy === "private") {
+        attributeDisplay.textContent = `Privacy: Private`;
+      }
+      header.appendChild(attributeDisplay);
+    }
+    
+    // populates groupInfo into local storage upon page load
+    async function populateGroupInfo() {
+      const response = await fetch(`/getGroupInfo?name=${groupCode}`);
+      let data = await response.json();
+      localStorage.setItem("groupInfo", JSON.stringify(data));
+    }
+
+    // then with getGroupInfo, populate all the things you need
+    
+
     stopVoteButton.addEventListener("click", async () => {
       let response = await fetch(`/votes/${groupCode}`);
       let data = await response.json();
@@ -182,7 +210,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       mostVotedBookSection.innerHTML = ""; 
       fetchVotes(); 
     });
-  
+
+    leaveGroupButton.addEventListener("click", () => {
+      window.location.href = '/selection.html';
+    });
+    
+    populateGroupInfo().then(() => {
+      populateHeaderWithGroupInfo();
+    });
     fetchVotes(); 
     checkIfLeader();
   });
@@ -292,3 +327,4 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
   }
+
