@@ -134,7 +134,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         body: JSON.stringify({ groupCode, filmTitle: title, poster: poster, filmGenre: film_genre,userId: localStorage.getItem("userId") }) 
       });
   
-      if (!response.ok) throw new Error("Error voting");
+      if (!response.ok){
+        alert(result.message);
+      }
   
       fetchVotes(); 
     } catch (error) {
