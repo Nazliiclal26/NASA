@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let searchButton = document.getElementById("searchFilm");
   let searchResult = document.getElementById("searchResult");
   let votedFilmsList = document.getElementById("votedFilms");
-  let groupCode = window.location.pathname.split("/").pop(); 
+  let groupCode = decodeURIComponent(window.location.pathname).split("/").pop(); 
   let stopVoteButton = document.getElementById("stopVote");
   let startVoteButton = document.getElementById("startVote");
   let mostVotedFilmSection = document.getElementById("mostVotedFilm");
@@ -205,7 +205,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   checkIfLeader(); 
 });
 
-let groupCode = window.location.pathname.split("/").pop(); 
+let groupCode = decodeURIComponent(window.location.pathname).split("/").pop();
 let username = null;
 let socket = io();
 socket.on("connect", () => { console.log("Socket has been connected."); });

@@ -1007,6 +1007,7 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
 });
 
 app.post("/addMessage", async (req, res) => {
+  console.log(req.body);
   let sentUser = req.body["sentUser"];
   let message = req.body["message"];
   let groupName = req.body["groupName"];
