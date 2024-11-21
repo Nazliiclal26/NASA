@@ -1176,18 +1176,13 @@ app.post("/vote", async (req, res) => {
 
   try {
     let existingVote = await pool.query(
-      "SELECT * FROM votes WHERE group_code = $1 AND film_title = $2 AND user_id = $3",
-      [groupCode, filmTitle, userId]
+      "SELECT * FROM votes WHERE group_code = $1 AND user_id = $2",
+      [groupCode, userId]
     );
 
     if (existingVote.rows.length > 0) {
-      return res.status(400).json({ message: "You have already voted for this film in this group." });
+      return res.status(400).json({ message: "You have already voted in this group." });
     }
-
-    let result = await pool.query(
-      "SELECT * FROM votes WHERE group_code = $1 AND film_title = $2",
-      [groupCode, filmTitle]
-    );
 
     await pool.query(
       "INSERT INTO votes (group_code, film_title, poster, num_votes, film_genre, user_id) VALUES ($1, $2, $3, 1, $4,$5)",
@@ -1206,10 +1201,10 @@ app.get("/votes/:groupCode", async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT film_title, book_title, SUM(num_votes) AS num_votes, film_genre
+      `SELECT film_title, book_title, SUM(num_votes) AS num_votes, film_genre, poster
        FROM votes
        WHERE group_code = $1
-       GROUP BY film_title, book_title, film_genre`,
+       GROUP BY film_title, book_title, film_genre,poster`,
       [groupCode]
     );
 
@@ -1421,18 +1416,13 @@ app.post("/bookVote", async (req, res) => {
 
   try {
     let existingVote = await pool.query(
-      "SELECT * FROM votes WHERE group_code = $1 AND book_title = $2 AND user_id = $3",
-      [groupCode, bookTitle, userId]
+      "SELECT * FROM votes WHERE group_code = $1 AND user_id = $2",
+      [groupCode, userId]
     );
 
     if (existingVote.rows.length > 0) {
-      return res.status(400).json({ message: "You have already voted for this book in this group." });
+      return res.status(400).json({ message: "You have already voted in this group." });
     }
-
-    let result = await pool.query(
-      "SELECT * FROM votes WHERE group_code = $1 AND book_title = $2",
-      [groupCode, bookTitle]
-    );
 
     await pool.query(
       "INSERT INTO votes (group_code, book_title, poster, num_votes, film_title, user_id) VALUES ($1, $2, $3, 1, '', $4)",

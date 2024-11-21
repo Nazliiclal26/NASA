@@ -133,8 +133,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ groupCode, filmTitle: title, poster: poster, filmGenre: film_genre,userId: localStorage.getItem("userId") }) 
       });
-  
-      if (!response.ok) throw new Error("Error voting");
+
+      const result = await response.json(); 
+      
+      if (!response.ok){
+        alert(result.message);
+      }
   
       fetchVotes(); 
     } catch (error) {

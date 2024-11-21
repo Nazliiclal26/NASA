@@ -51,7 +51,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         body: JSON.stringify({ groupCode:groupCode, bookTitle: title, poster,userId: localStorage.getItem("userId") }),
       });
 
-      if (!response.ok) throw new Error("Error voting");
+      const result = await response.json(); 
+      
+      if (!response.ok){
+        alert(result.message);
+      }
 
       fetchVotes();
     } catch (error) {

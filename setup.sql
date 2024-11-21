@@ -59,9 +59,7 @@ CREATE TABLE IF NOT EXISTS votes (
     num_votes INTEGER DEFAULT 1,
     poster VARCHAR(255) NOT NULL,
     film_genre VARCHAR(255),
-    user_id INTEGER,
-    CONSTRAINT unique_user_vote UNIQUE (group_code, book_title, user_id),
-    CONSTRAINT unique_user_vote_2 UNIQUE (group_code, film_title, user_id)
+    user_id INTEGER
 );
 
 -- Messages Table
