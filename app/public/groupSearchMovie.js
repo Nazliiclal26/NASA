@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let searchButton = document.getElementById("searchFilm");
   let searchResult = document.getElementById("searchResult");
   let votedFilmsList = document.getElementById("votedFilms");
-  let groupCode = window.location.pathname.split("/").pop(); 
+  let groupCode = decodeURIComponent(window.location.pathname).split("/").pop(); 
   let stopVoteButton = document.getElementById("stopVote");
   let startVoteButton = document.getElementById("startVote");
   let mostVotedFilmSection = document.getElementById("mostVotedFilm");
@@ -131,10 +131,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       const response = await fetch("/vote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ groupCode, filmTitle: title, poster: poster, filmGenre: film_genre }) 
+        body: JSON.stringify({ groupCode, filmTitle: title, poster: poster, filmGenre: film_genre,userId: localStorage.getItem("userId") }) 
       });
-  
-      if (!response.ok) throw new Error("Error voting");
+
+      const result = await response.json(); 
+      
+      if (!response.ok){
+        alert(result.message);
+      }
   
       fetchVotes(); 
     } catch (error) {
@@ -146,14 +150,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
       const response = await fetch(`/votes/${groupCode}`);
       if (!response.ok) throw new Error("Error fetching votes");
-
+  
       const data = await response.json();
       votedFilmsList.innerHTML = ""; 
-
+  
       data.forEach((film) => {
         if (film.num_votes > 0) {
           const li = document.createElement("li");
-          li.innerHTML = `${film.film_title} - ${film.num_votes} votes - <span style="color: blue;">${film.film_genre}</span>`;
+          li.innerHTML = `${film.film_title || film.book_title} - ${film.num_votes} votes - <span style="color: blue;">${film.film_genre || "N/A"}</span>`;
           votedFilmsList.appendChild(li);
         }
       });
@@ -205,7 +209,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   checkIfLeader(); 
 });
 
-let groupCode = window.location.pathname.split("/").pop(); 
+let groupCode = decodeURIComponent(window.location.pathname).split("/").pop();
 let username = null;
 let socket = io();
 socket.on("connect", () => { console.log("Socket has been connected."); });

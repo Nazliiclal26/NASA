@@ -22,148 +22,26 @@ let logoutButton = document.getElementById("logout");
 let searchSection = document.getElementById("searchBox");
 let searchButton = document.getElementById("searchFilm");
 let searchResult = document.getElementById("searchResult");
+let searchType = document.getElementById("searchType");
 
 let booksButton = document.getElementById("books");
 let moviesButton = document.getElementById("movies");
 
-searchButton.addEventListener("click", async () => {
-  if (localStorage.getItem("type") === "movies") {
-    let title = document.getElementById("search").value;
+booksButton.addEventListener("click", () => {
+  localStorage.setItem("type", "books");
+  searchType.innerHTML = `
+    <option value="title">Title</option>
+    <option value="author">Author</option>
+    <option value="isbn">ISBN</option>
+  `;
+});
 
-    if (!title) {
-      searchResult.innerText = "Please enter a film title.";
-      return;
-    }
-
-    try {
-      let response = await fetch(
-        `/groupSearch?title=${encodeURIComponent(title)}`
-      );
-      if (!response.ok) throw new Error("Film not found");
-
-      let data = await response.json();
-      searchResult.innerHTML = `
-        <div class="film-card">
-          <img src="${data.poster}" alt="${data.title} poster">
-          <button class="watchlist-btn" data-title="${data.title}" data-genre="${data.genre}">+</button>
-          <h3>${data.title}</h3>
-          <p>IMDb Rating: ${data.rating}</p>
-          <p>Genre: ${data.genre}</p>x
-          <p>Plot: ${data.plot}</p>
-        </div>
-      `;
-
-          // Attach event listeners to new watchlist buttons
-    document.querySelectorAll('.watchlist-btn').forEach(button => {
-      button.addEventListener('click', () => {
-        let userId = localStorage.getItem("userId");
-        if (!userId) {
-          alert("You need to be logged in to add to the watchlist.");
-          return;
-        }
-        
-        let productInfo = {
-          type: "movies",
-          title: button.getAttribute('data-title'),
-          poster: data.poster,
-          userId: userId
-        };
-
-        fetch(`/addToWatchlist`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(productInfo)
-        })
-          .then(response => response.json())
-          .then(data => {
-            if (data.status === "success") {
-              alert("Added to watchlist!");
-            } else {
-              alert("Failed to add to watchlist: " + data.message);
-            }
-          })
-          .catch(error => {
-            console.error("Error adding to watchlist:", error);
-            alert("Error adding to watchlist.");
-          });
-      });
-    });
-
-    } catch (error) {
-      searchResult.innerText = "Film not found or an error occurred.";
-      console.error("Error fetching film:", error);
-    }
-  } else {
-    let title = document.getElementById("search").value;
-
-    if (!title) {
-      searchResult.innerText = "Please enter a book title.";
-      return;
-    }
-
-    try {
-      let response = await fetch(
-        `/groupSearchBook?title=${encodeURIComponent(title)}`
-      );
-      if (!response.ok) throw new Error("Book not found");
-
-      let data = await response.json();
-      searchResult.innerHTML = `
-      <div class="book-card">
-      <img src="${data.poster}" alt="${data.title} poster">
-      <button class="watchlist-btn" data-title="${data.title}">+</button>
-      <h3>${data.title}</h3>
-      <p>Author(s): ${data.authors}</p>
-      <p>Date Published: ${data.publishedDate}</p>
-      <p>Description: ${data.description}</p>
-    </div>
-      `;
-
-    // Attach event listeners to new watchlist buttons
-    document.querySelectorAll('.watchlist-btn').forEach(button => {
-      button.addEventListener('click', () => {
-        let userId = localStorage.getItem("userId");
-        if (!userId) {
-          alert("You need to be logged in to add to the watchlist.");
-          return;
-        }
-        
-        let productInfo = {
-          type: "books",
-          title: button.getAttribute('data-title'),
-          poster: data.poster,
-          userId: userId
-        };
-
-        fetch(`/addToWatchlist`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(productInfo)
-        })
-          .then(response => response.json())
-          .then(data => {
-            if (data.status === "success") {
-              alert("Added to watchlist!");
-            } else {
-              alert("Failed to add to watchlist: " + data.message);
-            }
-          })
-          .catch(error => {
-            console.error("Error adding to watchlist:", error);
-            alert("Error adding to watchlist.");
-          });
-      });
-    });
-
-    } catch (error) {
-      searchResult.innerText = "Book not found or an error occurred.";
-      console.error("Error fetching book:", error);
-    }
-  }
+moviesButton.addEventListener("click", () => {
+  localStorage.setItem("type", "movies");
+  searchType.innerHTML = `
+    <option value="title">Title</option>
+    <option value="imdbId">IMDb ID</option>
+  `;
 });
 
 accountButton.addEventListener("click", () => {

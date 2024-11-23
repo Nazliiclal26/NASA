@@ -908,7 +908,7 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
               </div>
 
               <div>
-                  <h2>Voted Book</h2>
+                  <h2>Voted Books</h2>
                   <ul id="votedBooks"></ul>
               </div>
 
@@ -1007,6 +1007,7 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
 });
 
 app.post("/addMessage", async (req, res) => {
+  console.log(req.body);
   let sentUser = req.body["sentUser"];
   let message = req.body["message"];
   let groupName = req.body["groupName"];
@@ -1142,27 +1143,52 @@ app.get("/groupSearch", (req, res) => {
     });
 });
 
+app.get("/movieSearchById", (req, res) => {
+  let imdbId = req.query.imdbId;
+  let url = `https://www.omdbapi.com/?i=${imdbId}&apikey=cba0ff47`;
+  axios.get(url)
+    .then(response => {
+      let data = response.data;
+      console.log(data); // Log the response data for debugging
+
+      if (data.Response === "False") {
+        return res.status(404).json({ message: "Film not found" });
+      }
+
+      let information = {
+        title: data.Title,
+        poster: data.Poster,
+        rating: data.imdbRating,
+        genre: data.Genre,
+        plot: data.Plot,
+      };
+
+      res.status(200).json(information);
+    })
+    .catch(error => {
+      console.error("Error fetching film data:", error);
+      res.status(500).json({ message: "Error fetching film data" });
+    });
+});
+
 app.post("/vote", async (req, res) => {
-  let { groupCode, filmTitle, poster, filmGenre } = req.body;
+  let { groupCode, filmTitle, poster, filmGenre,userId } = req.body;
 
   try {
-    let result = await pool.query(
-      "SELECT * FROM votes WHERE group_code = $1 AND film_title = $2",
-      [groupCode, filmTitle]
+    let existingVote = await pool.query(
+      "SELECT * FROM votes WHERE group_code = $1 AND user_id = $2",
+      [groupCode, userId]
     );
 
-    if (result.rows.length > 0) {
-      await pool.query(
-        "UPDATE votes SET num_votes = num_votes + 1 WHERE group_code = $1 AND film_title = $2",
-        [groupCode, filmTitle]
-      );
-    } else {
-      //console.log("Data for vote insertion:", { groupCode, filmTitle, poster, filmGenre });
-      await pool.query(
-        "INSERT INTO votes (group_code, film_title, poster, num_votes, film_genre) VALUES ($1, $2, $3, 1, $4)",
-        [groupCode, filmTitle, poster, filmGenre]
-      );
+    if (existingVote.rows.length > 0) {
+      return res.status(400).json({ message: "You have already voted in this group." });
     }
+
+    await pool.query(
+      "INSERT INTO votes (group_code, film_title, poster, num_votes, film_genre, user_id) VALUES ($1, $2, $3, 1, $4,$5)",
+      [groupCode, filmTitle, poster, filmGenre,userId]
+    );
+
 
     res.status(200).json({ message: "Vote recorded" });
   } catch (error) {
@@ -1171,16 +1197,20 @@ app.post("/vote", async (req, res) => {
 });
 
 app.get("/votes/:groupCode", async (req, res) => {
-  let groupCode = req.params.groupCode;
+  const { groupCode } = req.params;
 
   try {
-    let result = await pool.query(
-      "SELECT film_title, poster, num_votes, film_genre FROM votes WHERE group_code = $1",
+    const result = await pool.query(
+      `SELECT film_title, book_title, SUM(num_votes) AS num_votes, film_genre, poster
+       FROM votes
+       WHERE group_code = $1
+       GROUP BY film_title, book_title, film_genre,poster`,
       [groupCode]
     );
 
     res.status(200).json(result.rows);
   } catch (error) {
+    console.error("Error fetching votes:", error);
     res.status(500).json({ message: "Error fetching votes" });
   }
 });
@@ -1260,12 +1290,16 @@ app.get("/bookVotes/:groupCode", async (req, res) => {
 
   try {
     let result = await pool.query(
-      "SELECT book_title, num_votes, poster FROM votes WHERE group_code = $1",
+      `SELECT book_title, SUM(num_votes) AS num_votes, poster
+       FROM votes
+       WHERE group_code = $1
+       GROUP BY book_title, poster`,
       [groupCode]
     );
 
     res.status(200).json(result.rows);
   } catch (error) {
+    console.error("Error fetching book votes:", error);
     res.status(500).json({ message: "Error fetching votes" });
   }
 });
@@ -1309,30 +1343,111 @@ app.get("/groupSearchBook", (req, res) => {
     });
 });
 
+app.get("/bookSearchByAuthor", (req, res) => {
+  let author = req.query.author;
+
+  if (!author) {
+    return res.status(400).json({ message: "Input author" });
+  }
+
+  let url = `https://www.googleapis.com/books/v1/volumes?q=inauthor:${encodeURIComponent(author)}
+  &key=AIzaSyA7W8k35xcWplp6773PLBHKwqQyMPJ6VVY`;
+
+  axios.get(url)
+    .then(response => {
+      let books = response.data.items;
+      if (!books || books.length === 0) {
+        return res.status(404).json({ message: "Book not found" });
+      }
+      let book = books[0].volumeInfo;
+
+      let information = {
+        title: book.title,
+        poster: book.imageLinks ? book.imageLinks.thumbnail : "",
+        authors: book.authors ? book.authors.join(", ") : "N/A",
+        publishedDate: book.publishedDate,
+        rating: book.averageRating,
+        description: book.description ? book.description : "No description available."
+      };
+
+      res.status(200).json(information);
+    })
+    .catch(error => {
+      res.status(500).json({ message: "Error fetching book data" });
+    });
+});
+
+app.get("/bookSearchByISBN", (req, res) => {
+  let isbn = req.query.isbn;
+
+  if (!isbn) {
+    return res.status(400).json({ message: "Input ISBN" });
+  }
+
+  let url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${encodeURIComponent(isbn)}
+  &key=AIzaSyA7W8k35xcWplp6773PLBHKwqQyMPJ6VVY`;
+
+  axios.get(url)
+    .then(response => {
+      let books = response.data.items;
+      if (!books || books.length === 0) {
+        return res.status(404).json({ message: "Book not found" });
+      }
+      let book = books[0].volumeInfo;
+
+      let information = {
+        title: book.title,
+        poster: book.imageLinks ? book.imageLinks.thumbnail : "",
+        authors: book.authors ? book.authors.join(", ") : "N/A",
+        publishedDate: book.publishedDate,
+        rating: book.averageRating,
+        description: book.description ? book.description : "No description available."
+      };
+
+      res.status(200).json(information);
+    })
+    .catch(error => {
+      res.status(500).json({ message: "Error fetching book data" });
+    });
+});
+
 app.post("/bookVote", async (req, res) => {
-  let { groupCode, filmTitle, poster } = req.body;
+  let { groupCode, bookTitle, poster, userId } = req.body;
 
   try {
-    let result = await pool.query(
-      "SELECT * FROM votes WHERE group_code = $1 AND book_title = $2",
-      [groupCode, filmTitle]
+    let existingVote = await pool.query(
+      "SELECT * FROM votes WHERE group_code = $1 AND user_id = $2",
+      [groupCode, userId]
     );
 
-    if (result.rows.length > 0) {
-      await pool.query(
-        "UPDATE votes SET num_votes = num_votes + 1 WHERE group_code = $1 AND book_title = $2",
-        [groupCode, filmTitle]
-      );
-    } else {
-      await pool.query(
-        "INSERT INTO votes (group_code, book_title, num_votes, poster) VALUES ($1, $2, $3, 1)",
-        [groupCode, filmTitle, poster]
-      );
+    if (existingVote.rows.length > 0) {
+      return res.status(400).json({ message: "You have already voted in this group." });
     }
+
+    await pool.query(
+      "INSERT INTO votes (group_code, book_title, poster, num_votes, film_title, user_id) VALUES ($1, $2, $3, 1, '', $4)",
+      [groupCode, bookTitle, poster, userId]
+    );
 
     res.status(200).json({ message: "Vote recorded" });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Error recording vote" });
+  }
+});
+
+app.get("/votesBook/:groupCode", async (req, res) => {
+  let groupCode = req.params.groupCode;
+
+  try {
+    let result = await pool.query(
+      "SELECT book_title, poster, num_votes FROM votes WHERE group_code = $1",
+      [groupCode]
+    );
+
+    res.status(200).json(result.rows);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching votes" });
   }
 });
 
