@@ -779,45 +779,13 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
       <link rel="stylesheet" href="/group.css">
       <script src="/calendar.js" defer></script>
       <link rel="stylesheet" href="/selection.css">
+      <link rel="stylesheet" href="/account.css">
     </head>
     <body>
     <div id="navbar">
-      <div id="leftPanel">
-        <div id="typeButtons">
-          <div id="home">Home</div>
-        </div>
-      </div>
-      <div id="greeting"></div>
-      <div id="searchBox">
-        <select id="searchType">
-          <option value="title">Title</option>
-          <option value="author">Author</option>
-          <option value="isbn">ISBN</option>
-        </select>
-        <input
-          type="text"
-          id="search"
-          name="search"
-          placeholder="Search a book or movie..."
-        />
-        <button id="searchFilm">Search</button>
-      </div>
       <div id="navButtons">
         <div id="buttonContainer">
-          <div id="watchlist">
-            <a href="#" id="watchlistLink">My Watchlist</a>
-          </div>
-          <script>
-            document.getElementById("watchlistLink").addEventListener("click", () => {
-              if (userId) {
-                const userId = localStorage.getItem("userId");
-                window.location.href = userId + "/watchlist.html";
-              } else {
-                alert("User not logged in.");
-              }
-            });
-          </script>
-          <div id="account">Account</div>
+          <div id="home">Home</div>
           <div id="logout">
             <img src="/images/logout.png" width="30px" />
           </div>
@@ -1038,45 +1006,13 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
           <link rel="stylesheet" href="/calendar.css">
           <script src="/calendar.js" defer></script>
           <link rel="stylesheet" href="/selection.css">
+          <link rel="stylesheet" href="/account.css">
       </head>
       <body>
       <div id="navbar">
-      <div id="leftPanel">
-        <div id="typeButtons">
-          <div id="home">Home</div>
-        </div>
-      </div>
-      <div id="greeting"></div>
-      <div id="searchBox">
-        <select id="searchType">
-          <option value="title">Title</option>
-          <option value="author">Author</option>
-          <option value="isbn">ISBN</option>
-        </select>
-        <input
-          type="text"
-          id="search"
-          name="search"
-          placeholder="Search a book or movie..."
-        />
-        <button id="searchFilm">Search</button>
-      </div>
       <div id="navButtons">
         <div id="buttonContainer">
-          <div id="watchlist">
-            <a href="#" id="watchlistLink">My Watchlist</a>
-          </div>
-          <script>
-            document.getElementById("watchlistLink").addEventListener("click", () => {
-              const userId = localStorage.getItem("userId");
-              if (userId) {
-                window.location.href = userId + "/watchlist.html";
-              } else {
-                alert("User not logged in.");
-              }
-            });
-          </script>
-          <div id="account">Account</div>
+          <div id="home">Home</div>
           <div id="logout">
             <img src="/images/logout.png" width="30px" />
           </div>

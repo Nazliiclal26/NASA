@@ -3,6 +3,8 @@ let mainCloseButton = document.getElementById("mainGroupModalButton");
 let joinCloseButton = document.getElementById("joinGroupModalButton");
 let addCloseButton = document.getElementById("createGroupModalButton");
 
+let homeButton = document.getElementById("home");
+
 let mainModal = document.getElementById("mainModal");
 let joinModal = document.getElementById("joinModal");
 let createModal = document.getElementById("createModal");
@@ -16,7 +18,6 @@ let joinAddButton = document.getElementById("joinAddButton");
 let createGroupHome = document.getElementById("createHomeButton");
 let createJoinButton = document.getElementById("createJoinButton");
 
-let accountButton = document.getElementById("account");
 let logoutButton = document.getElementById("logout");
 
 let searchSection = document.getElementById("searchBox");
@@ -24,28 +25,23 @@ let searchButton = document.getElementById("searchFilm");
 let searchResult = document.getElementById("searchResult");
 let searchType = document.getElementById("searchType");
 
-let booksButton = document.getElementById("books");
-let moviesButton = document.getElementById("movies");
-
-booksButton.addEventListener("click", () => {
-  localStorage.setItem("type", "books");
-  searchType.innerHTML = `
-    <option value="title">Title</option>
-    <option value="author">Author</option>
-    <option value="isbn">ISBN</option>
-  `;
+homeButton.addEventListener("click", () => {
+  window.location.href = "/selection.html";
 });
 
-moviesButton.addEventListener("click", () => {
-  localStorage.setItem("type", "movies");
-  searchType.innerHTML = `
-    <option value="title">Title</option>
-    <option value="imdbId">IMDb ID</option>
-  `;
-});
-
-accountButton.addEventListener("click", () => {
-  window.location.href = "account.html";
+logoutButton.addEventListener("click", () => {
+  localStorage.clear("userId");
+  fetch("/clearCookie")
+    .then((response) => {
+      return response.json();
+    })
+    .then((body) => {
+      window.location.href = "/";
+      console.log(body.message);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
 });
 
 function closeModals() {
