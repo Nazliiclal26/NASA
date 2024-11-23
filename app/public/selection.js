@@ -290,6 +290,7 @@ processCreateModal();
 
 async function displayGroups() {
   let groupsDiv = document.getElementById("groups");
+  let groupsList = document.getElementById("groupsList");
   let userId = localStorage.getItem("userId");
 
   fetch(`/getGroups/${userId}`, {
@@ -302,18 +303,24 @@ async function displayGroups() {
     .then((data) => {
       if (data.status === "success") {
         let myGroups = [];
-
+        let colors = ["red", "orange", "green", "blue", "purple"];
         let divStruct = ``;
 
         data.rows.forEach((row) => {
           myGroups.push(row.group_name);
+          let randomColor = colors[Math.floor(Math.random() * colors.length)];
           divStruct += `
-          <div>
-            <a href='/${row.group_type}Group/${row.group_name}'>${row.group_name}</a>
+          <li>
+          <div class="groupItemBox">
+            <div class="marker ${randomColor}">
+            </div>
+            <a class="groupModalLinks" href='/${row.group_type}Group/${row.group_name}'>${row.group_name}</a>
           </div>
+            </li>
+            <div class="line"> </div>
           `;
         });
-        groupsDiv.innerHTML = divStruct;
+        groupsList.innerHTML = divStruct;
       } else {
         alert(data.message);
       }
@@ -323,14 +330,17 @@ async function displayGroups() {
 logoutButton.addEventListener("click", () => {
   localStorage.clear("userId");
   // make fetch request to clear the cookie as well fetch('/clearCookie')
-  fetch('/clearCookie').then((response) => {
-    return response.json();
-  }).then((body) => {
-  window.location.href = "/";
-    console.log(body.message);
-  }).catch((error) => {
-    console.error(error);
-  });
+  fetch("/clearCookie")
+    .then((response) => {
+      return response.json();
+    })
+    .then((body) => {
+      window.location.href = "/";
+      console.log(body.message);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
 });
 
 async function addGreeting() {
@@ -813,13 +823,31 @@ async function populateCatalog() {
               let productTitle;
               let productPoster;
               switch (productID) {
-                case 'oneTitle': productTitle = originalTitle1; productPoster = moviePoster1; break;
-                case 'twoTitle': productTitle = originalTitle2; productPoster = moviePoster2; break;
-                case 'threeTitle': productTitle = originalTitle3; productPoster = moviePoster3; break;
-                case 'fourTitle': productTitle = originalTitle4; productPoster = moviePoster4; break;
-                case 'fiveTitle': productTitle = originalTitle5; productPoster = moviePoster5; break;
+                case "oneTitle":
+                  productTitle = originalTitle1;
+                  productPoster = moviePoster1;
+                  break;
+                case "twoTitle":
+                  productTitle = originalTitle2;
+                  productPoster = moviePoster2;
+                  break;
+                case "threeTitle":
+                  productTitle = originalTitle3;
+                  productPoster = moviePoster3;
+                  break;
+                case "fourTitle":
+                  productTitle = originalTitle4;
+                  productPoster = moviePoster4;
+                  break;
+                case "fiveTitle":
+                  productTitle = originalTitle5;
+                  productPoster = moviePoster5;
+                  break;
                 default:
-                  console.error('Unexpected ID for watchlist button:', productID);
+                  console.error(
+                    "Unexpected ID for watchlist button:",
+                    productID
+                  );
                   return;
               }
 
@@ -827,7 +855,7 @@ async function populateCatalog() {
                 type: "movies",
                 title: productTitle,
                 userId: userId,
-                poster: productPoster
+                poster: productPoster,
               };
 
               fetch(`/addToWatchlist`, {
@@ -1036,13 +1064,31 @@ async function populateCatalog() {
               //let productTitle = titleID.textContent;
               let productTitle;
               switch (productID) {
-                case 'oneTitle': productTitle = originalTitle1; productPoster = moviePoster1; break;
-                case 'twoTitle': productTitle = originalTitle2; productPoster = moviePoster2; break;
-                case 'threeTitle': productTitle = originalTitle3; productPoster = moviePoster3; break;
-                case 'fourTitle': productTitle = originalTitle4; productPoster = moviePoster4; break;
-                case 'fiveTitle': productTitle = originalTitle5; productPoster = moviePoster5; break;
+                case "oneTitle":
+                  productTitle = originalTitle1;
+                  productPoster = moviePoster1;
+                  break;
+                case "twoTitle":
+                  productTitle = originalTitle2;
+                  productPoster = moviePoster2;
+                  break;
+                case "threeTitle":
+                  productTitle = originalTitle3;
+                  productPoster = moviePoster3;
+                  break;
+                case "fourTitle":
+                  productTitle = originalTitle4;
+                  productPoster = moviePoster4;
+                  break;
+                case "fiveTitle":
+                  productTitle = originalTitle5;
+                  productPoster = moviePoster5;
+                  break;
                 default:
-                  console.error('Unexpected ID for watchlist button:', productID);
+                  console.error(
+                    "Unexpected ID for watchlist button:",
+                    productID
+                  );
                   return;
               }
 
@@ -1050,7 +1096,7 @@ async function populateCatalog() {
                 type: "movies",
                 title: productTitle,
                 userId: userId,
-                poster: productPoster
+                poster: productPoster,
               };
 
               fetch(`/addToWatchlist`, {
@@ -1539,13 +1585,31 @@ async function populateCatalogBooks() {
               //let productTitle = titleID.textContent;
               let productTitle;
               switch (productID) {
-                case 'oneTitle': productTitle = originalTitle1; productPoster = bookPoster1; break;
-                case 'twoTitle': productTitle = originalTitle2; productPoster = bookPoster2; break;
-                case 'threeTitle': productTitle = originalTitle3; productPoster = bookPoster3; break;
-                case 'fourTitle': productTitle = originalTitle4; productPoster = bookPoster4; break;
-                case 'fiveTitle': productTitle = originalTitle5; productPoster = bookPoster5; break;
+                case "oneTitle":
+                  productTitle = originalTitle1;
+                  productPoster = bookPoster1;
+                  break;
+                case "twoTitle":
+                  productTitle = originalTitle2;
+                  productPoster = bookPoster2;
+                  break;
+                case "threeTitle":
+                  productTitle = originalTitle3;
+                  productPoster = bookPoster3;
+                  break;
+                case "fourTitle":
+                  productTitle = originalTitle4;
+                  productPoster = bookPoster4;
+                  break;
+                case "fiveTitle":
+                  productTitle = originalTitle5;
+                  productPoster = bookPoster5;
+                  break;
                 default:
-                  console.error('Unexpected ID for watchlist button:', productID);
+                  console.error(
+                    "Unexpected ID for watchlist button:",
+                    productID
+                  );
                   return;
               }
 
@@ -1553,7 +1617,7 @@ async function populateCatalogBooks() {
                 type: "books",
                 title: productTitle,
                 userId: userId,
-                poster: productPoster
+                poster: productPoster,
               };
 
               fetch(`/addToWatchlist`, {
@@ -1762,13 +1826,31 @@ async function populateCatalogBooks() {
               let titleID = document.querySelector(`.title#${productID}`);
               //let productTitle = titleID.textContent;
               switch (productID) {
-                case 'oneTitle': productTitle = originalTitle1; productPoster = bookPoster1; break;
-                case 'twoTitle': productTitle = originalTitle2; productPoster = bookPoster2; break;
-                case 'threeTitle': productTitle = originalTitle3; productPoster = bookPoster3; break;
-                case 'fourTitle': productTitle = originalTitle4; productPoster = bookPoster4; break;
-                case 'fiveTitle': productTitle = originalTitle5; productPoster = bookPoster5; break;
+                case "oneTitle":
+                  productTitle = originalTitle1;
+                  productPoster = bookPoster1;
+                  break;
+                case "twoTitle":
+                  productTitle = originalTitle2;
+                  productPoster = bookPoster2;
+                  break;
+                case "threeTitle":
+                  productTitle = originalTitle3;
+                  productPoster = bookPoster3;
+                  break;
+                case "fourTitle":
+                  productTitle = originalTitle4;
+                  productPoster = bookPoster4;
+                  break;
+                case "fiveTitle":
+                  productTitle = originalTitle5;
+                  productPoster = bookPoster5;
+                  break;
                 default:
-                  console.error('Unexpected ID for watchlist button:', productID);
+                  console.error(
+                    "Unexpected ID for watchlist button:",
+                    productID
+                  );
                   return;
               }
 
@@ -1776,7 +1858,7 @@ async function populateCatalogBooks() {
                 type: "books",
                 title: productTitle,
                 userId: userId,
-                poster: productPoster
+                poster: productPoster,
               };
 
               fetch(`/addToWatchlist`, {
