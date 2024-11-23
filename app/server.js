@@ -780,7 +780,12 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
     </head>
     <body>
       <header>
-        <h1>Welcome to ${groupCode}</h1>
+        <span style="display:flex;justify-content: space-between;">
+          <span id="pageHeader">
+            <h1>Welcome to ${groupCode}</h1>
+          </span>
+          <button id="leaveGroup" style="text-align:right;height: fit-content;/* top: 50%; */transform: translateY(250%);">Leave Group</button>
+        </span>
       </header>
       <main>
         <div id="searchSection">
