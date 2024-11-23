@@ -766,6 +766,10 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
         <h1>Welcome to Group ${name}</h1>
       </header>
       <main>
+
+        <button id="membersButton">Members</button>
+        <ul id="membersList" class="hidden"></ul>
+
         <div id="searchSection">
           <h2>Search for a Film</h2>
           <input type="text" id="searchTitle" placeholder="Title">
@@ -901,7 +905,7 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
           </header>
           <main>
               <button id="membersButton">Members</button>
-              <ul id="membersList"></ul>
+              <ul id="membersList" class="hidden"></ul>
 
               <div id="searchSection">
                   <h2>Search for a Book</h2>
@@ -1017,7 +1021,7 @@ app.get("/getGroupMembers", async (req, res) => {
 
   try {
       const groupQuery = await pool.query(
-          "SELECT members FROM groups WHERE group_name = $1",
+          "SELECT members, leader_id FROM groups WHERE group_name = $1",
           [groupName]
       );
 
@@ -1026,15 +1030,21 @@ app.get("/getGroupMembers", async (req, res) => {
       }
 
       // Extract member IDs and convert them to integers
-      const memberIds = groupQuery.rows[0].members.map(id => parseInt(id));
+      //const { members, leader_id } = groupQuery.rows[0].members.map(id => parseInt(id));
+      const { members, leader_id } = groupQuery.rows[0];
 
       // Query user details based on these IDs
       const usersQuery = await pool.query(
-          "SELECT username FROM users WHERE id = ANY($1::int[])",
-          [memberIds]
+          "SELECT id, username FROM users WHERE id = ANY($1::int[])",
+          [members]
       );
 
-      res.json({ members: usersQuery.rows });
+      const membersList = usersQuery.rows.map(user => ({
+        username: user.username,
+        is_leader: user.id === leader_id
+      }));
+
+      res.json({ members: membersList });
   } catch (error) {
       console.error("Database error:", error);
       res.status(500).json({ message: "Internal server error" });

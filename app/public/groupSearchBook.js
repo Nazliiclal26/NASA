@@ -211,37 +211,40 @@ document.addEventListener("DOMContentLoaded", async () => {
     checkIfLeader();
 
     const membersButton = document.getElementById('membersButton');
-    if (membersButton) {
-        membersButton.addEventListener('click', function() {
-            fetch(`/getGroupMembers?groupName=${encodeURIComponent(groupCode)}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch members');
+    const membersList = document.getElementById('membersList');
+    
+    membersButton.addEventListener('click', function() {
+        // Check if the membersList already has any children (members displayed)
+        if (membersList.children.length > 0) {
+            // If members are displayed, hide and clear the list
+            membersList.innerHTML = '';
+        } else {
+            // No members displayed, fetch and show them
+          fetch(`/getGroupMembers?groupName=${encodeURIComponent(groupCode)}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch members');
+                }
+                return response.json();
+            })
+            .then(data => {
+                membersList.innerHTML = ''; // Clear previous members
+                data.members.forEach(member => {
+                    const li = document.createElement('li');
+                    li.textContent = member.username; // Display username
+                    if (member.is_leader) {
+                        li.textContent += " (Leader)"; // Append '(Leader)' to the leader's username
+                        li.style.fontWeight = 'bold'; // Optionally style to highlight the leader
                     }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Received data:', data);
-                    const membersList = document.getElementById('membersList');
-                    if (!membersList) {
-                        console.error('Members list element not found');
-                        return; // Exit if membersList is still not found
-                    }
-                    membersList.innerHTML = ''; // Clear previous members
-                    data.members.forEach(member => {
-                        const li = document.createElement('li');
-                        li.textContent = member.username; // Display username
-                        membersList.appendChild(li);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error fetching group members:', error);
-                    alert('Error fetching group members. Please try again.');
+                    membersList.appendChild(li);
                 });
-        });
-    } else {
-        console.error('Members button not found');
-    }
+            })
+            .catch(error => {
+                console.error('Error fetching group members:', error);
+                alert('Error fetching group members. Please try again.');
+            });
+        }
+    });    
 });
 
 let groupCode = decodeURIComponent(window.location.pathname).split("/").pop();
