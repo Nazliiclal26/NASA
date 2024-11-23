@@ -97,7 +97,8 @@ body {
 }
 
 #books,
-#movies {
+#movies,
+#home {
   height: 60px;
   width: 170px;
   border-top: 2px solid rgb(0, 0, 0);
@@ -115,7 +116,8 @@ body {
 }
 
 #books:hover,
-#movies:hover {
+#movies:hover,
+#home:hover {
   cursor: pointer;
   font-weight: 700;
 }
@@ -705,7 +707,7 @@ a:visited {
 @media (max-width: 1600px) {
   #searchFilm,
   #searchType {
-    height: 68px;
+    height: 69px;
   }
 
   #search {
