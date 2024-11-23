@@ -209,7 +209,40 @@ document.addEventListener("DOMContentLoaded", async () => {
     }   
 
     checkIfLeader();
-  });
+
+    const membersButton = document.getElementById('membersButton');
+    if (membersButton) {
+        membersButton.addEventListener('click', function() {
+            fetch(`/getGroupMembers?groupName=${encodeURIComponent(groupCode)}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch members');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Received data:', data);
+                    const membersList = document.getElementById('membersList');
+                    if (!membersList) {
+                        console.error('Members list element not found');
+                        return; // Exit if membersList is still not found
+                    }
+                    membersList.innerHTML = ''; // Clear previous members
+                    data.members.forEach(member => {
+                        const li = document.createElement('li');
+                        li.textContent = member.username; // Display username
+                        membersList.appendChild(li);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching group members:', error);
+                    alert('Error fetching group members. Please try again.');
+                });
+        });
+    } else {
+        console.error('Members button not found');
+    }
+});
 
 let groupCode = decodeURIComponent(window.location.pathname).split("/").pop();
 let username = null;

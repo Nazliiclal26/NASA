@@ -900,6 +900,9 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
               <h1>Welcome to Group ${name}</h1>
           </header>
           <main>
+              <button id="membersButton">Members</button>
+              <ul id="membersList"></ul>
+
               <div id="searchSection">
                   <h2>Search for a Book</h2>
                   <input type="text" id="searchTitle" placeholder="Title">
@@ -1004,6 +1007,38 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
       </body>
       </html>
   `);
+});
+
+app.get("/getGroupMembers", async (req, res) => {
+  const groupName = req.query.groupName;
+  if (!groupName) {
+      return res.status(400).json({ message: "Group name is required" });
+  }
+
+  try {
+      const groupQuery = await pool.query(
+          "SELECT members FROM groups WHERE group_name = $1",
+          [groupName]
+      );
+
+      if (groupQuery.rows.length === 0) {
+          return res.status(404).json({ message: "Group not found" });
+      }
+
+      // Extract member IDs and convert them to integers
+      const memberIds = groupQuery.rows[0].members.map(id => parseInt(id));
+
+      // Query user details based on these IDs
+      const usersQuery = await pool.query(
+          "SELECT username FROM users WHERE id = ANY($1::int[])",
+          [memberIds]
+      );
+
+      res.json({ members: usersQuery.rows });
+  } catch (error) {
+      console.error("Database error:", error);
+      res.status(500).json({ message: "Internal server error" });
+  }
 });
 
 app.post("/addMessage", async (req, res) => {
