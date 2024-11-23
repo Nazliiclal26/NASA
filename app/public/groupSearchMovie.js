@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let searchButton = document.getElementById("searchFilm");
   let searchResult = document.getElementById("searchResult");
   let votedFilmsList = document.getElementById("votedFilms");
-  let groupCode = window.location.pathname.split("/").pop(); 
+  let groupCode = decodeURIComponent(window.location.pathname).split("/").pop(); 
   let stopVoteButton = document.getElementById("stopVote");
   let startVoteButton = document.getElementById("startVote");
   let mostVotedFilmSection = document.getElementById("mostVotedFilm");
@@ -201,11 +201,38 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
+  async function populateHeaderWithGroupInfo() {
+    let header = document.getElementById("pageHeader");
+    let attributeDisplay = document.createElement("h4");
+    let data = JSON.parse(localStorage.getItem("groupInfo"));
+    //console.log(data);
+    if (data.privacy === "public"){
+      attributeDisplay.textContent = `Privacy: Public - Code: ${data.secret_code}`;
+    }
+    else if (data.privacy === "private" && data.leader_id === parseInt(localStorage.getItem("userId"))) {
+      attributeDisplay.textContent = `Privacy: Private - Code: ${data.secret_code}`;
+    }
+    else if (data.privacy === "private") {
+      attributeDisplay.textContent = `Privacy: Private`;
+    }
+    header.appendChild(attributeDisplay);
+  }
+  
+  // populates groupInfo into local storage upon page load
+  async function populateGroupInfo() {
+    const response = await fetch(`/getGroupInfo?name=${groupCode}`);
+    let data = await response.json();
+    localStorage.setItem("groupInfo", JSON.stringify(data));
+  }
+
+  populateGroupInfo().then(() => {
+    populateHeaderWithGroupInfo();
+  });
   fetchVotes();
   checkIfLeader(); 
 });
 
-let groupCode = window.location.pathname.split("/").pop(); 
+let groupCode = decodeURIComponent(window.location.pathname).split("/").pop(); 
 let username = null;
 let socket = io();
 socket.on("connect", () => { console.log("Socket has been connected."); });

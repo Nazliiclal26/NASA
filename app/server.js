@@ -187,7 +187,7 @@ app.post("/checkIfLeader", async (req, res) => {
     }
   }).catch((error) => {
     console.error(error);
-    return res.status(500).json({isLeader: null, message: 'Server error'});
+    return res.status(500).json({isLeader: null, message: `Server error, issue with getting group information given group name: ${groupName}`});
   });
 });
 
@@ -1055,16 +1055,25 @@ app.post("/addMessage", async (req, res) => {
   let groupId = null;
   await group.findByName(groupName).then((body) => {
     groupId = body.id; // Returns a singular row from group table so we just pass the id
+  }).catch((error) => {
+    console.error(error);
+    return res.status(500).json({error: "Server error finding group by name"});
   });
 
   let userId = null;
   await user.findByUsername(sentUser).then((body) => {
     userId = body.id;
+  }).catch((error) => {
+    console.error(error);
+    return res.status(500).json({error: "Server error finding user who sent message by name"});
   });
 
   let result = false;
   await messages.add(groupId, userId, message).then((body) => {
     result = true;
+  }).catch((error) => {
+    console.error(error);
+    return res.status(500).json({error: "Server error adding message to database"});
   });
 
   if (result) {

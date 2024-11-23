@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     let searchButton = document.getElementById("searchBook");
     let searchResult = document.getElementById("searchResult");
     let votedBooksList = document.getElementById("votedBooks");
-    let groupCode = window.location.pathname.split("/").pop(); 
+    let groupCode = decodeURIComponent(window.location.pathname).split("/").pop(); 
     let stopVoteButton = document.getElementById("stopVote");
     let startVoteButton = document.getElementById("startVote");
     let mostVotedBookSection = document.getElementById("mostVotedBook");
@@ -181,8 +181,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       let data = await response.json();
       localStorage.setItem("groupInfo", JSON.stringify(data));
     }
-
-    // then with getGroupInfo, populate all the things you need
     
 
     stopVoteButton.addEventListener("click", async () => {
@@ -222,7 +220,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     checkIfLeader();
   });
 
-  let groupCode = window.location.pathname.split("/").pop(); 
+  let groupCode = decodeURIComponent(window.location.pathname).split("/").pop(); 
   let username = null;
   let socket = io();
   socket.on("connect", () => { console.log("Socket has been connected."); });
