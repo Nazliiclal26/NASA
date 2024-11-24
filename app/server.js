@@ -857,6 +857,7 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
         </div>
       </div>
       <div id="rightSide">
+      <div id="info"></div>
         <div id="chatBox">
           <div id="chatSection">
           <h2>Chat</h2>

@@ -30,7 +30,6 @@
   display: flex;
   flex-direction: row;
   background-color: rgb(184, 229, 247);
-  margin-top: 150px;
 }
 
 #leftSide {
@@ -49,6 +48,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  display: flex;
+  flex-direction: column;
 }
 
 #votingBox,
@@ -81,8 +82,15 @@
 
 #chatBox {
   width: 390px;
-  height: 615px;
+  height: 415px;
   background-color: rgb(144, 45, 168);
+}
+
+#info {
+  width: 390px;
+  height: 115px;
+  background-color: rgb(144, 45, 168);
+  margin-bottom: 20px;
 }
 
 #options {
