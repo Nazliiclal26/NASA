@@ -782,40 +782,15 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
       <link rel="stylesheet" href="/account.css">
     </head>
     <body>
-    <div id="navbar">
-      <div id="navButtons">
-        <div id="buttonContainer">
-          <div id="home">Home</div>
-          <div id="logout">
-            <img src="/images/logout.png" width="30px" />
-          </div>
-        </div>
-      </div>
-    </div>
-      <header>
-        <h1>Welcome to Group ${name}</h1>
-      </header>
-      <main>
-        <div id="searchSection">
-          <h2>Search for a Film</h2>
-          <input type="text" id="searchTitle" placeholder="Title">
-          <button id="searchFilm">Search</button>
-          <div id="searchResult"></div>
-        </div>
 
-        <div>
-          <h2>Voted Films</h2>
-          <ul id="votedFilms"></ul>
+    <div id="mainBlock">
+      <div id="leftSide">
+        <div class="box">
+          <div id="options"></div>
+          <div id="votingBox"></div>
         </div>
-
-        <div id="mostVotedFilm"></div>
-
-        <div id="buttonContainer">
-          <button id="stopVote">Stop Vote</button>
-          <button id="startVote">Start Voting</button>
-        </div>
-
-        <div class="wrapper">
+        <div id="calendarBox"> 
+          <div class="wrapper">
           <div class="container-calendar">
             <div id="left">
               <h1>Calendar</h1>
@@ -879,20 +854,50 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
             </div>
           </div>
         </div>
-
-        <a href="/selection.html">Back to Home</a>
-
-        <h2>Group Watchlist</h2>
-        <ul id="groupWatchlist"></ul>
-        
-        <div id="chatSection">
+        </div>
+      </div>
+      <div id="rightSide">
+        <div id="chatBox">
+          <div id="chatSection">
           <h2>Chat</h2>
           <ul id="messages"></ul>
           <div style="text-align:center">
             <input id="messageInput" placeholder="Type a message..." />
             <button id="sendButton">Send</button></div>
           </div>
-          <div id="groupModalMain">
+        </div>  
+        </div>
+      </div>
+    </div>
+      <header>
+        <h1>Welcome to Group ${name}</h1>
+      </header>
+      <main>
+        <div id="searchSection">
+          <h2>Search for a Film</h2>
+          <input type="text" id="searchTitle" placeholder="Title">
+          <button id="searchFilm">Search</button>
+          <div id="searchResult"></div>
+        </div>
+
+        <div>
+          <h2>Voted Films</h2>
+          <ul id="votedFilms"></ul>
+        </div>
+
+        <div id="mostVotedFilm"></div>
+
+        <div id="buttonContainer">
+          <button id="stopVote">Stop Vote</button>
+          <button id="startVote">Start Voting</button>
+        </div>
+
+        <a href="/selection.html">Back to Home</a>
+
+        <h2>Group Watchlist</h2>
+        <ul id="groupWatchlist"></ul>
+
+        <div id="groupModalMain">
         <div id="modalButton">
           <div id="groupButton">
             <img id="groupIcon" src="/images/group.png" height="50px" />
@@ -1009,16 +1014,6 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
           <link rel="stylesheet" href="/account.css">
       </head>
       <body>
-      <div id="navbar">
-      <div id="navButtons">
-        <div id="buttonContainer">
-          <div id="home">Home</div>
-          <div id="logout">
-            <img src="/images/logout.png" width="30px" />
-          </div>
-        </div>
-      </div>
-    </div>
           <header>
               <h1>Welcome to Group ${name}</h1>
           </header>

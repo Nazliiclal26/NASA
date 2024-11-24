@@ -3,8 +3,6 @@ let mainCloseButton = document.getElementById("mainGroupModalButton");
 let joinCloseButton = document.getElementById("joinGroupModalButton");
 let addCloseButton = document.getElementById("createGroupModalButton");
 
-let homeButton = document.getElementById("home");
-
 let mainModal = document.getElementById("mainModal");
 let joinModal = document.getElementById("joinModal");
 let createModal = document.getElementById("createModal");
@@ -18,31 +16,12 @@ let joinAddButton = document.getElementById("joinAddButton");
 let createGroupHome = document.getElementById("createHomeButton");
 let createJoinButton = document.getElementById("createJoinButton");
 
-let logoutButton = document.getElementById("logout");
-
 let searchSection = document.getElementById("searchBox");
 let searchButton = document.getElementById("searchFilm");
 let searchResult = document.getElementById("searchResult");
 let searchType = document.getElementById("searchType");
 
-homeButton.addEventListener("click", () => {
-  window.location.href = "/selection.html";
-});
-
-logoutButton.addEventListener("click", () => {
-  localStorage.clear("userId");
-  fetch("/clearCookie")
-    .then((response) => {
-      return response.json();
-    })
-    .then((body) => {
-      window.location.href = "/";
-      console.log(body.message);
-    })
-    .catch((error) => {
-      console.error(error);
-    });
-});
+displayGroups();
 
 function closeModals() {
   mainModal.classList.add("hidden");
@@ -339,25 +318,4 @@ logoutButton.addEventListener("click", () => {
     });
 });
 
-async function addGreeting() {
-  let greetBlock = document.getElementById("greeting");
-  let userId = localStorage.getItem("userId");
-
-  fetch(`/getUsername/${userId}`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.status === "success") {
-        greetBlock.textContent = "Hi, " + data.rows[0].username + "!";
-      } else {
-        alert(data.message);
-      }
-    });
-}
-
 displayGroups();
-addGreeting();

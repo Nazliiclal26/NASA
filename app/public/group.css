@@ -1,22 +1,94 @@
 #buttonContainer {
-    display: none;
+  display: none;
 }
 
 .film-card {
-    position: relative;
-    display: inline-block;
-    margin: 10px;
+  position: relative;
+  display: inline-block;
+  margin: 10px;
 }
 .vote-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background-color: red;
-    color: white;
-    border: none;
-    padding: 5px;
-    cursor: pointer;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: red;
+  color: white;
+  border: none;
+  padding: 5px;
+  cursor: pointer;
 }
-  
-#messages { list-style-type: none; padding: 0; }
-#messages li { margin: 10px 0; }
+
+#messages {
+  list-style-type: none;
+  padding: 0;
+}
+#messages li {
+  margin: 10px 0;
+}
+
+#mainBlock {
+  display: flex;
+  flex-direction: row;
+  background-color: rgb(184, 229, 247);
+  margin-top: 150px;
+}
+
+#leftSide {
+  height: 700px;
+  width: 65%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+#rightSide {
+  height: 700px;
+  width: 400px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#votingBox,
+#calendarBox,
+#chatBox {
+  border-radius: 15px;
+}
+
+#votingBox {
+  width: 550px;
+  height: 300px;
+  background-color: rgb(197, 62, 62);
+}
+
+#calendarBox,
+.box {
+  width: 750px;
+  height: 300px;
+  margin-right: 20px;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+#calendarBox {
+  margin-top: 10px;
+}
+
+#chatBox {
+  width: 390px;
+  height: 615px;
+  background-color: rgb(144, 45, 168);
+}
+
+#options {
+  width: 180px;
+  height: 300px;
+  background-color: rgb(62, 64, 197);
+  margin-right: 20px;
+  border-radius: 15px;
+}
