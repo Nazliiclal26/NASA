@@ -90,6 +90,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       await fetch(`/stopVoting/${groupCode}`, { method: "POST", headers: { "Content-Type": "application/json" } });
       await displayMostVotedBook();
       searchSection.style.display = "none";
+      votedBooksList.innerHTML = ""; 
     } catch (error) {
       console.error("Error stopping voting:", error);
     }
