@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", async () => {
+
   let searchSection = document.getElementById("searchSection");
   let searchButton = document.getElementById("searchBook");
   let searchResult = document.getElementById("searchResult");
@@ -7,6 +8,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let stopVoteButton = document.getElementById("stopVote");
   let startVoteButton = document.getElementById("startVote");
   let mostVotedBookSection = document.getElementById("mostVotedBook");
+  let leaveGroupButton = document.getElementById("leaveGroup");
 
   try {
     let votingStatusResponse = await fetch(`/getVotingStatus/${groupCode}`);
@@ -88,6 +90,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       await fetch(`/stopVoting/${groupCode}`, { method: "POST", headers: { "Content-Type": "application/json" } });
       await displayMostVotedBook();
       searchSection.style.display = "none";
+      votedBooksList.innerHTML = ""; 
     } catch (error) {
       console.error("Error stopping voting:", error);
     }
@@ -147,7 +150,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   fetchVotes();
     
-
     async function fetchGroupWatchlist() {
       try {
         let response = await fetch(`/getGroupWatchlistBooks/${groupCode}`);
@@ -206,10 +208,110 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (data.isLeader && response.ok) {
         document.getElementById("buttonContainer").style.display = "block";
       }
+      else {
+      document.getElementById("startVote").style.display = "none";
+      document.getElementById("stopVote").style.display = "none";
+    }
     }   
 
+  async function populateHeaderWithGroupInfo() {
+      let header = document.getElementById("pageHeader");
+      let attributeDisplay = document.createElement("h4");
+      let data = JSON.parse(localStorage.getItem("groupInfo"));
+      //console.log(data);
+      if (data.privacy === "public"){
+        attributeDisplay.textContent = `Privacy: Public - Code: ${data.secret_code}`;
+      }
+      else if (data.privacy === "private" && data.leader_id === parseInt(localStorage.getItem("userId"))) {
+        attributeDisplay.textContent = `Privacy: Private - Code: ${data.secret_code}`;
+      }
+      else if (data.privacy === "private") {
+        attributeDisplay.textContent = `Privacy: Private`;
+      }
+      header.appendChild(attributeDisplay);
+    }
+    
+    // populates groupInfo into local storage upon page load
+    async function populateGroupInfo() {
+      const response = await fetch(`/getGroupInfo?name=${groupCode}`);
+      let data = await response.json();
+      localStorage.setItem("groupInfo", JSON.stringify(data));
+    }
+    
+
+    stopVoteButton.addEventListener("click", async () => {
+      let response = await fetch(`/votes/${groupCode}`);
+      let data = await response.json();
+  
+      if (data.length === 0) {
+        mostVotedBookSection.innerHTML = "<p>No votes yet.</p>";
+        return;
+      }
+  
+      let mostVoted = data.reduce((a, b) => (a.num_votes > b.num_votes ? a : b));
+      mostVotedBookSection.innerHTML = `
+        <h2>Most Voted Book</h2>
+        <p>${mostVoted.book_title} with ${mostVoted.num_votes} votes!</p>
+        <img src="${mostVoted.poster}" style="max-width: 200px;">
+      `;
+  
+      searchSection.style.display = "none"; 
+    });
+  
+    startVoteButton.addEventListener("click", async () => {
+      await fetch(`/clearVotes/${groupCode}`, { method: "DELETE" }); 
+      searchSection.style.display = "block"; 
+      mostVotedBookSection.innerHTML = ""; 
+      fetchVotes(); 
+    });
+
+    leaveGroupButton.addEventListener("click", () => {
+      window.location.href = '/selection.html';
+    });
+    
+    populateGroupInfo().then(() => {
+      populateHeaderWithGroupInfo();
+    });
+    fetchVotes(); 
     checkIfLeader();
-  });
+
+
+    const membersButton = document.getElementById('membersButton');
+    const membersList = document.getElementById('membersList');
+    
+    membersButton.addEventListener('click', function() {
+        // Check if the membersList already has any children (members displayed)
+        if (membersList.children.length > 0) {
+            // If members are displayed, hide and clear the list
+            membersList.innerHTML = '';
+        } else {
+            // No members displayed, fetch and show them
+          fetch(`/getGroupMembers?groupName=${encodeURIComponent(groupCode)}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch members');
+                }
+                return response.json();
+            })
+            .then(data => {
+                membersList.innerHTML = ''; // Clear previous members
+                data.members.forEach(member => {
+                    const li = document.createElement('li');
+                    li.textContent = member.username; // Display username
+                    if (member.is_leader) {
+                        li.textContent += " (Leader)"; // Append '(Leader)' to the leader's username
+                        li.style.fontWeight = 'bold'; // Optionally style to highlight the leader
+                    }
+                    membersList.appendChild(li);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching group members:', error);
+                alert('Error fetching group members. Please try again.');
+            });
+        }
+    });    
+});
 
 let groupCode = decodeURIComponent(window.location.pathname).split("/").pop();
 let username = null;
@@ -317,4 +419,4 @@ function displayExistingMessages(body) {
       appendReceivedMessage(row["user_message"], row["username"]);
     }
   }
-  }
+ }

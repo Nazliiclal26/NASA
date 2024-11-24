@@ -195,6 +195,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.log(data.message);
     if (data.isLeader && response.ok) {
       document.getElementById("buttonContainer").style.display = "block";
+    } else {
+      document.getElementById("startVote").style.display = "none";
+      document.getElementById("stopVote").style.display = "none";
     }
   }
 
@@ -206,6 +209,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
       await displayMostVotedFilm();
       searchSection.style.display = "none";
+      votedFilmsList.innerHTML = "";
     } catch (error) {
       console.error("Error stopping voting:", error);
     }
@@ -227,8 +231,72 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
+  async function populateHeaderWithGroupInfo() {
+    let header = document.getElementById("pageHeader");
+    let attributeDisplay = document.createElement("h4");
+    let data = JSON.parse(localStorage.getItem("groupInfo"));
+    //console.log(data);
+    if (data.privacy === "public") {
+      attributeDisplay.textContent = `Privacy: Public - Code: ${data.secret_code}`;
+    } else if (
+      data.privacy === "private" &&
+      data.leader_id === parseInt(localStorage.getItem("userId"))
+    ) {
+      attributeDisplay.textContent = `Privacy: Private - Code: ${data.secret_code}`;
+    } else if (data.privacy === "private") {
+      attributeDisplay.textContent = `Privacy: Private`;
+    }
+    header.appendChild(attributeDisplay);
+  }
+
+  // populates groupInfo into local storage upon page load
+  async function populateGroupInfo() {
+    const response = await fetch(`/getGroupInfo?name=${groupCode}`);
+    let data = await response.json();
+    localStorage.setItem("groupInfo", JSON.stringify(data));
+  }
+
+  populateGroupInfo().then(() => {
+    populateHeaderWithGroupInfo();
+  });
   fetchVotes();
   checkIfLeader();
+
+  const membersButton = document.getElementById("membersButton");
+  const membersList = document.getElementById("membersList");
+
+  membersButton.addEventListener("click", function () {
+    // Check if the membersList already has any children (members displayed)
+    if (membersList.children.length > 0) {
+      // If members are displayed, hide and clear the list
+      membersList.innerHTML = "";
+    } else {
+      // No members displayed, fetch and show them
+      fetch(`/getGroupMembers?groupName=${encodeURIComponent(groupCode)}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch members");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          membersList.innerHTML = ""; // Clear previous members
+          data.members.forEach((member) => {
+            const li = document.createElement("li");
+            li.textContent = member.username; // Display username
+            if (member.is_leader) {
+              li.textContent += " (Leader)"; // Append '(Leader)' to the leader's username
+              li.style.fontWeight = "bold"; // style to highlight the leader
+            }
+            membersList.appendChild(li);
+          });
+        })
+        .catch((error) => {
+          console.error("Error fetching group members:", error);
+          alert("Error fetching group members. Please try again.");
+        });
+    }
+  });
 });
 
 let groupCode = decodeURIComponent(window.location.pathname).split("/").pop();
