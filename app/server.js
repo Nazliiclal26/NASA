@@ -7,6 +7,10 @@ const cookieParser = require("cookie-parser");
 const http = require("http");
 const app = express();
 
+require('dotenv').config({ path: '../.env' });
+const OMDB_API_KEY = process.env.OMDB_API_KEY;
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY_API_KEY;
+
 const server = http.createServer(app);
 
 const path = require("path");
@@ -1406,8 +1410,7 @@ app.get("/groupSearch", (req, res) => {
     return res.status(400).json({ message: "Input Title" });
   }
 
-  const API_KEY = require('./omdb.js');
-  let url = `https://www.omdbapi.com/?t=${title}&apikey=${API_KEY}`;
+  let url = `https://www.omdbapi.com/?t=${title}&apikey=${OMDB_API_KEY}`;
 
   axios
     .get(url)
@@ -1435,8 +1438,7 @@ app.get("/groupSearch", (req, res) => {
 
 app.get("/movieSearchById", (req, res) => {
   let imdbId = req.query.imdbId;
-  const API_KEY = require('./omdb.js');
-  let url = `https://www.omdbapi.com/?i=${imdbId}&apikey=${API_KEY}`;
+  let url = `https://www.omdbapi.com/?i=${imdbId}&apikey=${OMDB_API_KEY}`;
   axios
     .get(url)
     .then((response) => {
@@ -1604,10 +1606,9 @@ app.get("/groupSearchBook", (req, res) => {
     return res.status(400).json({ message: "Input title" });
   }
 
-  const API_KEY_2 = require('./google.js');
   let url = `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(
     title
-  )}&key=${API_KEY_2}`;
+  )}&key=${GOOGLE_API_KEY}`;
 
   axios
     .get(url)
@@ -1644,11 +1645,10 @@ app.get("/bookSearchByAuthor", (req, res) => {
     return res.status(400).json({ message: "Input author" });
   }
 
-  const API_KEY_2 = require('./google.js');
   let url = `https://www.googleapis.com/books/v1/volumes?q=inauthor:${encodeURIComponent(
     author
   )}
-  &key=${API_KEY_2}`;
+  &key=${GOOGLE_API_KEY}`;
 
   axios
     .get(url)
@@ -1684,11 +1684,10 @@ app.get("/bookSearchByISBN", (req, res) => {
     return res.status(400).json({ message: "Input ISBN" });
   }
 
-  const API_KEY_2 = require('./google.js');
   let url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${encodeURIComponent(
     isbn
   )}
-  &key=${API_KEY_2}`;
+  &key=${GOOGLE_API_KEY}`;
 
   axios
     .get(url)
