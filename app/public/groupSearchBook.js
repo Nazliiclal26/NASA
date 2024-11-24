@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", async () => {
+
   let searchSection = document.getElementById("searchSection");
   let searchButton = document.getElementById("searchBook");
   let searchResult = document.getElementById("searchResult");
@@ -7,6 +8,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let stopVoteButton = document.getElementById("stopVote");
   let startVoteButton = document.getElementById("startVote");
   let mostVotedBookSection = document.getElementById("mostVotedBook");
+  let leaveGroupButton = document.getElementById("leaveGroup");
 
   try {
     let votingStatusResponse = await fetch(`/getVotingStatus/${groupCode}`);
@@ -147,7 +149,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   fetchVotes();
     
-
     async function fetchGroupWatchlist() {
       try {
         let response = await fetch(`/getGroupWatchlistBooks/${groupCode}`);
@@ -208,7 +209,67 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }   
 
+  async function populateHeaderWithGroupInfo() {
+      let header = document.getElementById("pageHeader");
+      let attributeDisplay = document.createElement("h4");
+      let data = JSON.parse(localStorage.getItem("groupInfo"));
+      //console.log(data);
+      if (data.privacy === "public"){
+        attributeDisplay.textContent = `Privacy: Public - Code: ${data.secret_code}`;
+      }
+      else if (data.privacy === "private" && data.leader_id === parseInt(localStorage.getItem("userId"))) {
+        attributeDisplay.textContent = `Privacy: Private - Code: ${data.secret_code}`;
+      }
+      else if (data.privacy === "private") {
+        attributeDisplay.textContent = `Privacy: Private`;
+      }
+      header.appendChild(attributeDisplay);
+    }
+    
+    // populates groupInfo into local storage upon page load
+    async function populateGroupInfo() {
+      const response = await fetch(`/getGroupInfo?name=${groupCode}`);
+      let data = await response.json();
+      localStorage.setItem("groupInfo", JSON.stringify(data));
+    }
+    
+
+    stopVoteButton.addEventListener("click", async () => {
+      let response = await fetch(`/votes/${groupCode}`);
+      let data = await response.json();
+  
+      if (data.length === 0) {
+        mostVotedBookSection.innerHTML = "<p>No votes yet.</p>";
+        return;
+      }
+  
+      let mostVoted = data.reduce((a, b) => (a.num_votes > b.num_votes ? a : b));
+      mostVotedBookSection.innerHTML = `
+        <h2>Most Voted Book</h2>
+        <p>${mostVoted.book_title} with ${mostVoted.num_votes} votes!</p>
+        <img src="${mostVoted.poster}" style="max-width: 200px;">
+      `;
+  
+      searchSection.style.display = "none"; 
+    });
+  
+    startVoteButton.addEventListener("click", async () => {
+      await fetch(`/clearVotes/${groupCode}`, { method: "DELETE" }); 
+      searchSection.style.display = "block"; 
+      mostVotedBookSection.innerHTML = ""; 
+      fetchVotes(); 
+    });
+
+    leaveGroupButton.addEventListener("click", () => {
+      window.location.href = '/selection.html';
+    });
+    
+    populateGroupInfo().then(() => {
+      populateHeaderWithGroupInfo();
+    });
+    fetchVotes(); 
     checkIfLeader();
+
 
     const membersButton = document.getElementById('membersButton');
     const membersList = document.getElementById('membersList');
@@ -353,4 +414,4 @@ function displayExistingMessages(body) {
       appendReceivedMessage(row["user_message"], row["username"]);
     }
   }
-  }
+ }

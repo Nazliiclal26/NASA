@@ -139,6 +139,7 @@ app.get("/clearCookie", (req, res) => {
 
   let now = new Date();
   tokenStorage[token]["timeLoggedOut"] = now.toLocaleString();
+
   console.log(tokenStorage);
   return res
     .clearCookie("token", tokenOptions)
@@ -752,20 +753,37 @@ app.post("/create", async (req, res) => {
   }
 });
 
+app.get('/getGroupInfo', (req, res) => {
+  let { name } = req.query;
+  if (name === undefined) {
+    return res.status(400).json({});
+  }
+
+  group.findByName(name).then((body) => {
+    return res.status(200).json(body);
+  }).catch((error) => {
+    console.error(error);
+    return res.status(500).json({});
+  });
+
+});
+
 // Adding client-side room functionality here - is called upon redirect to 'group/:groupId' in movies.js
 app.get("/movieGroup/:groupCode", async (req, res) => {
   const groupCode = req.params.groupCode;
   let name = "";
 
-  try {
-    let result = await pool.query(
-      "SELECT * FROM groups WHERE secret_code = $1",
-      [groupCode.substring(1)]
-    );
-    name = groupCode;
-  } catch (error) {
-    console.log(error);
-  }
+  // With the group name, select the secret code
+
+  // try {
+  //   let result = await pool.query(
+  //     "SELECT * FROM groups WHERE secret_code = $1",
+  //     [groupCode.substring(1)]
+  //   );
+  //   name = groupCode;
+  // } catch (error) {
+  //   console.log(error);
+  // }
 
   res.send(`
     <!DOCTYPE html>
@@ -773,7 +791,7 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Group ${name}</title>
+      <title>Group ${groupCode}</title>
       <script src="/groupSearchMovie.js" defer></script>
       <link rel="stylesheet" href="/calendar.css">
       <link rel="stylesheet" href="/group.css">
@@ -793,7 +811,12 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
       </div>
     </div>
       <header>
-        <h1>Welcome to Group ${name}</h1>
+        <span style="display:flex;justify-content: space-between;">
+          <span id="pageHeader">
+            <h1>Welcome to ${groupCode}</h1>
+          </span>
+          <button id="leaveGroup" style="text-align:right;height: fit-content;/* top: 50%; */transform: translateY(250%);">Leave Group</button>
+        </span>
       </header>
       <main>
 
@@ -988,15 +1011,15 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
   const groupCode = req.params.groupCode;
   let name = "";
 
-  try {
-    let result = await pool.query(
-      "SELECT * FROM groups WHERE secret_code = $1",
-      [groupCode.substring(1)]
-    );
-    name = groupCode;
-  } catch (error) {
-    console.log(error);
-  }
+  // try {
+  //   let result = await pool.query(
+  //     "SELECT * FROM groups WHERE secret_code = $1",
+  //     [groupCode.substring(1)]
+  //   );
+  //   name = groupCode;
+  // } catch (error) {
+  //   console.log(error);
+  // }
 
   res.send(`
       <!DOCTYPE html>
@@ -1004,7 +1027,7 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
       <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Group ${name}</title>
+          <title>Group ${groupCode}</title>
           <script src="/groupSearchBook.js" defer></script>
           <link rel="stylesheet" href="/group.css">
           <link rel="stylesheet" href="/calendar.css">
@@ -1024,7 +1047,12 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
       </div>
     </div>
           <header>
-              <h1>Welcome to Group ${name}</h1>
+              <span style="display:flex;justify-content: space-between;">
+                <span id="pageHeader">
+                  <h1>Welcome to ${groupCode}</h1>
+                </span>
+                <button id="leaveGroup" style="text-align:right;height: fit-content;/* top: 50%; */transform: translateY(250%);">Leave Group</button>
+              </span>
           </header>
           <main>
               <button id="membersButton">Members</button>
@@ -1283,16 +1311,25 @@ app.post("/addMessage", async (req, res) => {
   let groupId = null;
   await group.findByName(groupName).then((body) => {
     groupId = body.id; // Returns a singular row from group table so we just pass the id
+  }).catch((error) => {
+    console.error(error);
+    return res.status(500).json({error: "Server error finding group by name"});
   });
 
   let userId = null;
   await user.findByUsername(sentUser).then((body) => {
     userId = body.id;
+  }).catch((error) => {
+    console.error(error);
+    return res.status(500).json({error: "Server error finding user who sent message by name"});
   });
 
   let result = false;
   await messages.add(groupId, userId, message).then((body) => {
     result = true;
+  }).catch((error) => {
+    console.error(error);
+    return res.status(500).json({error: "Server error adding message to database"});
   });
 
   if (result) {
@@ -1344,6 +1381,9 @@ app.get("/getMessages", async (req, res) => {
   let groupId = null;
   await group.findByName(groupName).then((body) => {
     groupId = body.id; // Returns a singular row from group table so we just pass the id
+  }).catch((error) => {
+    console.error(error);
+    return res.status(500).json({});
   });
   // Get messages by group id
   let messageCollection = {};

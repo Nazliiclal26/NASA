@@ -27,6 +27,10 @@ let searchType = document.getElementById("searchType");
 let booksButton = document.getElementById("books");
 let moviesButton = document.getElementById("movies");
 
+document.addEventListener("DOMContentLoaded", () => {
+  localStorage.removeItem("groupInfo");
+});
+
 booksButton.addEventListener("click", () => {
   localStorage.setItem("type", "books");
   searchType.innerHTML = `
