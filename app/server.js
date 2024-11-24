@@ -38,7 +38,7 @@ app.use(express.json());
 //app.use(authRoutes);
 app.use(cookieParser());
 
-// I'm gonna have still store old session information - 
+// I'm gonna have still store old session information -
 //  old sessions will be marked by inclusion of "timeLoggedOut" key-value pair
 // structure of "username": "cookie-token"
 let tokenStorage = {};
@@ -88,7 +88,9 @@ app.get("/getGroupWatchlistMovies/:groupCode", async (req, res) => {
 
     res.status(200).json({ status: "success", items: result.rows });
   } catch (error) {
-    res.status(500).json({ status: "error", message: "Error fetching group watchlist" });
+    res
+      .status(500)
+      .json({ status: "error", message: "Error fetching group watchlist" });
   }
 });
 
@@ -112,7 +114,9 @@ app.get("/getGroupWatchlistBooks/:groupCode", async (req, res) => {
 
     res.status(200).json({ status: "success", items: result.rows });
   } catch (error) {
-    res.status(500).json({ status: "error", message: "Error fetching group watchlist" });
+    res
+      .status(500)
+      .json({ status: "error", message: "Error fetching group watchlist" });
   }
 });
 
@@ -124,17 +128,22 @@ app.get("/clearCookie", (req, res) => {
   let { token } = req.cookies;
 
   if (token == undefined) {
-    return res.status(400).json({message: "User not logged in yet"});
+    return res.status(400).json({ message: "User not logged in yet" });
   }
 
   if (tokenStorage[token] == undefined) {
-    return res.status(500).json({message: "Server issue, did not properly set cookie in local storage"});
+    return res.status(500).json({
+      message: "Server issue, did not properly set cookie in local storage",
+    });
   }
 
   let now = new Date();
   tokenStorage[token]["timeLoggedOut"] = now.toLocaleString();
-  //console.log(tokenStorage);
-  return res.clearCookie("token", tokenOptions).json({message: "Cookie properly cleared"});
+
+  console.log(tokenStorage);
+  return res
+    .clearCookie("token", tokenOptions)
+    .json({ message: "Cookie properly cleared" });
 });
 
 app.get("/checkCookie", (req, res) => {
@@ -142,27 +151,29 @@ app.get("/checkCookie", (req, res) => {
 
   // User has yet to log in
   if (token == undefined) {
-    return res.status(200).json({cookieExists: false});
+    return res.status(200).json({ cookieExists: false });
   }
   // Clears up cookie from leftover session and creates new session instance
   // Only occurs after server restart - should clear cookie if server restarted
   else if (tokenStorage[token] == undefined) {
-    return res.status(200).clearCookie("token", tokenOptions).json({cookieExists: false});
-  }
-  else {
+    return res
+      .status(200)
+      .clearCookie("token", tokenOptions)
+      .json({ cookieExists: false });
+  } else {
     returnedUserId = null;
     user.findByUsername(tokenStorage[token]["username"]).then((result) => {
       if (result.id) {
         returnedUserId = result.id;
-        return res.status(200).json({cookieExists: true, userId : returnedUserId});
-      }
-      else {
+        return res
+          .status(200)
+          .json({ cookieExists: true, userId: returnedUserId });
+      } else {
         // Server issue
         return res.status(500);
       }
     });
   }
-
 });
 
 app.get("/:userId/watchlist.html", (req, res) => {
@@ -172,23 +183,31 @@ app.get("/:userId/watchlist.html", (req, res) => {
 app.post("/checkIfLeader", async (req, res) => {
   let body = req.body;
   if (!body.hasOwnProperty("userId") || !body.hasOwnProperty("group")) {
-    return res.status(400).json({isLeader: null, message: 'Improper body for fetch request'});
+    return res
+      .status(400)
+      .json({ isLeader: null, message: "Improper body for fetch request" });
   }
 
   let id = parseInt(body.userId);
   let groupName = body.group;
-  group.findByName(groupName).then((result) => {
-    //console.log(result);
-    if (result.leader_id === id) {
-      return res.status(200).json({isLeader: true, message: 'User is leader'});
-    }
-    else {
-      return res.status(200).json({isLeader: false, message: 'User is not leader'});
-    }
-  }).catch((error) => {
-    console.error(error);
-    return res.status(500).json({isLeader: null, message: `Server error, issue with getting group information given group name: ${groupName}`});
-  });
+  group
+    .findByName(groupName)
+    .then((result) => {
+      console.log(result);
+      if (result.leader_id === id) {
+        return res
+          .status(200)
+          .json({ isLeader: true, message: "User is leader" });
+      } else {
+        return res
+          .status(200)
+          .json({ isLeader: false, message: "User is not leader" });
+      }
+    })
+    .catch((error) => {
+      console.error(error);
+      return res.status(500).json({ isLeader: null, message: "Server error" });
+    });
 });
 
 app.post("/startVoting/:groupCode", async (req, res) => {
@@ -358,7 +377,7 @@ app.post("/login", async (req, res) => {
       let token = makeToken();
       tokenStorage[token] = {};
       tokenStorage[token]["username"] = username;
-      
+
       let now = new Date();
       tokenStorage[token]["timeLoggedIn"] = now.toLocaleString();
 
@@ -482,7 +501,7 @@ app.post("/createGroup", async (req, res) => {
       console.error("Error syncing user watchlist with group:", error);
     }
   }
-  
+
   for (let i = 0; i < 5; i++) {
     let rand = Math.floor(Math.random() * chars.length);
     code += chars.charAt(rand);
@@ -531,34 +550,34 @@ app.post("/joinGroup", async (req, res) => {
         "SELECT group_name FROM groups WHERE id = $1",
         [groupId]
       );
-  
+
       if (groupQuery.rows.length === 0) {
         console.error(`No group found with id: ${groupId}`);
         return;
       }
-  
+
       let groupName = groupQuery.rows[0].group_name;
-  
+
       let userWatchlistQuery = await pool.query(
         "SELECT item_id, item_type, poster FROM user_watchlists WHERE user_id = $1",
         [userId]
       );
-  
+
       let userWatchlist = userWatchlistQuery.rows;
-  
+
       for (const item of userWatchlist) {
         await pool.query(
           "INSERT INTO group_watchlists (group_id, item_id, item_type, poster) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING",
           [groupName, item.item_id, item.item_type, item.poster]
         );
       }
-  
+
       console.log(`Synced ${userWatchlist.length} items to group ${groupName}`);
     } catch (error) {
       console.error("Error syncing user watchlist with group:", error);
     }
   }
-  
+
   if (type === "code") {
     try {
       if (!code || !userId) {
@@ -777,8 +796,20 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
       <link rel="stylesheet" href="/calendar.css">
       <link rel="stylesheet" href="/group.css">
       <script src="/calendar.js" defer></script>
+      <link rel="stylesheet" href="/selection.css">
+      <link rel="stylesheet" href="/account.css">
     </head>
     <body>
+    <div id="navbar">
+      <div id="navButtons">
+        <div id="buttonContainer">
+          <div id="home">Home</div>
+          <div id="logout">
+            <img src="/images/logout.png" width="30px" />
+          </div>
+        </div>
+      </div>
+    </div>
       <header>
         <span style="display:flex;justify-content: space-between;">
           <span id="pageHeader">
@@ -788,6 +819,10 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
         </span>
       </header>
       <main>
+
+        <button id="membersButton">Members</button>
+        <ul id="membersList" class="hidden"></ul>
+
         <div id="searchSection">
           <h2>Search for a Film</h2>
           <input type="text" id="searchTitle" placeholder="Title">
@@ -884,8 +919,89 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
             <input id="messageInput" placeholder="Type a message..." />
             <button id="sendButton">Send</button></div>
           </div>
+          <div id="groupModalMain">
+        <div id="modalButton">
+          <div id="groupButton">
+            <img id="groupIcon" src="/images/group.png" height="50px" />
+          </div>
+        </div>
+
+        <div id="mainModal" class="hidden">
+          <div id="mainGroupModalButton">
+            <img id="closeIcon" src="/images/arrowGroup.png" width="30px" />
+          </div>
+          <div id="groupModal">
+            <div id="title">My Groups</div>
+            <div id="groupsContainer">
+              <ul id="groupsList"></ul>
+            </div>
+            <div id="groupActions">
+              <div id="joinButton">Join</div>
+              <div id="addButton">Add</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="joinModal" class="hidden">
+        <div id="joinGroupModalButton">
+          <img id="closeIcon" src="//arrowGroup.png" width="30px" />
+        </div>
+        <div id="groupModal">
+          <div id="title">My Groups</div>
+          <div id="groups">
+            <div id="titleGroup">Enter Group Code</div>
+            <input
+              type="text"
+              id="code"
+              name="code"
+              placeholder="Enter code..."
+            />
+            <div id="random">Random</div>
+            <div id="joinGroup">Join</div>
+          </div>
+          <div id="groupActions">
+            <div id="joinGroupHome">Groups</div>
+            <div id="joinAddButton">Add</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="createModal" class="hidden">
+        <div id="createGroupModalButton">
+          <img id="closeIcon" src="/images/arrowGroup.png" width="30px" />
+        </div>
+        <div id="groupModal">
+          <div id="title">My Groups</div>
+          <div id="groups">
+            <div id="titleGroup">Name</div>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              placeholder="Enter group name..."
+            />
+            <div id="titleGroupName">Type</div>
+            <div id="typeButtonsModalType">
+              <div class="groupButtons" id="booksButton">Book</div>
+              <div class="groupButtons" id="moviesButton">Movie</div>
+            </div>
+            <div id="titleGroupName">Access</div>
+            <div id="typeButtonsModalAccess">
+              <div class="groupButtons" id="publicButton">Public</div>
+              <div class="groupButtons" id="privateButton">Private</div>
+            </div>
+            <div id="create">Create</div>
+          </div>
+          <div id="groupActions">
+            <div id="createHomeButton">Groups</div>
+            <div id="createJoinButton">Join</div>
+          </div>
+        </div>
+      </div>
       </main>
       <script src="/socket.io/socket.io.js"></script>
+      <script src="/new.js"></script>
     </body>
     </html>
   `);
@@ -916,8 +1032,20 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
           <link rel="stylesheet" href="/group.css">
           <link rel="stylesheet" href="/calendar.css">
           <script src="/calendar.js" defer></script>
+          <link rel="stylesheet" href="/selection.css">
+          <link rel="stylesheet" href="/account.css">
       </head>
       <body>
+      <div id="navbar">
+      <div id="navButtons">
+        <div id="buttonContainer">
+          <div id="home">Home</div>
+          <div id="logout">
+            <img src="/images/logout.png" width="30px" />
+          </div>
+        </div>
+      </div>
+    </div>
           <header>
               <span style="display:flex;justify-content: space-between;">
                 <span id="pageHeader">
@@ -927,6 +1055,9 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
               </span>
           </header>
           <main>
+              <button id="membersButton">Members</button>
+              <ul id="membersList" class="hidden"></ul>
+
               <div id="searchSection">
                   <h2>Search for a Book</h2>
                   <input type="text" id="searchTitle" placeholder="Title">
@@ -935,7 +1066,7 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
               </div>
 
               <div>
-                  <h2>Voted Book</h2>
+                  <h2>Voted Books</h2>
                   <ul id="votedBooks"></ul>
               </div>
 
@@ -1026,14 +1157,134 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
             <input id="messageInput" placeholder="Type a message..." />
             <button id="sendButton">Send</button></div>
           </div>
+          <div id="groupModalMain">
+        <div id="modalButton">
+          <div id="groupButton">
+            <img id="groupIcon" src="/images/group.png" height="50px" />
+          </div>
+        </div>
+
+        <div id="mainModal" class="hidden">
+          <div id="mainGroupModalButton">
+            <img id="closeIcon" src="/images/arrowGroup.png" width="30px" />
+          </div>
+          <div id="groupModal">
+            <div id="title">My Groups</div>
+            <div id="groupsContainer">
+              <ul id="groupsList"></ul>
+            </div>
+            <div id="groupActions">
+              <div id="joinButton">Join</div>
+              <div id="addButton">Add</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="joinModal" class="hidden">
+        <div id="joinGroupModalButton">
+          <img id="closeIcon" src="/images/arrowGroup.png" width="30px" />
+        </div>
+        <div id="groupModal">
+          <div id="title">My Groups</div>
+          <div id="groups">
+            <div id="titleGroup">Enter Group Code</div>
+            <input
+              type="text"
+              id="code"
+              name="code"
+              placeholder="Enter code..."
+            />
+            <div id="random">Random</div>
+            <div id="joinGroup">Join</div>
+          </div>
+          <div id="groupActions">
+            <div id="joinGroupHome">Groups</div>
+            <div id="joinAddButton">Add</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="createModal" class="hidden">
+        <div id="createGroupModalButton">
+          <img id="closeIcon" src="/images/arrowGroup.png" width="30px" />
+        </div>
+        <div id="groupModal">
+          <div id="title">My Groups</div>
+          <div id="groups">
+            <div id="titleGroup">Name</div>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              placeholder="Enter group name..."
+            />
+            <div id="titleGroupName">Type</div>
+            <div id="typeButtonsModalType">
+              <div class="groupButtons" id="booksButton">Book</div>
+              <div class="groupButtons" id="moviesButton">Movie</div>
+            </div>
+            <div id="titleGroupName">Access</div>
+            <div id="typeButtonsModalAccess">
+              <div class="groupButtons" id="publicButton">Public</div>
+              <div class="groupButtons" id="privateButton">Private</div>
+            </div>
+            <div id="create">Create</div>
+          </div>
+          <div id="groupActions">
+            <div id="createHomeButton">Groups</div>
+            <div id="createJoinButton">Join</div>
+          </div>
+        </div>
+      </div>
       </main>
       <script src="/socket.io/socket.io.js"></script>
+      <script src="/new.js"></script>
       </body>
       </html>
   `);
 });
 
+app.get("/getGroupMembers", async (req, res) => {
+  const groupName = req.query.groupName;
+  if (!groupName) {
+      return res.status(400).json({ message: "Group name is required" });
+  }
+
+  try {
+      const groupQuery = await pool.query(
+          "SELECT members, leader_id FROM groups WHERE group_name = $1",
+          [groupName]
+      );
+
+      if (groupQuery.rows.length === 0) {
+          return res.status(404).json({ message: "Group not found" });
+      }
+
+      // Extract member IDs and convert them to integers
+      //const { members, leader_id } = groupQuery.rows[0].members.map(id => parseInt(id));
+      const { members, leader_id } = groupQuery.rows[0];
+
+      // Query user details based on these IDs
+      const usersQuery = await pool.query(
+          "SELECT id, username FROM users WHERE id = ANY($1::int[])",
+          [members]
+      );
+
+      const membersList = usersQuery.rows.map(user => ({
+        username: user.username,
+        is_leader: user.id === leader_id
+      }));
+
+      res.json({ members: membersList });
+  } catch (error) {
+      console.error("Database error:", error);
+      res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 app.post("/addMessage", async (req, res) => {
+  console.log(req.body);
   let sentUser = req.body["sentUser"];
   let message = req.body["message"];
   let groupName = req.body["groupName"];
@@ -1123,7 +1374,7 @@ app.get("/getMessages", async (req, res) => {
         "No cookie set for this user, ensure user was initialized properly.",
     });
   }
-  
+
   let username = tokenStorage[token]["username"];
 
   // Get group id given group name
@@ -1184,9 +1435,11 @@ app.get("/groupSearch", (req, res) => {
 app.get("/movieSearchById", (req, res) => {
   let imdbId = req.query.imdbId;
   let url = `https://www.omdbapi.com/?i=${imdbId}&apikey=cba0ff47`;
-  axios.get(url)
-    .then(response => {
+  axios
+    .get(url)
+    .then((response) => {
       let data = response.data;
+      console.log(data); // Log the response data for debugging
 
       if (data.Response === "False") {
         return res.status(404).json({ message: "Film not found" });
@@ -1202,32 +1455,31 @@ app.get("/movieSearchById", (req, res) => {
 
       res.status(200).json(information);
     })
-    .catch(error => {
+    .catch((error) => {
+      console.error("Error fetching film data:", error);
       res.status(500).json({ message: "Error fetching film data" });
     });
 });
 
 app.post("/vote", async (req, res) => {
-  let { groupCode, filmTitle, poster, filmGenre } = req.body;
+  let { groupCode, filmTitle, poster, filmGenre, userId } = req.body;
 
   try {
-    let result = await pool.query(
-      "SELECT * FROM votes WHERE group_code = $1 AND film_title = $2",
-      [groupCode, filmTitle]
+    let existingVote = await pool.query(
+      "SELECT * FROM votes WHERE group_code = $1 AND user_id = $2",
+      [groupCode, userId]
     );
 
-    if (result.rows.length > 0) {
-      await pool.query(
-        "UPDATE votes SET num_votes = num_votes + 1 WHERE group_code = $1 AND film_title = $2",
-        [groupCode, filmTitle]
-      );
-    } else {
-      //console.log("Data for vote insertion:", { groupCode, filmTitle, poster, filmGenre });
-      await pool.query(
-        "INSERT INTO votes (group_code, film_title, poster, num_votes, film_genre) VALUES ($1, $2, $3, 1, $4)",
-        [groupCode, filmTitle, poster, filmGenre]
-      );
+    if (existingVote.rows.length > 0) {
+      return res
+        .status(400)
+        .json({ message: "You have already voted in this group." });
     }
+
+    await pool.query(
+      "INSERT INTO votes (group_code, film_title, poster, num_votes, film_genre, user_id) VALUES ($1, $2, $3, 1, $4,$5)",
+      [groupCode, filmTitle, poster, filmGenre, userId]
+    );
 
     res.status(200).json({ message: "Vote recorded" });
   } catch (error) {
@@ -1236,16 +1488,20 @@ app.post("/vote", async (req, res) => {
 });
 
 app.get("/votes/:groupCode", async (req, res) => {
-  let groupCode = req.params.groupCode;
+  const { groupCode } = req.params;
 
   try {
-    let result = await pool.query(
-      "SELECT film_title, poster, num_votes, film_genre FROM votes WHERE group_code = $1",
+    const result = await pool.query(
+      `SELECT film_title, book_title, SUM(num_votes) AS num_votes, film_genre, poster
+       FROM votes
+       WHERE group_code = $1
+       GROUP BY film_title, book_title, film_genre,poster`,
       [groupCode]
     );
 
     res.status(200).json(result.rows);
   } catch (error) {
+    console.error("Error fetching votes:", error);
     res.status(500).json({ message: "Error fetching votes" });
   }
 });
@@ -1325,12 +1581,16 @@ app.get("/bookVotes/:groupCode", async (req, res) => {
 
   try {
     let result = await pool.query(
-      "SELECT book_title, num_votes, poster FROM votes WHERE group_code = $1",
+      `SELECT book_title, SUM(num_votes) AS num_votes, poster
+       FROM votes
+       WHERE group_code = $1
+       GROUP BY book_title, poster`,
       [groupCode]
     );
 
     res.status(200).json(result.rows);
   } catch (error) {
+    console.error("Error fetching book votes:", error);
     res.status(500).json({ message: "Error fetching votes" });
   }
 });
@@ -1381,11 +1641,14 @@ app.get("/bookSearchByAuthor", (req, res) => {
     return res.status(400).json({ message: "Input author" });
   }
 
-  let url = `https://www.googleapis.com/books/v1/volumes?q=inauthor:${encodeURIComponent(author)}
+  let url = `https://www.googleapis.com/books/v1/volumes?q=inauthor:${encodeURIComponent(
+    author
+  )}
   &key=AIzaSyA7W8k35xcWplp6773PLBHKwqQyMPJ6VVY`;
 
-  axios.get(url)
-    .then(response => {
+  axios
+    .get(url)
+    .then((response) => {
       let books = response.data.items;
       if (!books || books.length === 0) {
         return res.status(404).json({ message: "Book not found" });
@@ -1398,12 +1661,14 @@ app.get("/bookSearchByAuthor", (req, res) => {
         authors: book.authors ? book.authors.join(", ") : "N/A",
         publishedDate: book.publishedDate,
         rating: book.averageRating,
-        description: book.description ? book.description : "No description available."
+        description: book.description
+          ? book.description
+          : "No description available.",
       };
 
       res.status(200).json(information);
     })
-    .catch(error => {
+    .catch((error) => {
       res.status(500).json({ message: "Error fetching book data" });
     });
 });
@@ -1415,11 +1680,14 @@ app.get("/bookSearchByISBN", (req, res) => {
     return res.status(400).json({ message: "Input ISBN" });
   }
 
-  let url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${encodeURIComponent(isbn)}
+  let url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${encodeURIComponent(
+    isbn
+  )}
   &key=AIzaSyA7W8k35xcWplp6773PLBHKwqQyMPJ6VVY`;
 
-  axios.get(url)
-    .then(response => {
+  axios
+    .get(url)
+    .then((response) => {
       let books = response.data.items;
       if (!books || books.length === 0) {
         return res.status(404).json({ message: "Book not found" });
@@ -1432,40 +1700,57 @@ app.get("/bookSearchByISBN", (req, res) => {
         authors: book.authors ? book.authors.join(", ") : "N/A",
         publishedDate: book.publishedDate,
         rating: book.averageRating,
-        description: book.description ? book.description : "No description available."
+        description: book.description
+          ? book.description
+          : "No description available.",
       };
 
       res.status(200).json(information);
     })
-    .catch(error => {
+    .catch((error) => {
       res.status(500).json({ message: "Error fetching book data" });
     });
 });
 
 app.post("/bookVote", async (req, res) => {
-  let { groupCode, filmTitle, poster } = req.body;
+  let { groupCode, bookTitle, poster, userId } = req.body;
 
   try {
-    let result = await pool.query(
-      "SELECT * FROM votes WHERE group_code = $1 AND book_title = $2",
-      [groupCode, filmTitle]
+    let existingVote = await pool.query(
+      "SELECT * FROM votes WHERE group_code = $1 AND user_id = $2",
+      [groupCode, userId]
     );
 
-    if (result.rows.length > 0) {
-      await pool.query(
-        "UPDATE votes SET num_votes = num_votes + 1 WHERE group_code = $1 AND book_title = $2",
-        [groupCode, filmTitle]
-      );
-    } else {
-      await pool.query(
-        "INSERT INTO votes (group_code, book_title, num_votes, poster) VALUES ($1, $2, $3, 1)",
-        [groupCode, filmTitle, poster]
-      );
+    if (existingVote.rows.length > 0) {
+      return res
+        .status(400)
+        .json({ message: "You have already voted in this group." });
     }
+
+    await pool.query(
+      "INSERT INTO votes (group_code, book_title, poster, num_votes, film_title, user_id) VALUES ($1, $2, $3, 1, '', $4)",
+      [groupCode, bookTitle, poster, userId]
+    );
 
     res.status(200).json({ message: "Vote recorded" });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Error recording vote" });
+  }
+});
+
+app.get("/votesBook/:groupCode", async (req, res) => {
+  let groupCode = req.params.groupCode;
+
+  try {
+    let result = await pool.query(
+      "SELECT book_title, poster, num_votes FROM votes WHERE group_code = $1",
+      [groupCode]
+    );
+
+    res.status(200).json(result.rows);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching votes" });
   }
 });
 
@@ -1490,7 +1775,7 @@ app.post("/addToWatchlist", async (req, res) => {
     );
 
     let groupsQuery = await pool.query(
-      "SELECT id,group_name FROM groups WHERE $1 = ANY(members)", 
+      "SELECT id,group_name FROM groups WHERE $1 = ANY(members)",
       [userId]
     );
 
@@ -1499,7 +1784,7 @@ app.post("/addToWatchlist", async (req, res) => {
     for (let group of groups) {
       await pool.query(
         "INSERT INTO group_watchlists (group_id, item_id, item_type,poster) VALUES ($1, $2, $3,$4) ON CONFLICT DO NOTHING",
-        [group.group_name, title, type,poster]
+        [group.group_name, title, type, poster]
       );
     }
 
@@ -1523,11 +1808,13 @@ app.get("/getWatchlist/:userId", async (req, res) => {
     res.json({ status: "success", items: result.rows });
   } catch (error) {
     console.error("Error fetching watchlist:", error);
-    res.status(500).json({ status: "error", message: "Error fetching watchlist" });
+    res
+      .status(500)
+      .json({ status: "error", message: "Error fetching watchlist" });
   }
 });
 
-app.post('/removeFromWatchlist', async (req, res) => {
+app.post("/removeFromWatchlist", async (req, res) => {
   const { title, userId } = req.body;
   try {
     const result = await pool.query(
@@ -1536,7 +1823,7 @@ app.post('/removeFromWatchlist', async (req, res) => {
     );
 
     let groupsQuery = await pool.query(
-      "SELECT id,group_name FROM groups WHERE $1 = ANY(members)", 
+      "SELECT id,group_name FROM groups WHERE $1 = ANY(members)",
       [userId]
     );
 
@@ -1553,7 +1840,7 @@ app.post('/removeFromWatchlist', async (req, res) => {
         [title, group.group_name]
       );
     }
-    
+
     if (result.rowCount > 0) {
       res.json({ status: "success", message: "Item removed successfully" });
     } else {

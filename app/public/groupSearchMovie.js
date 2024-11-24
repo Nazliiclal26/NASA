@@ -131,10 +131,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       const response = await fetch("/vote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ groupCode, filmTitle: title, poster: poster, filmGenre: film_genre }) 
+        body: JSON.stringify({ groupCode, filmTitle: title, poster: poster, filmGenre: film_genre,userId: localStorage.getItem("userId") }) 
       });
-  
-      if (!response.ok) throw new Error("Error voting");
+
+      const result = await response.json(); 
+      
+      if (!response.ok){
+        alert(result.message);
+      }
   
       fetchVotes(); 
     } catch (error) {
@@ -146,14 +150,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
       const response = await fetch(`/votes/${groupCode}`);
       if (!response.ok) throw new Error("Error fetching votes");
-
+  
       const data = await response.json();
       votedFilmsList.innerHTML = ""; 
-
+  
       data.forEach((film) => {
         if (film.num_votes > 0) {
           const li = document.createElement("li");
-          li.innerHTML = `${film.film_title} - ${film.num_votes} votes - <span style="color: blue;">${film.film_genre}</span>`;
+          li.innerHTML = `${film.film_title || film.book_title} - ${film.num_votes} votes - <span style="color: blue;">${film.film_genre || "N/A"}</span>`;
           votedFilmsList.appendChild(li);
         }
       });
@@ -230,9 +234,46 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
   fetchVotes();
   checkIfLeader(); 
+
+  const membersButton = document.getElementById('membersButton');
+  const membersList = document.getElementById('membersList');
+  
+  membersButton.addEventListener('click', function() {
+      // Check if the membersList already has any children (members displayed)
+      if (membersList.children.length > 0) {
+          // If members are displayed, hide and clear the list
+          membersList.innerHTML = '';
+      } else {
+          // No members displayed, fetch and show them
+        fetch(`/getGroupMembers?groupName=${encodeURIComponent(groupCode)}`)
+          .then(response => {
+              if (!response.ok) {
+                  throw new Error('Failed to fetch members');
+              }
+              return response.json();
+          })
+          .then(data => {
+              membersList.innerHTML = ''; // Clear previous members
+              data.members.forEach(member => {
+                  const li = document.createElement('li');
+                  li.textContent = member.username; // Display username
+                  if (member.is_leader) {
+                      li.textContent += " (Leader)"; // Append '(Leader)' to the leader's username
+                      li.style.fontWeight = 'bold'; // style to highlight the leader
+                  }
+                  membersList.appendChild(li);
+              });
+          })
+          .catch(error => {
+              console.error('Error fetching group members:', error);
+              alert('Error fetching group members. Please try again.');
+          });
+      }
+  });   
 });
 
-let groupCode = decodeURIComponent(window.location.pathname).split("/").pop(); 
+
+let groupCode = decodeURIComponent(window.location.pathname).split("/").pop();
 let username = null;
 let socket = io();
 socket.on("connect", () => { console.log("Socket has been connected."); });

@@ -405,7 +405,7 @@ body {
   height: 630px;
   width: 450px;
   background-color: rgb(202, 238, 251);
-  border-radius: 40px;
+  border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
