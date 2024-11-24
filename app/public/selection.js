@@ -193,7 +193,7 @@ function processJoinModal() {
             mainModal.classList.remove("hidden");
             displayGroups();
             let type = data.group.group_type;
-            let groupCode = data.group.secret_code;
+            let groupCode = data.group.group_name;
             if (type === "book") {
               window.location.href = `/bookGroup/:${groupCode}`;
             } else {
