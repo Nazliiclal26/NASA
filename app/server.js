@@ -1406,7 +1406,8 @@ app.get("/groupSearch", (req, res) => {
     return res.status(400).json({ message: "Input Title" });
   }
 
-  let url = `https://www.omdbapi.com/?t=${title}&apikey=cba0ff47`;
+  const API_KEY = require('./omdb.js');
+  let url = `https://www.omdbapi.com/?t=${title}&apikey=${API_KEY}`;
 
   axios
     .get(url)
