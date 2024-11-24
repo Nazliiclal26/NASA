@@ -207,6 +207,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (data.isLeader && response.ok) {
         document.getElementById("buttonContainer").style.display = "block";
       }
+      else {
+      document.getElementById("startVote").style.display = "none";
+      document.getElementById("stopVote").style.display = "none";
+    }
     }   
 
   async function populateHeaderWithGroupInfo() {
