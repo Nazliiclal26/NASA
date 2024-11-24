@@ -177,6 +177,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (data.isLeader && response.ok) {
       document.getElementById("buttonContainer").style.display = "block";
     }
+    else {
+      document.getElementById("startVote").style.display = "none";
+      document.getElementById("stopVote").style.display = "none";
+    }
   }
   
   stopVoteButton.addEventListener("click", async () => {
@@ -184,6 +188,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       await fetch(`/stopVoting/${groupCode}`, { method: "POST", headers: { "Content-Type": "application/json" } });
       await displayMostVotedFilm(); 
       searchSection.style.display = "none";
+      votedFilmsList.innerHTML = ""; 
     } catch (error) {
       console.error("Error stopping voting:", error);
     }
