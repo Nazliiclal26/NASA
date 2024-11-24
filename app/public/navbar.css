@@ -1,0 +1,14 @@
+#buttonContainerNav {
+  display: flex;
+  margin-left: 120px;
+  gap: 45px;
+  flex-direction: row;
+}
+
+#home {
+  top: 1px;
+}
+
+.super {
+  z-index: 1000;
+}

@@ -7,7 +7,7 @@ body {
 }
 
 .wrapper {
-  max-width: 100%;
+  width: 100%;
   margin: 5px;
 }
 
@@ -42,8 +42,13 @@ body {
   margin: 0;
 }
 
+.container-calendar {
+  margin-left: 77px;
+  height: 280px;
+}
+
 #left {
-  max-width: 460px;
+  max-width: 560px;
   max-height: 300px;
 }
 
@@ -55,6 +60,7 @@ h1 {
   color: rgb(11, 108, 168);
   font-size: 14px;
   margin: 0;
+  width: 520px;
 }
 
 #event-section input[type="date"],

@@ -778,16 +778,66 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
       <link rel="stylesheet" href="/calendar.css">
       <link rel="stylesheet" href="/group.css">
       <script src="/calendar.js" defer></script>
-      <link rel="stylesheet" href="/selection.css">
       <link rel="stylesheet" href="/account.css">
+      <link rel="stylesheet" href="/selection.css">
+      <link rel="stylesheet" href="/navbar.css">
+      <link rel="stylesheet" href="/watchlistModal.css">
     </head>
     <body>
 
+    <div id="navbar">
+      <div id="leftPanel">
+        <div id="typeButtons">
+          <div id="home">Home</div>
+        </div>
+      </div>
+      <div id="searchBox">
+        <div id="searchSection">
+          <h2>Search for a Film</h2>
+          <input type="text" id="searchTitle" placeholder="Title">
+          <button id="searchFilm">Search</button>
+          <div id="searchResult"></div>
+        </div>
+      </div>
+      <div id="navButtons">
+        <div id="buttonContainerNav">
+          <div id="watchlist">
+            <a href="#" id="watchlistLink">My Watchlist</a>
+          </div>
+          <script>
+            document.getElementById("watchlistLink").addEventListener("click", () => {
+              const userId = localStorage.getItem("userId");
+              if (userId) {
+                window.location.href = "watchlist.html";
+              } else {
+                alert("User not logged in.");
+              }
+            });
+          </script>
+          <div id="account">Account</div>
+          <div id="logout">
+            <img src="/images/logout.png" width="30px" />
+          </div>
+        </div>
+      </div>
+    </div>
     <div id="mainBlock">
       <div id="leftSide">
         <div class="box">
-          <div id="options"></div>
-          <div id="votingBox"></div>
+          <div id="options">
+            <div id="buttonContainer">
+            <button id="stopVote">Stop Vote</button>
+            <button id="startVote">Start Voting</button>
+        </div>
+          </div>
+          <div id="votingBox">
+            <div>
+          <h2>Voted Films</h2>
+          <ul id="votedFilms"></ul>
+        </div>
+
+        <div id="mostVotedFilm"></div>
+          </div>
         </div>
         <div id="calendarBox"> 
           <div class="wrapper">
@@ -857,7 +907,9 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
         </div>
       </div>
       <div id="rightSide">
-      <div id="info"></div>
+      <div id="info">
+        <h1>Welcome to Group ${name}</h1>
+      </div>
         <div id="chatBox">
           <div id="chatSection">
           <h2>Chat</h2>
@@ -870,33 +922,27 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
         </div>
       </div>
     </div>
-      <header>
-        <h1>Welcome to Group ${name}</h1>
-      </header>
       <main>
-        <div id="searchSection">
-          <h2>Search for a Film</h2>
-          <input type="text" id="searchTitle" placeholder="Title">
-          <button id="searchFilm">Search</button>
-          <div id="searchResult"></div>
+
+        <div id="watchlistModalMain">
+          <div id="modalButtonWatch">
+            <div id="watchButton">
+              <img id="watchIcon" src="/images/watch.png" height="50px" />
+            </div>
+          </div>
+
+          <div id="mainModalWatch" class="hidden">
+            <div id="mainWatchModalButton">
+              <img id="closeIcon" src="/images/arrowGroup.png" width="30px" />
+            </div>
+            <div id="groupModal">
+              <h2>Group Watchlist</h2>
+                <div id="groupWatchlistContainer" style="height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;"> 
+                  <ul id="groupWatchlist" style="list-style: none"></ul>
+                </div>
+            </div>
+          </div>
         </div>
-
-        <div>
-          <h2>Voted Films</h2>
-          <ul id="votedFilms"></ul>
-        </div>
-
-        <div id="mostVotedFilm"></div>
-
-        <div id="buttonContainer">
-          <button id="stopVote">Stop Vote</button>
-          <button id="startVote">Start Voting</button>
-        </div>
-
-        <a href="/selection.html">Back to Home</a>
-
-        <h2>Group Watchlist</h2>
-        <ul id="groupWatchlist"></ul>
 
         <div id="groupModalMain">
         <div id="modalButton">
@@ -981,6 +1027,7 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
       </main>
       <script src="/socket.io/socket.io.js"></script>
       <script src="/new.js"></script>
+       <script src="/nabvar.js"></script>
     </body>
     </html>
   `);

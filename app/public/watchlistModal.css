@@ -1,0 +1,25 @@
+#watchButton {
+  position: absolute;
+  width: 100px;
+  height: 120px;
+  background-color: rgb(15, 158, 213);
+  right: 0px;
+  top: 220px;
+  border-radius: 40px 0px 0px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#watchButton:hover {
+  background-color: rgb(5, 134, 185);
+  cursor: pointer;
+}
+
+#watchIcon {
+  margin-left: 10px;
+}
+
+#mainModalWatch #groupModal {
+  z-index: 1000;
+}
