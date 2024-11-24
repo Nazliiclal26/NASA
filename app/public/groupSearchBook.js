@@ -90,6 +90,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       await fetch(`/stopVoting/${groupCode}`, { method: "POST", headers: { "Content-Type": "application/json" } });
       await displayMostVotedBook();
       searchSection.style.display = "none";
+      votedBooksList.innerHTML = ""; 
     } catch (error) {
       console.error("Error stopping voting:", error);
     }
@@ -207,6 +208,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (data.isLeader && response.ok) {
         document.getElementById("buttonContainer").style.display = "block";
       }
+      else {
+      document.getElementById("startVote").style.display = "none";
+      document.getElementById("stopVote").style.display = "none";
+    }
     }   
 
   async function populateHeaderWithGroupInfo() {

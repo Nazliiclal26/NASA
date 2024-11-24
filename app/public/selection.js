@@ -156,12 +156,13 @@ function processJoinModal() {
             mainModal.classList.remove("hidden");
             displayGroups();
             let type = data.group.group_type;
-            let joinedGroupName = data.group.group_name
+
+            let groupCode = data.group.group_name;
 
             if (type === "book") {
-              window.location.href = `/bookGroup/${joinedGroupName}`;
+              window.location.href = `/bookGroup/${groupCode}`;
             } else {
-              window.location.href = `/movieGroup/${joinedGroupName}`;
+              window.location.href = `/movieGroup/${groupCode}`;
             }
           } else {
             console.log(data);
@@ -192,11 +193,11 @@ function processJoinModal() {
             mainModal.classList.remove("hidden");
             displayGroups();
             let type = data.group.group_type;
-            let joinedGroupName = data.group.group_name
+            let groupCode = data.group.group_name;
             if (type === "book") {
-              window.location.href = `/bookGroup/${joinedGroupName}`;
+              window.location.href = `/bookGroup/${groupCode}`;
             } else {
-              window.location.href = `/movieGroup/${joinedGroupName}`;
+              window.location.href = `/movieGroup/${groupCode}`;
             }
           } else {
             console.log(data);

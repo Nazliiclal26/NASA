@@ -7,6 +7,10 @@ const cookieParser = require("cookie-parser");
 const http = require("http");
 const app = express();
 
+require('dotenv').config({ path: '../.env' });
+const OMDB_API_KEY = process.env.OMDB_API_KEY;
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY_API_KEY;
+
 const server = http.createServer(app);
 
 const path = require("path");
@@ -1406,7 +1410,7 @@ app.get("/groupSearch", (req, res) => {
     return res.status(400).json({ message: "Input Title" });
   }
 
-  let url = `https://www.omdbapi.com/?t=${title}&apikey=cba0ff47`;
+  let url = `https://www.omdbapi.com/?t=${title}&apikey=${OMDB_API_KEY}`;
 
   axios
     .get(url)
@@ -1434,7 +1438,7 @@ app.get("/groupSearch", (req, res) => {
 
 app.get("/movieSearchById", (req, res) => {
   let imdbId = req.query.imdbId;
-  let url = `https://www.omdbapi.com/?i=${imdbId}&apikey=cba0ff47`;
+  let url = `https://www.omdbapi.com/?i=${imdbId}&apikey=${OMDB_API_KEY}`;
   axios
     .get(url)
     .then((response) => {
@@ -1604,7 +1608,7 @@ app.get("/groupSearchBook", (req, res) => {
 
   let url = `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(
     title
-  )}&key=AIzaSyA7W8k35xcWplp6773PLBHKwqQyMPJ6VVY`;
+  )}&key=${GOOGLE_API_KEY}`;
 
   axios
     .get(url)
@@ -1644,7 +1648,7 @@ app.get("/bookSearchByAuthor", (req, res) => {
   let url = `https://www.googleapis.com/books/v1/volumes?q=inauthor:${encodeURIComponent(
     author
   )}
-  &key=AIzaSyA7W8k35xcWplp6773PLBHKwqQyMPJ6VVY`;
+  &key=${GOOGLE_API_KEY}`;
 
   axios
     .get(url)
@@ -1683,7 +1687,7 @@ app.get("/bookSearchByISBN", (req, res) => {
   let url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${encodeURIComponent(
     isbn
   )}
-  &key=AIzaSyA7W8k35xcWplp6773PLBHKwqQyMPJ6VVY`;
+  &key=${GOOGLE_API_KEY}`;
 
   axios
     .get(url)
