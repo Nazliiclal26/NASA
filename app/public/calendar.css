@@ -37,7 +37,7 @@ body {
 }
 
 .container-calendar #left h1 {
-  color: rgb(11, 108, 168);
+  color: rgb(15, 158, 213);
   text-align: center;
   margin: 0;
 }
@@ -57,7 +57,7 @@ h1 {
 }
 
 #event-section h3 {
-  color: rgb(11, 108, 168);
+  color: rgb(15, 158, 213);
   font-size: 14px;
   margin: 0;
   width: 520px;
@@ -124,7 +124,7 @@ h1 {
 }
 
 #reminder-section h3 {
-  color: rgb(11, 108, 168);
+  color: rgb(15, 158, 213);
   font-size: 14px;
   margin: 0;
 }

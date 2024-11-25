@@ -545,12 +545,14 @@ body {
   background-color: #ddd;
 }
 
-#searchFilm {
+#searchFilm,
+#searchBook {
   height: 69px;
   border-left: 0;
 }
 
-#searchFilm:hover {
+#searchFilm:hover,
+#searchBook:hover {
   background-color: #ddd;
 }
 
@@ -709,6 +711,7 @@ a:visited {
 
 @media (max-width: 1600px) {
   #searchFilm,
+  #searchBook,
   #searchType {
     height: 69px;
   }
