@@ -1,56 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>My Watchlist</title>
-  <style>
-  .watchlist-item {
-    display: flex;
-    align-items: center;
-    justify-content: start;
-    margin-bottom: 20px; /* Space between items */
-  }
+  <head>
+    <meta charset="UTF-8" />
+    <title>My Watchlist</title>
+    <link rel="stylesheet" href="/selection.css" />
+    <link rel="stylesheet" href="/watchlist.css" />
+  </head>
+  <body>
+    <div id="navbar">
+      <div id="navButtons">
+        <div id="buttonContainer">
+          <div id="watchlist">
+            <a href="#" id="selection">Home</a>
+          </div>
+          <script>
+            document
+              .getElementById("selection")
+              .addEventListener("click", () => {
+                const userId = localStorage.getItem("userId");
+                if (userId) {
+                  window.location.href = `/${userId}/watchlist.html`;
+                } else {
+                  alert("User not logged in.");
+                }
+              });
+          </script>
+          <div id="account">Account</div>
+          <div id="logout">
+            <img src="/images/logout.png" width="30px" />
+          </div>
+        </div>
+      </div>
+    </div>
+    <header>
+      <div id="title">My Watchlist</div>
+      <a href="#" id="selection">Back to Home Page</a>
 
-  .content {
-    display: flex;
-    align-items: center;
-    flex-grow: 1;
-  }
+      <script>
+        document.addEventListener("DOMContentLoaded", () => {
+          document.getElementById("selection").addEventListener("click", () => {
+            window.location.href = "/selection.html";
+          });
+        });
+      </script>
+    </header>
+    <main>
+      <section>
+        <h2>Films</h2>
+        <ul id="filmWatchlist"></ul>
+      </section>
+      <section>
+        <h2>Books</h2>
+        <ul id="bookWatchlist"></ul>
+      </section>
+    </main>
 
-  .watchlist-item button {
-    padding: 5px 10px;
-    margin-left: 10px; /*Space between title and button */
-    background-color: red;
-    color: white;
-    cursor: pointer;
-  }
-
-  </style>
-</head>
-<body>
-  <header>
-    <h1>My Watchlist</h1>
-    <a href="#" id="selection">Back to Home Page</a>
-
-    <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      document.getElementById("selection").addEventListener("click", () => {
-        window.location.href = "/selection.html"; 
-      });
-    });
-    </script>
-  </header>
-  <main>
-    <section>
-      <h2>Films</h2>
-      <ul id="filmWatchlist"></ul>
-    </section>
-    <section>
-      <h2>Books</h2>
-      <ul id="bookWatchlist"></ul>
-    </section>
-  </main>
-  
-  <script src="/watchlist.js"></script>
-</body>
+    <script src="/watchlist.js"></script>
+  </body>
 </html>

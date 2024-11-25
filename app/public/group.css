@@ -1,22 +1,343 @@
 #buttonContainer {
-    display: none;
+  display: none;
 }
 
-.film-card {
-    position: relative;
-    display: inline-block;
-    margin: 10px;
+.film-card,
+.book-card {
+  position: relative;
+  display: inline-block;
+  margin: 10px;
 }
-.vote-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background-color: red;
-    color: white;
-    border: none;
-    padding: 5px;
-    cursor: pointer;
+.vote-btn,
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgb(15, 158, 213);
+  color: white;
+  border: none;
+  padding: 5px;
+  cursor: pointer;
+  height: 50px;
+  width: 50px;
+  border-radius: 90px;
+  font-weight: 600;
+  text-align: center;
+  font-size: 20px;
 }
-  
-#messages { list-style-type: none; padding: 0; }
-#messages li { margin: 10px 0; }
+
+.vote-btn:hover {
+  background-color: rgb(5, 134, 185);
+}
+
+.close-btn {
+  margin-top: 60px;
+  background-color: white;
+  color: black;
+  border: 2px solid;
+}
+
+.close-btn:hover {
+  background-color: rgb(182, 182, 182);
+}
+
+#messages {
+  list-style-type: none;
+  padding: 0;
+}
+#messages li {
+  margin: 10px 0;
+}
+
+#mainBlock {
+  display: flex;
+  flex-direction: row;
+}
+
+#leftSide {
+  height: 700px;
+  width: 65%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+#rightSide {
+  height: 700px;
+  width: 400px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+}
+
+#votingBox,
+#calendarBox,
+#chatBox {
+  border-radius: 15px;
+}
+
+#votingBox {
+  width: 630px;
+  height: 280px;
+  background-color: white;
+  margin-right: 5px;
+  padding: 10px;
+  border: 3px solid;
+}
+
+#calendarBox,
+.box {
+  width: 100%;
+  height: 300px;
+  margin-right: 20px;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+#calendarBox {
+  margin-top: 10px;
+}
+
+#chatBox {
+  width: 370px;
+  height: 465px;
+  background-color: white;
+  padding: 10px;
+  border: 3px solid;
+}
+
+#info {
+  width: 370px;
+  height: 95px;
+  background-color: white;
+  margin-bottom: 20px;
+  border-radius: 15px;
+  padding: 10px;
+  border: 3px solid;
+}
+
+#options {
+  width: 160px;
+  height: 280px;
+  background-color: white;
+  margin-right: 20px;
+  border-radius: 15px;
+  margin-left: 80px;
+  padding: 10px;
+  border: 3px solid;
+}
+
+.container-calendar {
+  border: 3px solid;
+}
+
+#leaveGroup {
+  width: 100px;
+  height: 40px;
+  border-radius: 10px;
+  cursor: pointer;
+  background-color: rgb(15, 158, 213);
+  font-weight: 600;
+  color: white;
+  border: none;
+  margin-bottom: 5px;
+}
+
+#leaveGroup:hover {
+  background-color: rgb(5, 134, 185);
+}
+
+#outerBox {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+}
+
+#votedFilms,
+#votedBooks {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 16px;
+  padding: 10px;
+  list-style-type: none;
+  margin: 0;
+}
+
+#votedFilms::-webkit-scrollbar,
+#votedBooks::-webkit-scrollbar {
+  height: 8px;
+}
+
+#votedFilms::-webkit-scrollbar-thumb,
+#votedBooks::-webkit-scrollbar-thumb {
+  background-color: rgb(15, 158, 213);
+  border-radius: 15px;
+}
+
+#votedFilms::-webkit-scrollbar-thumb:hover,
+#votedBooks::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(5, 134, 185);
+}
+
+.votedStyling {
+  display: flex;
+  flex-direction: column;
+  min-width: 110px;
+  font-size: 10px;
+}
+
+.votedImg {
+  min-width: 90px;
+  min-height: 130px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.votedImg:hover {
+  transform: scale(1.1);
+}
+
+.hoverInfo {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.hoverInfoClicked {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s;
+  width: max-content;
+  background-color: rgb(15, 158, 213);
+  color: white;
+  text-align: center;
+  padding: 10px;
+  border-radius: 5px;
+  position: absolute;
+  bottom: 110%;
+  left: 50%;
+  transform: translate(-50%);
+}
+
+.hoverInfo:hover .hoverInfoClicked {
+  visibility: visible;
+  opacity: 1;
+}
+
+.votesText {
+  font-size: 15px;
+  margin-top: 10px;
+}
+
+.winnerOuter {
+  display: flex;
+  flex-direction: row;
+}
+
+#votedFilmsTitle,
+#votedBooksTitle {
+  margin: 0px;
+}
+
+#winnerPoster {
+  max-height: 200px;
+  margin-left: 40px;
+}
+
+#groupWatchlistContainer {
+  background-color: white;
+  width: 70%;
+  border-radius: 15px;
+}
+
+#groupWatchlist {
+  padding: 0px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+#groupWatchlist li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#membersListWrapper {
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100px;
+  background-color: white;
+}
+
+#membersList {
+  list-style-type: none;
+  margin: 0px;
+  padding: 0px;
+}
+
+#membersListWrapper::-webkit-scrollbar {
+  height: 3px;
+  width: 5px;
+}
+
+#membersListWrapper::-webkit-scrollbar-thumb {
+  background-color: rgb(15, 158, 213);
+  border-radius: 15px;
+}
+
+#membersListWrapper::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(5, 134, 185);
+}
+
+#chatSection {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+#messageInput {
+  width: 80%;
+  height: 20px;
+  border: 2px solid;
+  border-radius: 5px;
+}
+
+#messages {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 100%;
+}
+
+#sendButton {
+  background-color: rgb(15, 158, 213);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 6px;
+  width: 55px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.centering {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}

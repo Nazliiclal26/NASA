@@ -32,7 +32,6 @@ body {
 #leftPanel {
   width: 600px;
   height: 100%;
-
   display: flex;
   align-items: end;
 }
@@ -98,7 +97,8 @@ body {
 
 #books,
 #movies,
-#home {
+#home,
+.home {
   height: 60px;
   width: 170px;
   border-top: 2px solid rgb(0, 0, 0);
@@ -117,7 +117,8 @@ body {
 
 #books:hover,
 #movies:hover,
-#home:hover {
+#home:hover,
+.home:hover {
   cursor: pointer;
   font-weight: 700;
 }
@@ -544,12 +545,14 @@ body {
   background-color: #ddd;
 }
 
-#searchFilm {
+#searchFilm,
+#searchBook {
   height: 69px;
   border-left: 0;
 }
 
-#searchFilm:hover {
+#searchFilm:hover,
+#searchBook:hover {
   background-color: #ddd;
 }
 
@@ -666,7 +669,8 @@ body {
   text-align: center;
 }
 
-.watchlistButton:hover {
+.watchlistButton:hover,
+.watchlistButton2:hover {
   background-color: rgb(5, 134, 185);
   cursor: pointer;
 }
@@ -693,7 +697,8 @@ a:visited {
   text-decoration: none;
 }
 
-#watchlistLink {
+#watchlistLink,
+#selection {
   color: white;
 }
 
@@ -706,6 +711,7 @@ a:visited {
 
 @media (max-width: 1600px) {
   #searchFilm,
+  #searchBook,
   #searchType {
     height: 69px;
   }

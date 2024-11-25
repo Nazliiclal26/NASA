@@ -1,11 +1,12 @@
 let groupButton = document.getElementById("modalButton");
+let watchButton = document.getElementById("modalButtonWatch");
 let mainCloseButton = document.getElementById("mainGroupModalButton");
+let mainWatchCloseButton = document.getElementById("mainWatchModalButton");
 let joinCloseButton = document.getElementById("joinGroupModalButton");
 let addCloseButton = document.getElementById("createGroupModalButton");
 
-let homeButton = document.getElementById("home");
-
 let mainModal = document.getElementById("mainModal");
+let mainModalWatch = document.getElementById("mainModalWatch");
 let joinModal = document.getElementById("joinModal");
 let createModal = document.getElementById("createModal");
 
@@ -18,40 +19,47 @@ let joinAddButton = document.getElementById("joinAddButton");
 let createGroupHome = document.getElementById("createHomeButton");
 let createJoinButton = document.getElementById("createJoinButton");
 
-let logoutButton = document.getElementById("logout");
-
 let searchSection = document.getElementById("searchBox");
 let searchButton = document.getElementById("searchFilm");
 let searchResult = document.getElementById("searchResult");
 let searchType = document.getElementById("searchType");
 
+let accountButton = document.getElementById("account");
+let logoutButton = document.getElementById("logout");
+let homeButton = document.getElementById("home");
+
 homeButton.addEventListener("click", () => {
   window.location.href = "/selection.html";
 });
 
-logoutButton.addEventListener("click", () => {
-  localStorage.clear("userId");
-  fetch("/clearCookie")
-    .then((response) => {
-      return response.json();
-    })
-    .then((body) => {
-      window.location.href = "/";
-      console.log(body.message);
-    })
-    .catch((error) => {
-      console.error(error);
-    });
+document.getElementById("watchlistLink").addEventListener("click", () => {
+  const userId = localStorage.getItem("userId");
+  if (userId) {
+    window.location.href = "watchlist.html";
+  } else {
+    alert("User not logged in.");
+  }
 });
+
+accountButton.addEventListener("click", () => {
+  window.location.href = "/account.html";
+});
+
+displayGroups();
 
 function closeModals() {
   mainModal.classList.add("hidden");
+  mainModalWatch.classList.add("hidden");
   joinModal.classList.add("hidden");
   createModal.classList.add("hidden");
 }
 
 groupButton.addEventListener("click", () => {
   mainModal.classList.toggle("hidden");
+});
+
+watchButton.addEventListener("click", () => {
+  mainModalWatch.classList.toggle("hidden");
 });
 
 joinButton.addEventListener("click", () => {
@@ -63,6 +71,10 @@ addButton.addEventListener("click", () => {
 });
 
 mainCloseButton.addEventListener("click", () => {
+  closeModals();
+});
+
+mainWatchCloseButton.addEventListener("click", () => {
   closeModals();
 });
 
