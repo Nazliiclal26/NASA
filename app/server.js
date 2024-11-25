@@ -7,7 +7,7 @@ const cookieParser = require("cookie-parser");
 const http = require("http");
 const app = express();
 
-require('dotenv').config({ path: '../.env' });
+require("dotenv").config({ path: "../.env" });
 const OMDB_API_KEY = process.env.OMDB_API_KEY;
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY_API_KEY;
 
@@ -757,19 +757,21 @@ app.post("/create", async (req, res) => {
   }
 });
 
-app.get('/getGroupInfo', (req, res) => {
+app.get("/getGroupInfo", (req, res) => {
   let { name } = req.query;
   if (name === undefined) {
     return res.status(400).json({});
   }
 
-  group.findByName(name).then((body) => {
-    return res.status(200).json(body);
-  }).catch((error) => {
-    console.error(error);
-    return res.status(500).json({});
-  });
-
+  group
+    .findByName(name)
+    .then((body) => {
+      return res.status(200).json(body);
+    })
+    .catch((error) => {
+      console.error(error);
+      return res.status(500).json({});
+    });
 });
 
 // Adding client-side room functionality here - is called upon redirect to 'group/:groupId' in movies.js
@@ -825,7 +827,7 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
       <main>
 
         <button id="membersButton">Members</button>
-        <ul id="membersList" class="hidden"></ul>
+        <ul id="membersList"></ul>
 
         <div id="searchSection">
           <h2>Search for a Film</h2>
@@ -1060,7 +1062,7 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
           </header>
           <main>
               <button id="membersButton">Members</button>
-              <ul id="membersList" class="hidden"></ul>
+              <ul id="membersList"></ul>
 
               <div id="searchSection">
                   <h2>Search for a Book</h2>
@@ -1252,38 +1254,38 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
 app.get("/getGroupMembers", async (req, res) => {
   const groupName = req.query.groupName;
   if (!groupName) {
-      return res.status(400).json({ message: "Group name is required" });
+    return res.status(400).json({ message: "Group name is required" });
   }
 
   try {
-      const groupQuery = await pool.query(
-          "SELECT members, leader_id FROM groups WHERE group_name = $1",
-          [groupName]
-      );
+    const groupQuery = await pool.query(
+      "SELECT members, leader_id FROM groups WHERE group_name = $1",
+      [groupName]
+    );
 
-      if (groupQuery.rows.length === 0) {
-          return res.status(404).json({ message: "Group not found" });
-      }
+    if (groupQuery.rows.length === 0) {
+      return res.status(404).json({ message: "Group not found" });
+    }
 
-      // Extract member IDs and convert them to integers
-      //const { members, leader_id } = groupQuery.rows[0].members.map(id => parseInt(id));
-      const { members, leader_id } = groupQuery.rows[0];
+    // Extract member IDs and convert them to integers
+    //const { members, leader_id } = groupQuery.rows[0].members.map(id => parseInt(id));
+    const { members, leader_id } = groupQuery.rows[0];
 
-      // Query user details based on these IDs
-      const usersQuery = await pool.query(
-          "SELECT id, username FROM users WHERE id = ANY($1::int[])",
-          [members]
-      );
+    // Query user details based on these IDs
+    const usersQuery = await pool.query(
+      "SELECT id, username FROM users WHERE id = ANY($1::int[])",
+      [members]
+    );
 
-      const membersList = usersQuery.rows.map(user => ({
-        username: user.username,
-        is_leader: user.id === leader_id
-      }));
+    const membersList = usersQuery.rows.map((user) => ({
+      username: user.username,
+      is_leader: user.id === leader_id,
+    }));
 
-      res.json({ members: membersList });
+    res.json({ members: membersList });
   } catch (error) {
-      console.error("Database error:", error);
-      res.status(500).json({ message: "Internal server error" });
+    console.error("Database error:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 
@@ -1313,28 +1315,43 @@ app.post("/addMessage", async (req, res) => {
   // );
 
   let groupId = null;
-  await group.findByName(groupName).then((body) => {
-    groupId = body.id; // Returns a singular row from group table so we just pass the id
-  }).catch((error) => {
-    console.error(error);
-    return res.status(500).json({error: "Server error finding group by name"});
-  });
+  await group
+    .findByName(groupName)
+    .then((body) => {
+      groupId = body.id; // Returns a singular row from group table so we just pass the id
+    })
+    .catch((error) => {
+      console.error(error);
+      return res
+        .status(500)
+        .json({ error: "Server error finding group by name" });
+    });
 
   let userId = null;
-  await user.findByUsername(sentUser).then((body) => {
-    userId = body.id;
-  }).catch((error) => {
-    console.error(error);
-    return res.status(500).json({error: "Server error finding user who sent message by name"});
-  });
+  await user
+    .findByUsername(sentUser)
+    .then((body) => {
+      userId = body.id;
+    })
+    .catch((error) => {
+      console.error(error);
+      return res
+        .status(500)
+        .json({ error: "Server error finding user who sent message by name" });
+    });
 
   let result = false;
-  await messages.add(groupId, userId, message).then((body) => {
-    result = true;
-  }).catch((error) => {
-    console.error(error);
-    return res.status(500).json({error: "Server error adding message to database"});
-  });
+  await messages
+    .add(groupId, userId, message)
+    .then((body) => {
+      result = true;
+    })
+    .catch((error) => {
+      console.error(error);
+      return res
+        .status(500)
+        .json({ error: "Server error adding message to database" });
+    });
 
   if (result) {
     return res.status(200).json({});
@@ -1346,6 +1363,7 @@ app.post("/addMessage", async (req, res) => {
 app.get("/getUsernameForGroup", (req, res) => {
   // Utilize cookies to return username
   let { token } = req.cookies;
+  console.log("THIS IS COOKIES" + req.cookies);
   if (token === undefined) {
     console.log("No cookies set for this username.");
     return res.status(500).json({
@@ -1383,12 +1401,15 @@ app.get("/getMessages", async (req, res) => {
 
   // Get group id given group name
   let groupId = null;
-  await group.findByName(groupName).then((body) => {
-    groupId = body.id; // Returns a singular row from group table so we just pass the id
-  }).catch((error) => {
-    console.error(error);
-    return res.status(500).json({});
-  });
+  await group
+    .findByName(groupName)
+    .then((body) => {
+      groupId = body.id; // Returns a singular row from group table so we just pass the id
+    })
+    .catch((error) => {
+      console.error(error);
+      return res.status(500).json({});
+    });
   // Get messages by group id
   let messageCollection = {};
   await messages.getMessagesByGroupId(groupId).then((rows) => {

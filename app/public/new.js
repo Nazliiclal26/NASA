@@ -149,7 +149,7 @@ function processJoinModal() {
             displayGroups();
             let type = data.group.group_type;
 
-            let joinedGroupName = data.group.group_name
+            let joinedGroupName = data.group.group_name;
 
             if (type === "book") {
               window.location.href = `/bookGroup/${joinedGroupName}`;
@@ -185,7 +185,7 @@ function processJoinModal() {
             mainModal.classList.remove("hidden");
             displayGroups();
             let type = data.group.group_type;
-            let joinedGroupName = data.group.group_name
+            let joinedGroupName = data.group.group_name;
             if (type === "book") {
               window.location.href = `/bookGroup/${joinedGroupName}`;
             } else {
@@ -339,25 +339,4 @@ logoutButton.addEventListener("click", () => {
     });
 });
 
-async function addGreeting() {
-  let greetBlock = document.getElementById("greeting");
-  let userId = localStorage.getItem("userId");
-
-  fetch(`/getUsername/${userId}`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.status === "success") {
-        greetBlock.textContent = "Hi, " + data.rows[0].username + "!";
-      } else {
-        alert(data.message);
-      }
-    });
-}
-
 displayGroups();
-addGreeting();
