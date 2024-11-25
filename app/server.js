@@ -9,7 +9,7 @@ const app = express();
 
 require("dotenv").config({ path: "../.env" });
 const OMDB_API_KEY = process.env.OMDB_API_KEY;
-const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY_API_KEY;
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 
 const server = http.createServer(app);
 
