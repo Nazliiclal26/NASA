@@ -33,7 +33,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           let img = document.createElement("img");
           let title = document.createElement("div");
 
-
           div.className = "centering";
 
           if (item.poster) {
@@ -238,9 +237,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     let data = await response.json();
     console.log(data.message);
     if (data.isLeader && response.ok) {
-
       document.getElementById("buttonContainer").style.display = "flex";
-      document.getElementById("buttonContainer").style.display = "block";
     } else {
       document.getElementById("startVote").style.display = "none";
       document.getElementById("stopVote").style.display = "none";
@@ -270,7 +267,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
-
 
       searchSection.style.display = "flex";
       searchSection.style.display = "block";
