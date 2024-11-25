@@ -27,6 +27,10 @@ let searchType = document.getElementById("searchType");
 let booksButton = document.getElementById("books");
 let moviesButton = document.getElementById("movies");
 
+document.addEventListener("DOMContentLoaded", () => {
+  localStorage.removeItem("groupInfo");
+});
+
 booksButton.addEventListener("click", () => {
   localStorage.setItem("type", "books");
   searchType.innerHTML = `
@@ -153,12 +157,12 @@ function processJoinModal() {
             displayGroups();
             let type = data.group.group_type;
 
-            let groupCode = data.group.secret_code;
+            let groupCode = data.group.group_name;
 
             if (type === "book") {
-              window.location.href = `/bookGroup/:${groupCode}`;
+              window.location.href = `/bookGroup/${groupCode}`;
             } else {
-              window.location.href = `/movieGroup/:${groupCode}`;
+              window.location.href = `/movieGroup/${groupCode}`;
             }
           } else {
             console.log(data);
@@ -189,11 +193,11 @@ function processJoinModal() {
             mainModal.classList.remove("hidden");
             displayGroups();
             let type = data.group.group_type;
-            let groupCode = data.group.secret_code;
+            let groupCode = data.group.group_name;
             if (type === "book") {
-              window.location.href = `/bookGroup/:${groupCode}`;
+              window.location.href = `/bookGroup/${groupCode}`;
             } else {
-              window.location.href = `/movieGroup/:${groupCode}`;
+              window.location.href = `/movieGroup/${groupCode}`;
             }
           } else {
             console.log(data);

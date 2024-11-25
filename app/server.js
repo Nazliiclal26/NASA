@@ -7,6 +7,10 @@ const cookieParser = require("cookie-parser");
 const http = require("http");
 const app = express();
 
+require('dotenv').config({ path: '../.env' });
+const OMDB_API_KEY = process.env.OMDB_API_KEY;
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY_API_KEY;
+
 const server = http.createServer(app);
 
 const path = require("path");
@@ -139,6 +143,7 @@ app.get("/clearCookie", (req, res) => {
 
   let now = new Date();
   tokenStorage[token]["timeLoggedOut"] = now.toLocaleString();
+
   console.log(tokenStorage);
   return res
     .clearCookie("token", tokenOptions)
@@ -752,20 +757,37 @@ app.post("/create", async (req, res) => {
   }
 });
 
+app.get('/getGroupInfo', (req, res) => {
+  let { name } = req.query;
+  if (name === undefined) {
+    return res.status(400).json({});
+  }
+
+  group.findByName(name).then((body) => {
+    return res.status(200).json(body);
+  }).catch((error) => {
+    console.error(error);
+    return res.status(500).json({});
+  });
+
+});
+
 // Adding client-side room functionality here - is called upon redirect to 'group/:groupId' in movies.js
 app.get("/movieGroup/:groupCode", async (req, res) => {
   const groupCode = req.params.groupCode;
   let name = "";
 
-  try {
-    let result = await pool.query(
-      "SELECT * FROM groups WHERE secret_code = $1",
-      [groupCode.substring(1)]
-    );
-    name = groupCode;
-  } catch (error) {
-    console.log(error);
-  }
+  // With the group name, select the secret code
+
+  // try {
+  //   let result = await pool.query(
+  //     "SELECT * FROM groups WHERE secret_code = $1",
+  //     [groupCode.substring(1)]
+  //   );
+  //   name = groupCode;
+  // } catch (error) {
+  //   console.log(error);
+  // }
 
   res.send(`
     <!DOCTYPE html>
@@ -773,7 +795,7 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Group ${name}</title>
+      <title>Group ${groupCode}</title>
       <script src="/groupSearchMovie.js" defer></script>
       <link rel="stylesheet" href="/calendar.css">
       <link rel="stylesheet" href="/group.css">
@@ -793,9 +815,18 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
       </div>
     </div>
       <header>
-        <h1>Welcome to Group ${name}</h1>
+        <span style="display:flex;justify-content: space-between;">
+          <span id="pageHeader">
+            <h1>Welcome to ${groupCode}</h1>
+          </span>
+          <button id="leaveGroup" style="text-align:right;height: fit-content;/* top: 50%; */transform: translateY(250%);">Leave Group</button>
+        </span>
       </header>
       <main>
+
+        <button id="membersButton">Members</button>
+        <ul id="membersList" class="hidden"></ul>
+
         <div id="searchSection">
           <h2>Search for a Film</h2>
           <input type="text" id="searchTitle" placeholder="Title">
@@ -984,15 +1015,15 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
   const groupCode = req.params.groupCode;
   let name = "";
 
-  try {
-    let result = await pool.query(
-      "SELECT * FROM groups WHERE secret_code = $1",
-      [groupCode.substring(1)]
-    );
-    name = groupCode;
-  } catch (error) {
-    console.log(error);
-  }
+  // try {
+  //   let result = await pool.query(
+  //     "SELECT * FROM groups WHERE secret_code = $1",
+  //     [groupCode.substring(1)]
+  //   );
+  //   name = groupCode;
+  // } catch (error) {
+  //   console.log(error);
+  // }
 
   res.send(`
       <!DOCTYPE html>
@@ -1000,7 +1031,7 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
       <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Group ${name}</title>
+          <title>Group ${groupCode}</title>
           <script src="/groupSearchBook.js" defer></script>
           <link rel="stylesheet" href="/group.css">
           <link rel="stylesheet" href="/calendar.css">
@@ -1020,11 +1051,16 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
       </div>
     </div>
           <header>
-              <h1>Welcome to Group ${name}</h1>
+              <span style="display:flex;justify-content: space-between;">
+                <span id="pageHeader">
+                  <h1>Welcome to ${groupCode}</h1>
+                </span>
+                <button id="leaveGroup" style="text-align:right;height: fit-content;/* top: 50%; */transform: translateY(250%);">Leave Group</button>
+              </span>
           </header>
           <main>
               <button id="membersButton">Members</button>
-              <ul id="membersList"></ul>
+              <ul id="membersList" class="hidden"></ul>
 
               <div id="searchSection">
                   <h2>Search for a Book</h2>
@@ -1221,7 +1257,7 @@ app.get("/getGroupMembers", async (req, res) => {
 
   try {
       const groupQuery = await pool.query(
-          "SELECT members FROM groups WHERE group_name = $1",
+          "SELECT members, leader_id FROM groups WHERE group_name = $1",
           [groupName]
       );
 
@@ -1230,15 +1266,21 @@ app.get("/getGroupMembers", async (req, res) => {
       }
 
       // Extract member IDs and convert them to integers
-      const memberIds = groupQuery.rows[0].members.map(id => parseInt(id));
+      //const { members, leader_id } = groupQuery.rows[0].members.map(id => parseInt(id));
+      const { members, leader_id } = groupQuery.rows[0];
 
       // Query user details based on these IDs
       const usersQuery = await pool.query(
-          "SELECT username FROM users WHERE id = ANY($1::int[])",
-          [memberIds]
+          "SELECT id, username FROM users WHERE id = ANY($1::int[])",
+          [members]
       );
 
-      res.json({ members: usersQuery.rows });
+      const membersList = usersQuery.rows.map(user => ({
+        username: user.username,
+        is_leader: user.id === leader_id
+      }));
+
+      res.json({ members: membersList });
   } catch (error) {
       console.error("Database error:", error);
       res.status(500).json({ message: "Internal server error" });
@@ -1273,16 +1315,25 @@ app.post("/addMessage", async (req, res) => {
   let groupId = null;
   await group.findByName(groupName).then((body) => {
     groupId = body.id; // Returns a singular row from group table so we just pass the id
+  }).catch((error) => {
+    console.error(error);
+    return res.status(500).json({error: "Server error finding group by name"});
   });
 
   let userId = null;
   await user.findByUsername(sentUser).then((body) => {
     userId = body.id;
+  }).catch((error) => {
+    console.error(error);
+    return res.status(500).json({error: "Server error finding user who sent message by name"});
   });
 
   let result = false;
   await messages.add(groupId, userId, message).then((body) => {
     result = true;
+  }).catch((error) => {
+    console.error(error);
+    return res.status(500).json({error: "Server error adding message to database"});
   });
 
   if (result) {
@@ -1334,6 +1385,9 @@ app.get("/getMessages", async (req, res) => {
   let groupId = null;
   await group.findByName(groupName).then((body) => {
     groupId = body.id; // Returns a singular row from group table so we just pass the id
+  }).catch((error) => {
+    console.error(error);
+    return res.status(500).json({});
   });
   // Get messages by group id
   let messageCollection = {};
@@ -1356,7 +1410,7 @@ app.get("/groupSearch", (req, res) => {
     return res.status(400).json({ message: "Input Title" });
   }
 
-  let url = `https://www.omdbapi.com/?t=${title}&apikey=cba0ff47`;
+  let url = `https://www.omdbapi.com/?t=${title}&apikey=${OMDB_API_KEY}`;
 
   axios
     .get(url)
@@ -1384,7 +1438,7 @@ app.get("/groupSearch", (req, res) => {
 
 app.get("/movieSearchById", (req, res) => {
   let imdbId = req.query.imdbId;
-  let url = `https://www.omdbapi.com/?i=${imdbId}&apikey=cba0ff47`;
+  let url = `https://www.omdbapi.com/?i=${imdbId}&apikey=${OMDB_API_KEY}`;
   axios
     .get(url)
     .then((response) => {
@@ -1554,7 +1608,7 @@ app.get("/groupSearchBook", (req, res) => {
 
   let url = `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(
     title
-  )}&key=AIzaSyA7W8k35xcWplp6773PLBHKwqQyMPJ6VVY`;
+  )}&key=${GOOGLE_API_KEY}`;
 
   axios
     .get(url)
@@ -1594,7 +1648,7 @@ app.get("/bookSearchByAuthor", (req, res) => {
   let url = `https://www.googleapis.com/books/v1/volumes?q=inauthor:${encodeURIComponent(
     author
   )}
-  &key=AIzaSyA7W8k35xcWplp6773PLBHKwqQyMPJ6VVY`;
+  &key=${GOOGLE_API_KEY}`;
 
   axios
     .get(url)
@@ -1633,7 +1687,7 @@ app.get("/bookSearchByISBN", (req, res) => {
   let url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${encodeURIComponent(
     isbn
   )}
-  &key=AIzaSyA7W8k35xcWplp6773PLBHKwqQyMPJ6VVY`;
+  &key=${GOOGLE_API_KEY}`;
 
   axios
     .get(url)
