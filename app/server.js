@@ -845,7 +845,6 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
         </div>
       </div>
     </div>
-
     <div id="searchResult"></div>
     <div id="mainBlock">
       <div id="leftSide">
@@ -863,29 +862,6 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
           <div id="votingBox">
             <div>
           <h2 id="votedFilmsTitle" >Voted Films</h2>
-
-      <header>
-        <span style="display:flex;justify-content: space-between;">
-          <span id="pageHeader">
-            <h1>Welcome to ${groupCode}</h1>
-          </span>
-          <button id="leaveGroup" style="text-align:right;height: fit-content;/* top: 50%; */transform: translateY(250%);">Leave Group</button>
-        </span>
-      </header>
-      <main>
-
-        <button id="membersButton">Members</button>
-        <ul id="membersList"></ul>
-
-        <div id="searchSection">
-          <h2>Search for a Film</h2>
-          <input type="text" id="searchTitle" placeholder="Title">
-          <button id="searchFilm">Search</button>
-          <div id="searchResult"></div>
-        </div>
-
-        <div>
-          <h2>Voted Films</h2>
           <ul id="votedFilms"></ul>
         </div>
 
@@ -1172,23 +1148,8 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
               <button id="stopVote">Stop Vote</button>
               <button id="startVote">Start Voting</button>
               <button id="membersButton">Members</button>
-
               <div id="membersListWrapper"> 
                 <ul id="membersList"></ul>
-
-              <ul id="membersList"></ul>
-
-              <div id="searchSection">
-                  <h2>Search for a Book</h2>
-                  <input type="text" id="searchTitle" placeholder="Title">
-                  <button id="searchBook">Search</button>
-                  <div id="searchResult"></div>
-              </div>
-
-              <div>
-                  <h2>Voted Books</h2>
-                  <ul id="votedBooks"></ul>
-
               </div>
             </div>
           </div>
