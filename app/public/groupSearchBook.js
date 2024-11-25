@@ -34,9 +34,13 @@ document.addEventListener("DOMContentLoaded", async () => {
           );
           votedBooksList.innerHTML = "";
           mostVotedBookSection.innerHTML = `
-            <h2>Most Voted Book</h2>
-            <p>${mostVoted.book_title} with ${mostVoted.num_votes} votes!</p>
-            <img src="${mostVoted.poster}" alt="${mostVoted.book_title} poster" style="max-width: 200px;">
+          <div class="winnerOuter">
+            <div class="winnerContext">
+              <h2>Most Voted Book</h2>
+              <p>${mostVoted.book_title} with ${mostVoted.num_votes} votes!</p>
+            </div>
+            <img id="winnerPoster" src="${mostVoted.poster}" alt="${mostVoted.book_title} poster" style="max-width: 200px;">
+          </div>
           `;
         } else {
           mostVotedBookSection.innerHTML = "<p>No votes yet.</p>";
