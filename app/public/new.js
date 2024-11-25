@@ -32,21 +32,6 @@ homeButton.addEventListener("click", () => {
   window.location.href = "/selection.html";
 });
 
-logoutButton.addEventListener("click", () => {
-  localStorage.clear("userId");
-  fetch("/clearCookie")
-    .then((response) => {
-      return response.json();
-    })
-    .then((body) => {
-      window.location.href = "/";
-      console.log(body.message);
-    })
-    .catch((error) => {
-      console.error(error);
-    });
-});
-
 document.getElementById("watchlistLink").addEventListener("click", () => {
   const userId = localStorage.getItem("userId");
   if (userId) {
@@ -176,7 +161,7 @@ function processJoinModal() {
             displayGroups();
             let type = data.group.group_type;
 
-            let joinedGroupName = data.group.group_name
+            let joinedGroupName = data.group.group_name;
 
             if (type === "book") {
               window.location.href = `/bookGroup/${joinedGroupName}`;
@@ -212,7 +197,7 @@ function processJoinModal() {
             mainModal.classList.remove("hidden");
             displayGroups();
             let type = data.group.group_type;
-            let joinedGroupName = data.group.group_name
+            let joinedGroupName = data.group.group_name;
             if (type === "book") {
               window.location.href = `/bookGroup/${joinedGroupName}`;
             } else {

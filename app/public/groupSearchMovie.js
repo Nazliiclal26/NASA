@@ -368,6 +368,7 @@ fetch(`/getMessages?groupName=${groupCode}`)
     return response.json();
   })
   .then((body) => {
+    console.log(body);
     displayExistingMessages(body);
   })
   .catch((error) => {

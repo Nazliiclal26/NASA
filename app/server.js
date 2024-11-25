@@ -809,34 +809,19 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
     </head>
     <body>
 
+    <main>
+
     <div id="navbar">
       <div id="leftPanel">
         <div id="typeButtons">
           <div id="home">Home</div>
-          <div id="logout">
-            <img src="/images/logout.png" width="30px" />
-          </div>
         </div>
       </div>
-    </div>
-      <header>
-        <span style="display:flex;justify-content: space-between;">
-          <span id="pageHeader">
-            <h1>Welcome to ${groupCode}</h1>
-          </span>
-          <button id="leaveGroup" style="text-align:right;height: fit-content;/* top: 50%; */transform: translateY(250%);">Leave Group</button>
-        </span>
-      </header>
-      <main>
-
-        <button id="membersButton">Members</button>
-        <ul id="membersList" class="hidden"></ul>
-
+      <div id="searchBox">
         <div id="searchSection">
           <h2>Search for a Film</h2>
           <input type="text" id="searchTitle" placeholder="Title">
           <button id="searchFilm">Search</button>
-          <div id="searchResult"></div>
         </div>
       </div>
       <div id="navButtons">
@@ -861,6 +846,7 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
         </div>
       </div>
     </div>
+    <div id="searchResult"></div>
     <div id="mainBlock">
       <div id="leftSide">
         <div class="box">
@@ -868,6 +854,8 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
             <div id="buttonContainer">
             <button id="stopVote">Stop Vote</button>
             <button id="startVote">Start Voting</button>
+            <button id="membersButton">Members</button>
+            <ul id="membersList" class="hidden"></ul>
         </div>
           </div>
           <div id="votingBox">
@@ -948,7 +936,14 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
       </div>
       <div id="rightSide">
       <div id="info">
-        <h1>Welcome to Group ${name}</h1>
+        <header>
+        <span style="display:flex;justify-content: space-between;">
+          <span id="pageHeader">
+            <h1>Welcome to ${groupCode}</h1>
+          </span>
+          <button id="leaveGroup" style="text-align:right;height: fit-content;/* top: 50%; */transform: translateY(250%);">Leave Group</button>
+        </span>
+      </header>
       </div>
         <div id="chatBox">
           <div id="chatSection">
@@ -1010,7 +1005,7 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
 
       <div id="joinModal" class="hidden">
         <div id="joinGroupModalButton">
-          <img id="closeIcon" src="//arrowGroup.png" width="30px" />
+          <img id="closeIcon" src="/images/arrowGroup.png" width="30px" />
         </div>
         <div id="groupModal">
           <div id="title">My Groups</div>
@@ -1067,7 +1062,7 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
       </main>
       <script src="/socket.io/socket.io.js"></script>
       <script src="/new.js"></script>
-       <script src="/nabvar.js"></script>
+       <script src="/navbar.js"></script>
     </body>
     </html>
   `);

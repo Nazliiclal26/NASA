@@ -59,10 +59,11 @@
 }
 
 #votingBox {
-  width: 650px;
-  height: 300px;
-  background-color: rgb(197, 62, 62);
+  width: 630px;
+  height: 280px;
+  background-color: white;
   margin-right: 5px;
+  padding: 10px;
 }
 
 #calendarBox,
@@ -82,23 +83,27 @@
 }
 
 #chatBox {
-  width: 390px;
-  height: 485px;
-  background-color: rgb(144, 45, 168);
+  width: 370px;
+  height: 465px;
+  background-color: white;
+  padding: 10px;
 }
 
 #info {
-  width: 390px;
-  height: 115px;
-  background-color: rgb(144, 45, 168);
+  width: 370px;
+  height: 95px;
+  background-color: white;
   margin-bottom: 20px;
+  border-radius: 15px;
+  padding: 10px;
 }
 
 #options {
-  width: 180px;
-  height: 300px;
-  background-color: rgb(62, 64, 197);
+  width: 160px;
+  height: 280px;
+  background-color: white;
   margin-right: 20px;
   border-radius: 15px;
   margin-left: 80px;
+  padding: 10px;
 }
