@@ -197,7 +197,7 @@ app.post("/checkIfLeader", async (req, res) => {
   group
     .findByName(groupName)
     .then((result) => {
-      console.log(result);
+      // console.log(result);
       if (result.leader_id === id) {
         return res
           .status(200)
@@ -1288,7 +1288,7 @@ app.get("/getGroupMembers", async (req, res) => {
 });
 
 app.post("/addMessage", async (req, res) => {
-  console.log(req.body);
+  // console.log(req.body);
   let sentUser = req.body["sentUser"];
   let message = req.body["message"];
   let groupName = req.body["groupName"];
@@ -1386,13 +1386,17 @@ app.get("/getMessages", async (req, res) => {
   await group.findByName(groupName).then((body) => {
     groupId = body.id; // Returns a singular row from group table so we just pass the id
   }).catch((error) => {
-    console.error(error);
+    // throw new Error in models stop execution
+    console.log(error);
     return res.status(500).json({});
   });
   // Get messages by group id
   let messageCollection = {};
   await messages.getMessagesByGroupId(groupId).then((rows) => {
     messageCollection = rows;
+  }).catch((error)=>{
+    console.log(error);
+    return res.status(500).json({});
   });
   // Create message object
   let messageObj = {
@@ -1401,6 +1405,40 @@ app.get("/getMessages", async (req, res) => {
   };
   // data gon be like { username: "username", messages: [{ username: "message" }] }
   return res.status(200).json(messageObj);
+});
+
+app.get('/deleteGroup', async (req, res) => {
+  let { id } = req.query;
+  if (id === null || id === undefined) {
+    return res.status(400).json({
+      message: 'The query does not contain a group id to delete.'
+    });
+  }
+  
+  await group.deleteGroup(id).then((body) => {
+    // console.log(body);
+    return res.status(200).json({message: 'Group has been successfully deleted.'})
+  }).catch((error) => {
+    console.error(error);
+  })
+
+});
+
+app.get('/getMembersFromIDs', async (req,res) => {
+  let { members } = req.query;
+  if (members === null || members === undefined) {
+    return res.status(400).json({
+      message: 'The query does not contain a members to return usernames from.'
+    });
+  }
+
+  await user.getUsernamesFromIDs(members).then((result) => {
+    return res.status(200).json({usernames: result, message: 'Group usernames have been successfully returned'});
+  }).catch((error) => {
+    console.error(error);
+    return res.status(500).json({message: 'Something went wrong. Internal server issue.'});
+  });
+
 });
 
 app.get("/groupSearch", (req, res) => {

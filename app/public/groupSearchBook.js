@@ -265,8 +265,95 @@ document.addEventListener("DOMContentLoaded", async () => {
       fetchVotes(); 
     });
 
-    leaveGroupButton.addEventListener("click", () => {
-      window.location.href = '/selection.html';
+   
+    // execute fetch request for deleting group , sending in group id
+    async function deleteGroup(groupId) {
+      try {
+        const response = await fetch(`/deleteGroup?id=${groupId}`);
+        
+        if (response.ok) {
+          const body = await response.json();
+          alert(body.message);
+          window.location.href = '/selection.html';
+        } else {
+          const errorBody = await response.json();
+          alert(errorBody.message);
+        }
+      } catch (error) {
+        console.error('An error occurred:', error);
+      }
+    }
+    
+    async function getMembers(groupId) {
+      try {
+        return []
+      }
+      catch (error) {
+
+      }
+    }
+
+    // WARNING: HAVE TO REFRESH WHEN NEW MEMBERS ENTER:
+    leaveGroupButton.addEventListener("click", async () => {
+      // Check the which case should leave group execute under:
+      let storedUserId = parseInt(localStorage.getItem("userId"));
+      let groupBody = JSON.parse(localStorage.getItem("groupInfo"));
+      console.log(groupBody)
+      if (groupBody === null || groupBody === undefined) {
+        return;
+      }
+      let leaderId = groupBody.leader_id;
+      let groupId = groupBody.id;
+      let members = groupBody.members;
+      // If the user is the leader and sole member - executes deletion of the group
+      if (storedUserId === leaderId && members.length === 1) {
+        if (confirm("You are the sole member of the group. If you leave, the group and all its data will be deleted. Proceed?")) {
+          deleteGroup(groupId);
+        }
+      }
+      // If user is only the leader and there are other members in group - undergoes leader reassignment then is removed from member list
+      else if (storedUserId === leaderId) {
+        if (confirm("You are the leader of the group. Would you like to re-assign leadership and proceed with leaving the group.")) {
+          // fetch members
+
+          // WAITTTTTT! DO LOCALSTORAGE SET FOR USER'S NAME!!!!! 
+          let queryString = `members=${members.join('&members=')}`;
+          console.log(queryString);
+          fetch(`/getMembersFromIDs?${queryString}`).then((response) => {
+            return response.json();
+          }).then((body) => {
+            console.log(body);
+          }).catch((error) => {
+            console.error(error);
+          });
+          // getMembers(groupId).then((result) => {
+          //   let members = result;
+          // }).catch((error) => {
+
+          // });
+          // let inputString = "Here is a list of the members:\n";
+          // let newMember = input(inputString);
+          
+          // ALSO HAVE TO REMOVE THE USER ID FROM THE GROUP ONCE LEADER HAS BEEN RE-ASSIGNED AND SHIT!
+          // jump down to normal member removal nexts
+        }
+        // showMemberAssignModal();
+        // validate newMember against actual members
+        // let's just do an alert type jawn
+        // confirm member to reassign to - maybe through temporary modal..? - and update leader of group , sending in that member's id? 
+        // execute fetch request for removing member , sending in user id
+        
+      }
+      // Normal member leave out
+      else {
+        if (confirm("You are about to permanently exit the group. Proceed?")) {
+          // execute fetch request for deleting member from group's member list, sending in group id
+          window.location.href = '/selection.html';
+        }
+      }
+    
+
+      // window.location.href = '/selection.html';
     });
     
     populateGroupInfo().then(() => {
@@ -274,6 +361,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
     fetchVotes(); 
     checkIfLeader();
+    //setLeaderUsername();
 
 
     const membersButton = document.getElementById('membersButton');

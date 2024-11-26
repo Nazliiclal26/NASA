@@ -67,6 +67,20 @@ const Group = {
         );
         
         return result.rows[0];
+    },
+
+    // Delete a group given the ID
+    deleteGroup: async (groupId) => {
+        if (!groupId) {
+            console.error(`Group Id must be valid. ${groupId} is not a valid Group id.`);
+        }
+
+        const result = await pool.query(
+            "DELETE from groups WHERE id = $1", 
+            [groupId]
+        );
+
+        return result;
     }
 
 };

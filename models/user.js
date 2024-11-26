@@ -57,6 +57,21 @@ const User = {
             [preferredGenres, userId]
         );
         return result.rows[0];
+    },
+
+    // Get user's names from ID
+    getUsernamesFromIDs: async (userIds) => {
+        if (userIds.length === 0) {
+            console.error(`Length of member IDs cannot be empty. ${userIds} is not an acceptable form of input`);
+        }
+
+        const result = await pool.query(
+            `SELECT username
+            FROM users WHERE id = ANY($1)`,
+            [userIds]
+        )
+        
+        return result.rows.map(row => row.username);
     }
 };
 
