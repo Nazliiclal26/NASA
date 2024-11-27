@@ -67,6 +67,35 @@ const Group = {
         );
         
         return result.rows[0];
+    },
+
+    // Delete a group given the ID
+    deleteGroup: async (groupId) => {
+        if (!groupId) {
+            console.error(`Group Id must be valid. ${groupId} is not a valid Group id.`);
+        }
+
+        const result = await pool.query(
+            "DELETE from groups WHERE id = $1", 
+            [groupId]
+        );
+
+        return result;
+    },
+
+    removeMember: async (memberId, groupId) => {
+        // is it better to
+        if (!memberId || !groupId) {
+            console.error(`Either memberId or groupId is invalid. Here is the member id: ${memberId}. Here is the group id: ${groupId}`);
+        }
+
+        const result = await pool.query(
+            `UPDATE groups
+            SET members = array_remove(members, $1) WHERE id = $2`, 
+            [memberId, groupId]
+        );
+
+        return result;
     }
 
 };

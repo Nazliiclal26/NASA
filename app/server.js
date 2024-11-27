@@ -197,7 +197,7 @@ app.post("/checkIfLeader", async (req, res) => {
   group
     .findByName(groupName)
     .then((result) => {
-      console.log(result);
+      // console.log(result);
       if (result.leader_id === id) {
         return res
           .status(200)
@@ -1402,7 +1402,7 @@ app.get("/getGroupMembers", async (req, res) => {
 });
 
 app.post("/addMessage", async (req, res) => {
-  console.log(req.body);
+  // console.log(req.body);
   let sentUser = req.body["sentUser"];
   let message = req.body["message"];
   let groupName = req.body["groupName"];
@@ -1526,6 +1526,9 @@ app.get("/getMessages", async (req, res) => {
   let messageCollection = {};
   await messages.getMessagesByGroupId(groupId).then((rows) => {
     messageCollection = rows;
+  }).catch((error)=>{
+    console.log(error);
+    return res.status(500).json({});
   });
   // Create message object
   let messageObj = {
@@ -1534,6 +1537,40 @@ app.get("/getMessages", async (req, res) => {
   };
   // data gon be like { username: "username", messages: [{ username: "message" }] }
   return res.status(200).json(messageObj);
+});
+
+app.get('/deleteGroup', async (req, res) => {
+  let { id } = req.query;
+  if (id === null || id === undefined) {
+    return res.status(400).json({
+      message: 'The query does not contain a group id to delete.'
+    });
+  }
+  
+  await group.deleteGroup(id).then((body) => {
+    // console.log(body);
+    return res.status(200).json({message: 'Group has been successfully deleted.'})
+  }).catch((error) => {
+    console.error(error);
+  })
+
+});
+
+app.get('/getMembersFromIDs', async (req,res) => {
+  let { members } = req.query;
+  if (members === null || members === undefined) {
+    return res.status(400).json({
+      message: 'The query does not contain a members to return usernames from.'
+    });
+  }
+
+  await user.getUsernamesFromIDs(members).then((result) => {
+    return res.status(200).json({usernames: result, message: 'Group usernames have been successfully returned'});
+  }).catch((error) => {
+    console.error(error);
+    return res.status(500).json({message: 'Something went wrong. Internal server issue.'});
+  });
+
 });
 
 app.get("/groupSearch", (req, res) => {
@@ -1711,6 +1748,58 @@ app.get("/getUsername/:userId", async (req, res) => {
       message: "username not available",
     });
   }
+});
+
+app.post("/removeMemberFromGroup", async (req,res) => {
+  let { userId , groupId } = req.body;
+  if (userId === null || userId === undefined ) {
+    return res.status(400).json({isSuccess: false, message: 'userId is missing'});
+  }
+
+  if (groupId === null || groupId === undefined ) {
+    return res.status(400).json({isSuccess: false, message: 'groupId is missing'});
+  }
+
+  await group.removeMember(userId, groupId).then((body) => {
+    return res.status(200).json({isSuccess: true, message: ''})
+  }).catch((error) => {
+    console.error(error);
+    return res.status(500).json({isSuccess: false, message: 'Server error in removing user from group'})
+  });
+});
+
+app.post("/updateLeader", async (req, res) => {
+  let {  username, groupId } = req.body;
+  if (username === null || username === undefined ) {
+    return res.status(400).json({isSuccess: false, message: 'username is missing'});
+  }
+
+  // Get userId from username
+  let userId = null;
+  await user.findByUsername(username).then((body) => {
+    userId = body.id;
+  }).catch((error) => {
+    console.error(error);
+    return res.status(500).json({isSuccess:false, message:`Server issue getting user id from username ${username}`})
+  });
+ 
+  // Should occur under catch but still
+  if (userId == null) {
+    return res.status(500).json({isSuccess:false, message:`Server issue getting user id from username ${username}`})
+
+  }
+
+  if (groupId === null || groupId === undefined ) {
+    return res.status(400).json({isSuccess: false, message: 'groupId is missing'});
+  }
+
+  await group.updateLeader(groupId, userId).then((body) => {
+    return res.status(200).json({isSuccess: true, message: ''});
+  }).catch((error) => {
+    console.error(error);
+    return res.status(500).json({isSuccess: true, message: 'Server issue updating leader'});
+  });
+
 });
 
 app.get("/bookVotes/:groupCode", async (req, res) => {
