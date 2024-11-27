@@ -306,9 +306,191 @@ document.addEventListener("DOMContentLoaded", async () => {
     let data = await response.json();
     localStorage.setItem("groupInfo", JSON.stringify(data));
   }
+  async function deleteGroup(groupId) {
+    try {
+      const response = await fetch(`/deleteGroup?id=${groupId}`);
+
+      if (response.ok) {
+        const body = await response.json();
+        alert(body.message);
+        window.location.href = '/selection.html';
+      } else {
+        const errorBody = await response.json();
+        alert(errorBody.message);
+      }
+    } catch (error) {
+      console.error('An error occurred:', error);
+    }
+  }
+
+  async function setLeaderUsername() {
+    try {
+      let leaderId = JSON.parse(localStorage.getItem("groupInfo")).leader_id;
+      const response = await fetch(`/getUsername/${leaderId}`);
+      if (response.ok) {
+        const body = await response.json();
+        localStorage.setItem("leaderUsername", body.rows[0].username);
+      }
+      else {
+        console.error("Could not retrieve leader username");
+      }
+    }
+    catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function removeMemberFromGroup(userId, groupId) {
+    console.log("In remove member form group = userid:" , userId, "and groupdId:", groupId);
+    try {
+      const response = await fetch(`/removeMemberFromGroup`, {
+        method: 'POST',
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({userId: userId, groupId: groupId})
+      });
+      const body = await response.json();
+      if (body.isSuccess) {
+        alert("You have been successfully removed from group: " + groupCode);
+        window.location.href= '/selection.html';
+      }
+      else {
+        alert("There was an error in removing you from the group. Try again.");
+        console.error(body.message);
+      }
+    }
+    catch (error) {
+      console.error(error);
+    }
+  }
+
+  function validateNewLeader(leader, usernames) {
+    leader = leader.trim();
+    while (!usernames.includes(leader)) {
+      leader = prompt("Please enter a valid username to reassign to:\n" + usernames.join(", "));
+    }
+    return leader;
+  }
+
+  async function updateLeaderForGroup(groupId, newLeaderUsername) {
+    try {
+      const response = await fetch("/updateLeader", {
+        method: 'POST',
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({username: newLeaderUsername, groupId: groupId})
+      });
+      const body = await response.json();
+      if (body.isSuccess) {
+        alert("Leader has been successfully updated");
+        window.location.html;
+      }
+      else {
+        alert(body.message);
+      }
+    }
+    catch (error) {
+      console.error(error);
+    }
+  }
+
+  function buildQueryString(members) {
+    return `members=${members.join('&members=')}`;
+  }
+
+  async function fetchMembers(queryString) {
+    const response = await fetch(`/getMembersFromIDs?${queryString}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch members: ${response.statusText}`);
+    }
+    return response.json();
+  }
+
+  function getReassignPrompt(usernames) {
+    const memberString = `
+      The following list is the remaining members. 
+      Please enter a username to reassign to:
+      ${usernames.join(", ")}
+    `.trim();
+    return prompt(memberString);
+  }
+
+  async function reassignLeaderAndLeave(groupId, members, storedUserId) {
+    try {
+      const queryString = buildQueryString(members);
+      const body = await fetchMembers(queryString);
+
+      const noLeaderUsernames = body.usernames.filter(username => username !== localStorage.getItem("leaderUsername"));
+      let newLeader = getReassignPrompt(noLeaderUsernames);
+      newLeader = validateNewLeader(newLeader, noLeaderUsernames);
+
+      await updateLeaderForGroup(groupId, newLeader);
+
+      await removeMemberFromGroup(storedUserId, groupId);
+    } catch (error) {
+      console.error('An error occurred:', error);
+    }
+  }
+
+  async function handleGroupExit(storedUserId, leaderId, groupId, members) {
+    try {
+      if (storedUserId === leaderId && members.length === 1) {
+        // Sole member scenario
+        if (confirm("You are the sole member of the group. If you leave, the group and all its data will be deleted. Proceed?")) {
+          try {
+            await deleteGroup(groupId);
+            console.log("Group deleted successfully.");
+          } catch (error) {
+            console.error("Failed to delete the group:", error);
+          }
+        }
+      } 
+      // Leader reassignment scenario
+      else if (storedUserId === leaderId) {
+        if (confirm("You are the leader of the group. Would you like to re-assign leadership and proceed with leaving the group?")) {
+          try {
+            await reassignLeaderAndLeave(groupId, members, storedUserId);
+            console.log("Leader reassigned and left the group successfully.");
+          } catch (error) {
+            console.error("Failed to reassign leader or leave the group:", error);
+          }
+        }
+      } 
+      // Normal member leave scenario
+      else {
+        if (confirm("You are about to permanently exit the group. Proceed?")) {
+          try {
+            await removeMemberFromGroup(storedUserId, groupId);
+            console.log("Member removed from the group successfully.");
+          } catch (error) {
+            console.error("Failed to remove member from the group:", error);
+          }
+        }
+      }
+    } catch (generalError) {
+      console.error("An unexpected error occurred:", generalError);
+    }
+  }
+
+
+  leaveGroupButton.addEventListener("click", async () => {
+    // Check the which case should leave group execute under:
+    let storedUserId = parseInt(localStorage.getItem("userId"));
+    let groupBody = JSON.parse(localStorage.getItem("groupInfo"));
+    console.log(groupBody)
+    if (groupBody === null || groupBody === undefined) {
+      return;
+    }
+    let leaderId = groupBody.leader_id;
+    let groupId = groupBody.id;
+    let members = groupBody.members;
+    await handleGroupExit(storedUserId, leaderId, groupId, members);
+  });
 
   populateGroupInfo().then(() => {
     populateHeaderWithGroupInfo();
+    setLeaderUsername();
+  }).catch((error) => {
+    console.error(error);
+    window.location.reload();
   });
   fetchVotes();
   checkIfLeader();

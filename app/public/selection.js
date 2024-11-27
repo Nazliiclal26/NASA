@@ -29,6 +29,7 @@ let moviesButton = document.getElementById("movies");
 
 document.addEventListener("DOMContentLoaded", () => {
   localStorage.removeItem("groupInfo");
+  localStorage.removeItem("leaderUsername");
 });
 
 booksButton.addEventListener("click", () => {
