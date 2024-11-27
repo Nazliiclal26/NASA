@@ -9,6 +9,43 @@ document.addEventListener("DOMContentLoaded", async () => {
   let mostVotedBookSection = document.getElementById("mostVotedBook");
   let leaveGroupButton = document.getElementById("leaveGroup");
 
+  let form = document.getElementById("bookSuggestionsForm");
+  let resultsContainer = document.getElementById("bookSuggestionsResult");
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    resultsContainer.innerHTML="";
+
+    let preferences = {
+      genre: document.getElementById("bookGenre").value,
+      mood: document.getElementById("bookMood").value,
+      author: document.getElementById("author").value || null,
+      bookType: document.getElementById("bookType").value,
+      minRating: document.getElementById("minRating").value,
+      audience: document.getElementById("audience").value,
+      minPages: document.getElementById("minPages").value || null,
+      maxPages: document.getElementById("maxPages").value || null,
+    };
+
+    try {
+      let response = await fetch("/bookGroup/recommend", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(preferences),
+      });
+
+      let rawData = await response.json(); 
+      let chatGPTAnswer = rawData.choices[0].message.content; 
+
+      resultsContainer.innerHTML = `<h2>Recommended Books:</h2><pre>${chatGPTAnswer}</pre>`;
+    } catch (error) {
+      //console.error("Error fetching recommendations:", error);
+      resultsContainer.innerHTML = `<p>Please try again later!</p>`;
+    }
+  });
+  
   try {
     let votingStatusResponse = await fetch(`/getVotingStatus/${groupCode}`);
     let { votingStatus } = await votingStatusResponse.json();

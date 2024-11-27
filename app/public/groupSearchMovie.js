@@ -9,6 +9,40 @@ document.addEventListener("DOMContentLoaded", async () => {
   let mostVotedFilmSection = document.getElementById("mostVotedFilm");
   let leaveGroupButton = document.getElementById("leaveGroup");
 
+  let form = document.getElementById("suggestionsForm");
+  let resultsContainer = document.getElementById("suggestionsResult");
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    resultsContainer.innerHTML = "";
+
+    let preferences = {
+      genres: document.getElementById("genres").value,
+      mood: document.getElementById("mood").value,
+      minRating: document.getElementById("minRating").value,
+      contentRating: document.getElementById("contentRating").value,
+      movieType: document.getElementById("movieType").value,
+    };
+
+    try {
+      let response = await fetch("/movieGroup/recommend", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(preferences),
+      });
+
+      let rawData = await response.json(); 
+      let chatGPTAnswer = rawData.choices[0].message.content; 
+
+      resultsContainer.innerHTML = `<h2>Recommended Movies:</h2><pre>${chatGPTAnswer}</pre>`;
+    } catch (error) {
+      //console.error("Error fetching recommendations:", error);
+      resultsContainer.innerHTML = `<p>Please try again later!</p>`;
+    }
+  });
+  
   async function fetchGroupWatchlist() {
     try {
       let response = await fetch(`/getGroupWatchlistMovies/${groupCode}`);
