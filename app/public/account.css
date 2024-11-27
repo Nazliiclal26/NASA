@@ -1,0 +1,584 @@
+body {
+  height: 110vh;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+}
+
+#navbar {
+  width: 100%;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  border-bottom: 2px solid black;
+}
+
+#search {
+  width: 580px;
+  height: 5px;
+  background-color: white;
+  border: 2px solid black;
+  padding: 30px;
+  font-size: 20px;
+  font-style: italic;
+}
+
+#search:hover {
+  cursor: text;
+  background-color: rgb(248, 248, 248);
+}
+
+#leftPanel {
+  width: 600px;
+  height: 100%;
+
+  display: flex;
+  align-items: end;
+}
+
+#navButtons {
+  width: 600px;
+  height: 55px;
+  background-color: white;
+  display: flex;
+  flex-direction: row;
+  margin-left: 120px;
+}
+
+#buttonContainer {
+  display: flex;
+  margin-left: 120px;
+  gap: 45px;
+}
+
+#watchlist,
+#account,
+#home,
+#confirm,
+#confirmUser {
+  width: 180px;
+  height: 100%;
+  border-radius: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: larger;
+  font-weight: 500;
+}
+
+#account,
+#home {
+  background-color: white;
+  border: 2px solid black;
+}
+
+#account:hover,
+#home:hover {
+  background-color: rgb(223, 223, 223);
+}
+
+#watchlist,
+#confirm,
+#confirmUser {
+  background-color: rgb(15, 158, 213);
+  color: white;
+}
+
+#watchlist:hover,
+#confirm:hover,
+#confirmUser:hover {
+  background-color: rgb(5, 134, 185);
+}
+
+#account:hover,
+#watchlist:hover,
+#home:hover,
+#confirm:hover,
+#confirmUser:hover {
+  cursor: pointer;
+}
+
+#typeButtons {
+  display: flex;
+}
+
+#books,
+#movies {
+  height: 60px;
+  width: 170px;
+  border-top: 2px solid rgb(0, 0, 0);
+  border-left: 2px solid rgb(0, 0, 0);
+  border-right: 2px solid rgb(0, 0, 0);
+  border-radius: 15px 15px 0px 0px;
+  position: relative;
+  top: 0px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 23px;
+  font-weight: 500;
+}
+
+#books:hover,
+#movies:hover {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+#books {
+  background-color: white;
+}
+
+#main {
+  display: flex;
+  justify-content: center;
+  height: 900px;
+  flex-direction: column;
+  align-items: center;
+}
+
+#groupButton {
+  position: absolute;
+  width: 100px;
+  height: 120px;
+  background-color: rgb(202, 238, 251);
+  right: 0px;
+  top: 100px;
+  border-radius: 40px 0px 0px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#groupModal {
+  position: absolute;
+  width: 380px;
+  height: 600px;
+  background-color: rgb(202, 238, 251);
+  right: 0px;
+  top: 100px;
+  border-radius: 40px 0px 0px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  flex-direction: column;
+}
+
+#title {
+  font-size: 27px;
+  font-weight: 500;
+  margin-bottom: 30px;
+}
+
+#titleGroup,
+#titleGroupName {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+#titleGroupName {
+  margin-top: 10px;
+  margin-bottom: 6px;
+  font-size: 17px;
+}
+
+#groups {
+  width: 300px;
+  height: 370px;
+  background-color: white;
+  border-radius: 20px;
+  border: 2px solid black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+#groupActions {
+  width: 300px;
+  height: 50px;
+  margin-top: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+
+#joinButton,
+#addButton,
+#joinAddButton,
+#joinGroupHome,
+#createHomeButton,
+#createJoinButton {
+  height: 100%;
+  width: 125px;
+  background-color: rgb(255, 255, 255);
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: large;
+  font-weight: 500;
+  border: 2px solid black;
+}
+
+#joinButton:hover,
+#joinAddButton:hover,
+#joinGroupHome:hover,
+#addButton:hover,
+#createHomeButton:hover,
+#createJoinButton:hover {
+  background-color: rgb(223, 223, 223);
+  cursor: pointer;
+}
+
+#mainGroupModalButton,
+#joinGroupModalButton,
+#createGroupModalButton {
+  position: absolute;
+  width: 420px;
+  height: 110px;
+  background-color: rgb(202, 238, 251);
+  right: 0px;
+  top: 100px;
+  border-radius: 25px 0px 0px 25px;
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  cursor: pointer;
+}
+
+#closeIcon {
+  margin-left: 10px;
+}
+
+#groupButton:hover {
+  background-color: rgb(175, 231, 252);
+  cursor: pointer;
+}
+
+#groupIcon {
+  margin-left: 8px;
+}
+
+.hidden {
+  display: none;
+}
+
+#logout {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+}
+
+#logout:hover {
+  cursor: pointer;
+}
+
+#code,
+#name {
+  width: 200px;
+  height: 10px;
+  border: 2px solid black;
+  margin-top: 40px;
+  padding: 20px;
+  font-size: 20px;
+  text-align: center;
+}
+
+#code:hover,
+#name:hover {
+  cursor: text;
+  background-color: rgb(248, 248, 248);
+}
+
+#name {
+  margin-top: 20px;
+}
+
+#random,
+#joinGroup {
+  background-color: rgb(221, 221, 221);
+  width: 130px;
+  height: 50px;
+  margin-top: 30px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: large;
+  font-weight: 500;
+}
+
+#joinGroup {
+  border-radius: 30px;
+  background-color: rgb(15, 158, 213);
+  color: white;
+}
+
+#create {
+  background-color: rgb(221, 221, 221);
+  width: 130px;
+  height: 50px;
+  margin-top: 30px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: large;
+  font-weight: 500;
+}
+
+#random:hover {
+  cursor: pointer;
+  background-color: rgb(189, 187, 187);
+}
+
+#joinGroup:hover {
+  background-color: rgb(12, 129, 175);
+  cursor: pointer;
+}
+
+#typeButtonsModalType,
+#typeButtonsModalAccess {
+  width: 230px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+#booksButton,
+#moviesButton,
+#privateButton,
+#publicButton {
+  background-color: rgb(202, 238, 251);
+  height: 30px;
+  width: 70px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: large;
+  font-weight: 500;
+}
+
+#booksButton:hover,
+#moviesButton:hover,
+#publicButton:hover,
+#privateButton:hover {
+  cursor: pointer;
+  background-color: rgb(164, 217, 236);
+}
+
+#selectedType {
+  border: 2px solid black;
+}
+
+#create {
+  border-radius: 30px;
+  width: 140px;
+  height: 40px;
+  background-color: rgb(15, 158, 213);
+  color: white;
+}
+
+#create:hover {
+  cursor: pointer;
+  background-color: rgb(5, 134, 185);
+}
+
+.randomClicked {
+  border: 2px solid black;
+}
+
+.clickedGroupButton {
+  border: 2px solid;
+}
+
+#settingsBlock,
+#profileBlock {
+  height: 630px;
+  width: 450px;
+  background-color: rgb(202, 238, 251);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 20px;
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-bottom: 20px;
+}
+
+.paramBlock {
+  height: 250px;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+#username {
+  height: 250px;
+  width: 90%;
+  margin-bottom: 0px;
+}
+
+.title {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  font-size: 23px;
+  font-weight: 600;
+  color: black;
+}
+
+.titleInput {
+  height: 60px;
+}
+
+#newUsername,
+#newPass,
+#repeatPass {
+  width: 95%;
+  height: 90%;
+  border: 1px solid;
+  padding: 5px;
+  font-style: italic;
+}
+
+#confirm,
+#confirmUser {
+  height: 100px;
+  margin-top: 20px;
+}
+
+#confirmUser {
+  margin-top: 0px;
+}
+
+#actionButtons {
+  width: 300px;
+  height: 100px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  font-size: 22px;
+}
+
+.actionButton {
+  width: 140px;
+  height: 50px;
+  border: 2px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-weight: 400;
+}
+
+.actionButton:hover {
+  cursor: pointer;
+  background-color: rgb(235, 235, 235);
+}
+
+.actionClicked {
+  background-color: rgb(235, 235, 235);
+}
+
+#content {
+  width: 500px;
+  height: 370px;
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.row {
+  height: 50px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 21px;
+  gap: 15px;
+  font-weight: 400;
+}
+
+.button {
+  height: 100%;
+  background-color: rgb(202, 238, 251);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-left: 10px;
+  padding-right: 10px;
+  min-width: 70px;
+  border-radius: 10px;
+}
+
+.button:hover {
+  cursor: pointer;
+  background-color: rgb(175, 231, 252);
+}
+
+.button:selection {
+  border: 3px solid black;
+}
+
+.clicked {
+  border: 2px solid black;
+}
+
+#actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+#submit {
+  font-size: 25px;
+  width: 150px;
+  background-color: rgb(15, 158, 213);
+  height: 50px;
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 40px;
+  color: white;
+}
+
+#submit:hover {
+  cursor: pointer;
+  background-color: rgb(5, 134, 185);
+}
+#title {
+  margin-top: 30px;
+  font-size: 32px;
+  width: 250px;
+  text-align: center;
+}
+
+#mainBox {
+  width: 530px;
+  height: 690px;
+  background-color: white;
+  border-radius: 70px;
+  border: 3px solid black;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: top;
+}
