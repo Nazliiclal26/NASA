@@ -1547,6 +1547,13 @@ app.get('/deleteGroup', async (req, res) => {
     });
   }
 
+  await messages.deleteMessagesGivenGroup(id).then((body) => {
+    console.log("Group messages have been deleted for group id", id);
+  }).catch((error) => {
+    console.error("Issue with deleting messages for given group id");
+    return res.status(500).json({message: 'Server with deleting messages for given group id'});
+  });
+
   await group.deleteGroup(id).then((body) => {
     // console.log(body);
     return res.status(200).json({message: 'Group has been successfully deleted.'})

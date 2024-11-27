@@ -42,6 +42,20 @@ const Messages = {
         
         return result.rows;
 
+    },
+
+    deleteMessagesGivenGroup: async (groupId) => {
+        if (!groupId) {
+            console.error("GroupId passed in is not valid, Groupid:", groupId);
+        }
+
+        const result = await pool.query(
+            `DELETE from messages
+            WHERE group_id = $1`,
+            [groupId]
+        );
+
+        return result;
     }
 }
 

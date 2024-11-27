@@ -278,9 +278,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  leaveGroupButton.addEventListener("click", () => {
-    window.location.href = "/selection.html";
-  });
 
   async function populateHeaderWithGroupInfo() {
     let header = document.getElementById("pageHeader");
@@ -306,6 +303,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     let data = await response.json();
     localStorage.setItem("groupInfo", JSON.stringify(data));
   }
+
   async function deleteGroup(groupId) {
     try {
       const response = await fetch(`/deleteGroup?id=${groupId}`);
@@ -381,7 +379,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       const body = await response.json();
       if (body.isSuccess) {
         alert("Leader has been successfully updated");
-        window.location.html;
       }
       else {
         alert(body.message);
@@ -423,7 +420,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       newLeader = validateNewLeader(newLeader, noLeaderUsernames);
 
       await updateLeaderForGroup(groupId, newLeader);
-
       await removeMemberFromGroup(storedUserId, groupId);
     } catch (error) {
       console.error('An error occurred:', error);
