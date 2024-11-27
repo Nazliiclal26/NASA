@@ -58,9 +58,9 @@ const User = {
         );
         return result.rows[0];
     },
-    
-     // Get user's names from ID
-     getUsernamesFromIDs: async (userIds) => {
+
+    // Get user's names from ID
+    getUsernamesFromIDs: async (userIds) => {
         if (userIds.length === 0) {
             console.error(`Length of member IDs cannot be empty. ${userIds} is not an acceptable form of input`);
         }

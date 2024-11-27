@@ -379,6 +379,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const body = await response.json();
       if (body.isSuccess) {
         alert("Leader has been successfully updated");
+
       }
       else {
         alert(body.message);
