@@ -70,7 +70,7 @@ const User = {
             FROM users WHERE id = ANY($1)`,
             [userIds]
         )
-        
+
         return result.rows.map(row => row.username);
     }
 };

@@ -278,9 +278,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  leaveGroupButton.addEventListener("click", () => {
-    window.location.href = "/selection.html";
-  });
 
   async function populateHeaderWithGroupInfo() {
     let header = document.getElementById("pageHeader");
@@ -310,7 +307,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function deleteGroup(groupId) {
     try {
       const response = await fetch(`/deleteGroup?id=${groupId}`);
-      
+
       if (response.ok) {
         const body = await response.json();
         alert(body.message);
@@ -323,7 +320,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.error('An error occurred:', error);
     }
   }
-  
+
   async function setLeaderUsername() {
     try {
       let leaderId = JSON.parse(localStorage.getItem("groupInfo")).leader_id;
@@ -382,7 +379,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const body = await response.json();
       if (body.isSuccess) {
         alert("Leader has been successfully updated");
-        window.location.html;
+
       }
       else {
         alert(body.message);
@@ -396,7 +393,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   function buildQueryString(members) {
     return `members=${members.join('&members=')}`;
   }
-  
+
   async function fetchMembers(queryString) {
     const response = await fetch(`/getMembersFromIDs?${queryString}`);
     if (!response.ok) {
@@ -404,7 +401,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     return response.json();
   }
-  
+
   function getReassignPrompt(usernames) {
     const memberString = `
       The following list is the remaining members. 
@@ -413,18 +410,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     `.trim();
     return prompt(memberString);
   }
-  
+
   async function reassignLeaderAndLeave(groupId, members, storedUserId) {
     try {
       const queryString = buildQueryString(members);
       const body = await fetchMembers(queryString);
-  
+
       const noLeaderUsernames = body.usernames.filter(username => username !== localStorage.getItem("leaderUsername"));
       let newLeader = getReassignPrompt(noLeaderUsernames);
       newLeader = validateNewLeader(newLeader, noLeaderUsernames);
-  
+
       await updateLeaderForGroup(groupId, newLeader);
-      
       await removeMemberFromGroup(storedUserId, groupId);
     } catch (error) {
       console.error('An error occurred:', error);
@@ -470,7 +466,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.error("An unexpected error occurred:", generalError);
     }
   }
-  
+
 
   leaveGroupButton.addEventListener("click", async () => {
     // Check the which case should leave group execute under:
