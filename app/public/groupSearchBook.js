@@ -67,25 +67,56 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (response.ok) {
         let data = await response.json();
         if (data.length > 0) {
-          let mostVoted = data.reduce((a, b) =>
-            a.num_votes > b.num_votes ? a : b
-          );
-          votedBooksList.innerHTML = "";
-          mostVotedBookSection.innerHTML = `
-          <div class="winnerOuter">
-            <div class="winnerContext">
-              <h2>Most Voted Book</h2>
-              <p>${mostVoted.book_title} with ${mostVoted.num_votes} votes!</p>
-            </div>
-            <img id="winnerPoster" src="${mostVoted.poster}" alt="${mostVoted.book_title} poster" style="max-width: 200px;">
-          </div>
-          `;
+          // Use reduce to find the most voted book while resolving ties randomly
+          let mostVoted = data.reduce((a, b) => {
+            if (a.num_votes === b.num_votes) {
+              // Randomly select one of the tied books
+              return Math.random() < 0.5 ? a : b;
+            } else {
+              // Keep the book with more votes
+              return a.num_votes > b.num_votes ? a : b;
+            }
+          });
+  
+          // Mark the selected book as most voted in the backend
+          let setMostVotedResponse = await fetch(`/votes/setMostVotedBook/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ groupCode, book_title: mostVoted.book_title })
+          });
+  
+          if (setMostVotedResponse.ok) {
+            // Use the updated book data from the backend
+            let updatedBook = await setMostVotedResponse.json();
+  
+            // Clear votedBooksList (if necessary)
+            votedBooksList.innerHTML = "";
+  
+            // Display the most voted book
+            mostVotedBookSection.innerHTML = `
+              <div class="winnerOuter">
+                <div class="winnerContext">
+                  <h2>Most Voted Book</h2>
+                  <p>${updatedBook.book_title} with ${updatedBook.num_votes} votes!</p>
+                </div>
+                <img id="winnerPoster" src="${updatedBook.poster}" alt="${updatedBook.book_title} poster" style="max-width: 200px;">
+              </div>
+            `;
+          } else {
+            console.error("Failed to set the most voted book.");
+            mostVotedBookSection.innerHTML = "<p>Error setting the most voted book. Please try again later.</p>";
+          }
         } else {
+          // No votes yet
           mostVotedBookSection.innerHTML = "<p>No votes yet.</p>";
         }
+      } else {
+        console.error("Failed to fetch votes.");
+        mostVotedBookSection.innerHTML = "<p>Error fetching votes. Please try again later.</p>";
       }
     } catch (error) {
-      console.error("Error fetching the most voted book:", error);
+      console.error("Error fetching or updating the most voted book:", error);
+      mostVotedBookSection.innerHTML = "<p>Something went wrong. Please try again later.</p>";
     }
   }
 
