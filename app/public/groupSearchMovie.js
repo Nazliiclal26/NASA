@@ -98,6 +98,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (votingStatus) {
       console.log("hereeee");
+      votedFilmsTitle.innerHTML = "";
       await displayMostVotedFilm();
       searchSection.style.display = "none";
     } else {
@@ -287,6 +288,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       await displayMostVotedFilm();
       searchSection.style.display = "none";
       votedFilmsList.innerHTML = "";
+      votedFilmsTitle.innerHTML = "";
     } catch (error) {
       console.error("Error stopping voting:", error);
     }
