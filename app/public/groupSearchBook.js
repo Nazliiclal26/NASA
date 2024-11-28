@@ -53,6 +53,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (votingStatus) {
       await displayMostVotedBook();
       searchSection.style.display = "none";
+      votedBooksTitle.innerHTML = "";
     } else {
       searchSection.style.display = "flex";
     }
@@ -158,6 +159,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       await displayMostVotedBook();
       searchSection.style.display = "none";
       votedBooksList.innerHTML = "";
+      votedBooksTitle.innerHTML = "";
     } catch (error) {
       console.error("Error stopping voting:", error);
     }
@@ -174,6 +176,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       searchSection.style.display = "flex";
       mostVotedBookSection.innerHTML = "";
+      votedBooksTitle.innerHTML = "Voted Books";
       fetchVotes();
     } catch (error) {
       console.error("Error starting voting:", error);
