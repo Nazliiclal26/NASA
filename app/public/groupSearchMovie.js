@@ -116,10 +116,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (data.length > 0) {
           let mostVoted = data.reduce((a, b) => {
             if (a.num_votes === b.num_votes) {
-              // Randomly select one of the tied films
               return Math.random() < 0.5 ? a : b;
             } else {
-              // Keep the film with more votes
               return a.num_votes > b.num_votes ? a : b;
             }
           });
@@ -131,7 +129,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           });
 
           if (setMostVotedResponse.ok) {
-            // Use the updated film data from the backend
             let mostVoted = await setMostVotedResponse.json();
 
           votedFilmsList.innerHTML = "";
@@ -151,7 +148,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           mostVotedFilmSection.innerHTML = "<p>Error setting the most voted film. Please try again later.</p>";
         }
       } else {
-        // No votes yet
         mostVotedFilmSection.innerHTML = "<p>No votes yet.</p>";
       }
     } else {
