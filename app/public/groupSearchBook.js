@@ -67,18 +67,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (response.ok) {
         let data = await response.json();
         if (data.length > 0) {
-          // Use reduce to find the most voted book while resolving ties randomly
           let mostVoted = data.reduce((a, b) => {
             if (a.num_votes === b.num_votes) {
-              // Randomly select one of the tied books
               return Math.random() < 0.5 ? a : b;
             } else {
-              // Keep the book with more votes
               return a.num_votes > b.num_votes ? a : b;
             }
           });
   
-          // Mark the selected book as most voted in the backend
           let setMostVotedResponse = await fetch(`/votes/setMostVotedBook/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -86,13 +82,10 @@ document.addEventListener("DOMContentLoaded", async () => {
           });
   
           if (setMostVotedResponse.ok) {
-            // Use the updated book data from the backend
             let updatedBook = await setMostVotedResponse.json();
   
-            // Clear votedBooksList (if necessary)
             votedBooksList.innerHTML = "";
   
-            // Display the most voted book
             mostVotedBookSection.innerHTML = `
               <div class="winnerOuter">
                 <div class="winnerContext">
@@ -107,7 +100,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             mostVotedBookSection.innerHTML = "<p>Error setting the most voted book. Please try again later.</p>";
           }
         } else {
-          // No votes yet
           mostVotedBookSection.innerHTML = "<p>No votes yet.</p>";
         }
       } else {
