@@ -59,7 +59,8 @@ CREATE TABLE IF NOT EXISTS votes (
     num_votes INTEGER DEFAULT 1,
     poster VARCHAR(255) NOT NULL,
     film_genre VARCHAR(255),
-    user_id INTEGER
+    user_id INTEGER,
+    mostVotedFilm BOOLEAN DEFAULT FALSE
 );
 
 -- Messages Table
