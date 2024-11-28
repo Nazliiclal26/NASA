@@ -298,6 +298,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
       //console.log("starting vote");
       mostVotedFilmSection.innerHTML = "";
+      votedFilmsTitle.innerHTML = "Voted Films"
       await fetch(`/clearVotes/${groupCode}`, { method: "DELETE" });
       await fetch(`/startVoting/${groupCode}`, {
         method: "POST",
