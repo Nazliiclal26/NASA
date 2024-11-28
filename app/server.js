@@ -78,6 +78,74 @@ let https = require("https");
 
 app.use(bodyParser.json());
 
+app.post('/votes/setMostVotedBook/', async (req, res) => {
+  try {
+    let { groupCode, book_title } = req.body;
+
+    let existingWinner = await db.query(
+      'SELECT * FROM votes WHERE group_code = $1 AND mostVotedFilm = TRUE',
+      [groupCode]
+    );
+
+    if (existingWinner.rows.length > 0) {
+      return res.status(200).json(existingWinner.rows[0]);
+    }
+
+    await db.query(
+      'UPDATE votes SET mostVotedFilm = TRUE WHERE group_code = $1 AND book_title = $2',
+      [groupCode, book_title]
+    );
+
+    let updatedFilm = await db.query(
+      'SELECT * FROM votes WHERE group_code = $1 AND book_title = $2',
+      [groupCode, book_title]
+    );
+
+    if (updatedFilm.rows.length > 0) {
+      res.status(200).json(updatedFilm.rows[0]);
+    } else {
+      res.status(404).send('Book not found after update');
+    }
+  } catch (error) {
+    console.error('Error setting most voted book:', error);
+    res.status(500).send('Error setting most voted book');
+  }
+});
+
+app.post('/votes/setMostVoted/', async (req, res) => {
+  try {
+    const { groupCode, film_title } = req.body;
+
+    const existingWinner = await db.query(
+      'SELECT * FROM votes WHERE group_code = $1 AND mostVotedFilm = TRUE',
+      [groupCode]
+    );
+
+    if (existingWinner.rows.length > 0) {
+      return res.status(200).json(existingWinner.rows[0]);
+    }
+
+    await db.query(
+      'UPDATE votes SET mostVotedFilm = TRUE WHERE group_code = $1 AND film_title = $2',
+      [groupCode, film_title]
+    );
+
+    let updatedFilm = await db.query(
+      'SELECT * FROM votes WHERE group_code = $1 AND film_title = $2',
+      [groupCode, film_title]
+    );
+
+    if (updatedFilm.rows.length > 0) {
+      res.status(200).json(updatedFilm.rows[0]);
+    } else {
+      res.status(404).send('Film not found after update');
+    }
+  } catch (error) {
+    console.error('Error setting most voted film:', error);
+    res.status(500).send('Error setting most voted film');
+  }
+});
+
 app.post("/movieGroup/recommend", (req, res) => {
   let { genres, mood, minRating, contentRating, movieType } = req.body;
 

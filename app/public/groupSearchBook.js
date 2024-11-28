@@ -53,6 +53,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (votingStatus) {
       await displayMostVotedBook();
       searchSection.style.display = "none";
+      votedBooksTitle.innerHTML = "";
     } else {
       searchSection.style.display = "flex";
     }
@@ -66,25 +67,48 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (response.ok) {
         let data = await response.json();
         if (data.length > 0) {
-          let mostVoted = data.reduce((a, b) =>
-            a.num_votes > b.num_votes ? a : b
-          );
-          votedBooksList.innerHTML = "";
-          mostVotedBookSection.innerHTML = `
-          <div class="winnerOuter">
-            <div class="winnerContext">
-              <h2>Most Voted Book</h2>
-              <p>${mostVoted.book_title} with ${mostVoted.num_votes} votes!</p>
-            </div>
-            <img id="winnerPoster" src="${mostVoted.poster}" alt="${mostVoted.book_title} poster" style="max-width: 200px;">
-          </div>
-          `;
+          let mostVoted = data.reduce((a, b) => {
+            if (a.num_votes === b.num_votes) {
+              return Math.random() < 0.5 ? a : b;
+            } else {
+              return a.num_votes > b.num_votes ? a : b;
+            }
+          });
+  
+          let setMostVotedResponse = await fetch(`/votes/setMostVotedBook/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ groupCode, book_title: mostVoted.book_title })
+          });
+  
+          if (setMostVotedResponse.ok) {
+            let updatedBook = await setMostVotedResponse.json();
+  
+            votedBooksList.innerHTML = "";
+  
+            mostVotedBookSection.innerHTML = `
+              <div class="winnerOuter">
+                <div class="winnerContext">
+                  <h2>Most Voted Book</h2>
+                  <p>${updatedBook.book_title} with ${updatedBook.num_votes} votes!</p>
+                </div>
+                <img id="winnerPoster" src="${updatedBook.poster}" alt="${updatedBook.book_title} poster" style="max-width: 200px;">
+              </div>
+            `;
+          } else {
+            console.error("Failed to set the most voted book.");
+            mostVotedBookSection.innerHTML = "<p>Error setting the most voted book. Please try again later.</p>";
+          }
         } else {
           mostVotedBookSection.innerHTML = "<p>No votes yet.</p>";
         }
+      } else {
+        console.error("Failed to fetch votes.");
+        mostVotedBookSection.innerHTML = "<p>Error fetching votes. Please try again later.</p>";
       }
     } catch (error) {
-      console.error("Error fetching the most voted book:", error);
+      console.error("Error fetching or updating the most voted book:", error);
+      mostVotedBookSection.innerHTML = "<p>Something went wrong. Please try again later.</p>";
     }
   }
 
@@ -158,6 +182,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       await displayMostVotedBook();
       searchSection.style.display = "none";
       votedBooksList.innerHTML = "";
+      votedBooksTitle.innerHTML = "";
     } catch (error) {
       console.error("Error stopping voting:", error);
     }
@@ -174,6 +199,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       searchSection.style.display = "flex";
       mostVotedBookSection.innerHTML = "";
+      votedBooksTitle.innerHTML = "Voted Books";
       fetchVotes();
     } catch (error) {
       console.error("Error starting voting:", error);

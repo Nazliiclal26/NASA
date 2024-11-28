@@ -98,6 +98,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (votingStatus) {
       console.log("hereeee");
+      votedFilmsTitle.innerHTML = "";
       await displayMostVotedFilm();
       searchSection.style.display = "none";
     } else {
@@ -113,9 +114,23 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (response.ok) {
         let data = await response.json();
         if (data.length > 0) {
-          let mostVoted = data.reduce((a, b) =>
-            a.num_votes > b.num_votes ? a : b
-          );
+          let mostVoted = data.reduce((a, b) => {
+            if (a.num_votes === b.num_votes) {
+              return Math.random() < 0.5 ? a : b;
+            } else {
+              return a.num_votes > b.num_votes ? a : b;
+            }
+          });
+  
+          let setMostVotedResponse = await fetch(`/votes/setMostVoted/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ groupCode, film_title: mostVoted.film_title })
+          });
+
+          if (setMostVotedResponse.ok) {
+            let mostVoted = await setMostVotedResponse.json();
+
           votedFilmsList.innerHTML = "";
 
           mostVotedFilmSection.innerHTML = `
@@ -129,13 +144,21 @@ document.addEventListener("DOMContentLoaded", async () => {
           </div>
           `;
         } else {
-          mostVotedFilmSection.innerHTML = "<p>No votes yet.</p>";
+          console.error("Failed to set the most voted film.");
+          mostVotedFilmSection.innerHTML = "<p>Error setting the most voted film. Please try again later.</p>";
         }
+      } else {
+        mostVotedFilmSection.innerHTML = "<p>No votes yet.</p>";
       }
-    } catch (error) {
-      console.error("Error fetching the most voted film:", error);
+    } else {
+      console.error("Failed to fetch votes.");
+      mostVotedFilmSection.innerHTML = "<p>Error fetching votes. Please try again later.</p>";
     }
+  } catch (error) {
+    console.error("Error fetching or updating the most voted film:", error);
+    mostVotedFilmSection.innerHTML = "<p>Something went wrong. Please try again later.</p>";
   }
+}
 
   searchButton.addEventListener("click", async () => {
     const title = document.getElementById("searchTitle").value;
@@ -287,6 +310,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       await displayMostVotedFilm();
       searchSection.style.display = "none";
       votedFilmsList.innerHTML = "";
+      votedFilmsTitle.innerHTML = "";
     } catch (error) {
       console.error("Error stopping voting:", error);
     }
@@ -296,6 +320,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
       //console.log("starting vote");
       mostVotedFilmSection.innerHTML = "";
+      votedFilmsTitle.innerHTML = "Voted Films"
       await fetch(`/clearVotes/${groupCode}`, { method: "DELETE" });
       await fetch(`/startVoting/${groupCode}`, {
         method: "POST",
