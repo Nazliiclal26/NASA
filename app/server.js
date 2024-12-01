@@ -10,6 +10,7 @@ const app = express();
 require("dotenv").config({ path: "../.env" });
 let OMDB_API_KEY = process.env.OMDB_API_KEY;
 let GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
+let MOVIEDB_API_KEY = process.env.MOVIEDB_API_KEY;
 let openAiApiKey = process.env.OPEN_AI_API_KEY;
 
 const server = http.createServer(app);
@@ -78,12 +79,12 @@ let https = require("https");
 
 app.use(bodyParser.json());
 
-app.post('/votes/setMostVotedBook/', async (req, res) => {
+app.post("/votes/setMostVotedBook/", async (req, res) => {
   try {
     let { groupCode, book_title } = req.body;
 
     let existingWinner = await db.query(
-      'SELECT * FROM votes WHERE group_code = $1 AND mostVotedFilm = TRUE',
+      "SELECT * FROM votes WHERE group_code = $1 AND mostVotedFilm = TRUE",
       [groupCode]
     );
 
@@ -92,32 +93,32 @@ app.post('/votes/setMostVotedBook/', async (req, res) => {
     }
 
     await db.query(
-      'UPDATE votes SET mostVotedFilm = TRUE WHERE group_code = $1 AND book_title = $2',
+      "UPDATE votes SET mostVotedFilm = TRUE WHERE group_code = $1 AND book_title = $2",
       [groupCode, book_title]
     );
 
     let updatedFilm = await db.query(
-      'SELECT * FROM votes WHERE group_code = $1 AND book_title = $2',
+      "SELECT * FROM votes WHERE group_code = $1 AND book_title = $2",
       [groupCode, book_title]
     );
 
     if (updatedFilm.rows.length > 0) {
       res.status(200).json(updatedFilm.rows[0]);
     } else {
-      res.status(404).send('Book not found after update');
+      res.status(404).send("Book not found after update");
     }
   } catch (error) {
-    console.error('Error setting most voted book:', error);
-    res.status(500).send('Error setting most voted book');
+    console.error("Error setting most voted book:", error);
+    res.status(500).send("Error setting most voted book");
   }
 });
 
-app.post('/votes/setMostVoted/', async (req, res) => {
+app.post("/votes/setMostVoted/", async (req, res) => {
   try {
     const { groupCode, film_title } = req.body;
 
     const existingWinner = await db.query(
-      'SELECT * FROM votes WHERE group_code = $1 AND mostVotedFilm = TRUE',
+      "SELECT * FROM votes WHERE group_code = $1 AND mostVotedFilm = TRUE",
       [groupCode]
     );
 
@@ -126,23 +127,23 @@ app.post('/votes/setMostVoted/', async (req, res) => {
     }
 
     await db.query(
-      'UPDATE votes SET mostVotedFilm = TRUE WHERE group_code = $1 AND film_title = $2',
+      "UPDATE votes SET mostVotedFilm = TRUE WHERE group_code = $1 AND film_title = $2",
       [groupCode, film_title]
     );
 
     let updatedFilm = await db.query(
-      'SELECT * FROM votes WHERE group_code = $1 AND film_title = $2',
+      "SELECT * FROM votes WHERE group_code = $1 AND film_title = $2",
       [groupCode, film_title]
     );
 
     if (updatedFilm.rows.length > 0) {
       res.status(200).json(updatedFilm.rows[0]);
     } else {
-      res.status(404).send('Film not found after update');
+      res.status(404).send("Film not found after update");
     }
   } catch (error) {
-    console.error('Error setting most voted film:', error);
-    res.status(500).send('Error setting most voted film');
+    console.error("Error setting most voted film:", error);
+    res.status(500).send("Error setting most voted film");
   }
 });
 
@@ -167,7 +168,7 @@ app.post("/movieGroup/recommend", (req, res) => {
   ];
 
   let data = JSON.stringify({
-    model: "gpt-4", 
+    model: "gpt-4",
     messages: messages,
     max_tokens: 300,
     temperature: 0.7,
@@ -192,7 +193,7 @@ app.post("/movieGroup/recommend", (req, res) => {
 
     apiResponse.on("end", () => {
       try {
-        res.send(result); 
+        res.send(result);
       } catch (error) {
         console.error("Error processing API response:", error);
         res.status(500).send("Error processing AI response");
@@ -210,7 +211,16 @@ app.post("/movieGroup/recommend", (req, res) => {
 });
 
 app.post("/bookGroup/recommend", (req, res) => {
-  let { genre, mood, author, bookType, minRating, audience, minPages, maxPages } = req.body;
+  let {
+    genre,
+    mood,
+    author,
+    bookType,
+    minRating,
+    audience,
+    minPages,
+    maxPages,
+  } = req.body;
 
   let messages = [
     {
@@ -226,7 +236,9 @@ app.post("/bookGroup/recommend", (req, res) => {
                 - Book Type: ${bookType}
                 - Minimum Rating: ${minRating}
                 - Target Audience: ${audience}
-                - Page Count Range: ${minPages || "No minimum"} to ${maxPages || "No maximum"} pages.
+                - Page Count Range: ${minPages || "No minimum"} to ${
+        maxPages || "No maximum"
+      } pages.
                 Please provide 5 recommendations that match these criteria.`,
     },
   ];
@@ -257,7 +269,7 @@ app.post("/bookGroup/recommend", (req, res) => {
 
     apiResponse.on("end", () => {
       try {
-        res.send(result); 
+        res.send(result);
       } catch (error) {
         console.error("Error processing API response:", error);
         res.status(500).send("Error processing AI response");
@@ -1055,6 +1067,7 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
             <div id="buttonContainer">
               <button id="stopVote">Stop Vote</button>
               <button id="startVote">Start Voting</button>
+              <button id="reassign">Reassign Leader</button>
               <button id="membersButton">Members</button>
               <div id="membersListWrapper"> 
                 <ul id="membersList"></ul>
@@ -1428,6 +1441,7 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
             <div id="buttonContainer">
               <button id="stopVote">Stop Vote</button>
               <button id="startVote">Start Voting</button>
+              <button id="reassign">Reassign Leader</button>
               <button id="membersButton">Members</button>
               <div id="membersListWrapper"> 
                 <ul id="membersList"></ul>
@@ -1885,13 +1899,16 @@ app.get("/getMessages", async (req, res) => {
     });
   // Get messages by group id
   let messageCollection = {};
-  await messages.getMessagesByGroupId(groupId).then((rows) => {
-    messageCollection = rows;
-  }).catch((error)=>{
-    console.log(error);
+  await messages
+    .getMessagesByGroupId(groupId)
+    .then((rows) => {
+      messageCollection = rows;
+    })
+    .catch((error) => {
+      console.log(error);
 
-    return res.status(500).json({});
-  });
+      return res.status(500).json({});
+    });
   // Create message object
   let messageObj = {
     username: username,
@@ -1901,44 +1918,83 @@ app.get("/getMessages", async (req, res) => {
   return res.status(200).json(messageObj);
 });
 
-app.get('/deleteGroup', async (req, res) => {
+app.get("/deleteGroup", async (req, res) => {
   let { id } = req.query;
   if (id === null || id === undefined) {
     return res.status(400).json({
-      message: 'The query does not contain a group id to delete.'
+      message: "The query does not contain a group id to delete.",
     });
   }
 
-    await messages.deleteMessagesGivenGroup(id).then((body) => {
-    console.log("Group messages have been deleted for group id", id);
-  }).catch((error) => {
-    console.error("Issue with deleting messages for given group id");
-    return res.status(500).json({message: 'Server with deleting messages for given group id'});
-  });
-  await group.deleteGroup(id).then((body) => {
-    // console.log(body);
-    return res.status(200).json({message: 'Group has been successfully deleted.'})
-  }).catch((error) => {
-    console.error(error);
-  })
-
+  await messages
+    .deleteMessagesGivenGroup(id)
+    .then((body) => {
+      console.log("Group messages have been deleted for group id", id);
+    })
+    .catch((error) => {
+      console.error("Issue with deleting messages for given group id");
+      return res
+        .status(500)
+        .json({ message: "Server with deleting messages for given group id" });
+    });
+  await group
+    .deleteGroup(id)
+    .then((body) => {
+      // console.log(body);
+      return res
+        .status(200)
+        .json({ message: "Group has been successfully deleted." });
+    })
+    .catch((error) => {
+      console.error(error);
+    });
 });
 
-app.get('/getMembersFromIDs', async (req,res) => {
+app.get("/getMembersFromIDs", async (req, res) => {
   let { members } = req.query;
   if (members === null || members === undefined) {
     return res.status(400).json({
-      message: 'The query does not contain a members to return usernames from.'
+      message: "The query does not contain a members to return usernames from.",
     });
   }
 
-  await user.getUsernamesFromIDs(members).then((result) => {
-    return res.status(200).json({usernames: result, message: 'Group usernames have been successfully returned'});
-  }).catch((error) => {
-    console.error(error);
-    return res.status(500).json({message: 'Something went wrong. Internal server issue.'});
-  });
+  await user
+    .getUsernamesFromIDs(members)
+    .then((result) => {
+      return res.status(200).json({
+        usernames: result,
+        message: "Group usernames have been successfully returned",
+      });
+    })
+    .catch((error) => {
+      console.error(error);
+      return res
+        .status(500)
+        .json({ message: "Something went wrong. Internal server issue." });
+    });
+});
 
+app.get("/catalogSearchNewApi", (req, res) => {
+  let id = req.query.id;
+
+  let url = `https://api.themoviedb.org/3/discover/movie?api_key=${MOVIEDB_API_KEY}&with_genres=${id}`;
+
+  axios
+    .get(url)
+    .then((response) => {
+      let data = response.data.results.slice(0, 5);
+
+      // console.log(data);
+
+      if (data.Response === "False") {
+        return res.status(404).json({ message: "Film not found" });
+      }
+
+      res.status(200).json(data);
+    })
+    .catch((error) => {
+      res.status(500).json({ message: "Error fetching film data" });
+    });
 });
 
 app.get("/groupSearch", (req, res) => {
@@ -2118,58 +2174,83 @@ app.get("/getUsername/:userId", async (req, res) => {
   }
 });
 
-app.post("/removeMemberFromGroup", async (req,res) => {
-  let { userId , groupId } = req.body;
-  if (userId === null || userId === undefined ) {
-    return res.status(400).json({isSuccess: false, message: 'userId is missing'});
+app.post("/removeMemberFromGroup", async (req, res) => {
+  let { userId, groupId } = req.body;
+  if (userId === null || userId === undefined) {
+    return res
+      .status(400)
+      .json({ isSuccess: false, message: "userId is missing" });
   }
 
-  if (groupId === null || groupId === undefined ) {
-    return res.status(400).json({isSuccess: false, message: 'groupId is missing'});
+  if (groupId === null || groupId === undefined) {
+    return res
+      .status(400)
+      .json({ isSuccess: false, message: "groupId is missing" });
   }
 
-  await group.removeMember(userId, groupId).then((body) => {
-    return res.status(200).json({isSuccess: true, message: ''})
-  }).catch((error) => {
-    console.error(error);
-    return res.status(500).json({isSuccess: false, message: 'Server error in removing user from group'})
-  });
+  await group
+    .removeMember(userId, groupId)
+    .then((body) => {
+      return res.status(200).json({ isSuccess: true, message: "" });
+    })
+    .catch((error) => {
+      console.error(error);
+      return res.status(500).json({
+        isSuccess: false,
+        message: "Server error in removing user from group",
+      });
+    });
 });
 
 app.post("/updateLeader", async (req, res) => {
-  let {  username, groupId } = req.body;
-  if (username === null || username === undefined ) {
-    return res.status(400).json({isSuccess: false, message: 'username is missing'});
+  let { username, groupId } = req.body;
+  if (username === null || username === undefined) {
+    return res
+      .status(400)
+      .json({ isSuccess: false, message: "username is missing" });
   }
 
   // Get userId from username
   let userId = null;
-  await user.findByUsername(username).then((body) => {
-    userId = body.id;
-  }).catch((error) => {
-    console.error(error);
-    return res.status(500).json({isSuccess:false, message:`Server issue getting user id from username ${username}`})
-  });
+  await user
+    .findByUsername(username)
+    .then((body) => {
+      userId = body.id;
+    })
+    .catch((error) => {
+      console.error(error);
+      return res.status(500).json({
+        isSuccess: false,
+        message: `Server issue getting user id from username ${username}`,
+      });
+    });
 
   // Should occur under catch but still
   if (userId == null) {
-    return res.status(500).json({isSuccess:false, message:`Server issue getting user id from username ${username}`})
-
+    return res.status(500).json({
+      isSuccess: false,
+      message: `Server issue getting user id from username ${username}`,
+    });
   }
 
-  if (groupId === null || groupId === undefined ) {
-    return res.status(400).json({isSuccess: false, message: 'groupId is missing'});
+  if (groupId === null || groupId === undefined) {
+    return res
+      .status(400)
+      .json({ isSuccess: false, message: "groupId is missing" });
   }
 
-  await group.updateLeader(groupId, userId).then((body) => {
-    return res.status(200).json({isSuccess: true, message: ''});
-  }).catch((error) => {
-    console.error(error);
-    return res.status(500).json({isSuccess: true, message: 'Server issue updating leader'});
-  });
-
+  await group
+    .updateLeader(groupId, userId)
+    .then((body) => {
+      return res.status(200).json({ isSuccess: true, message: "" });
+    })
+    .catch((error) => {
+      console.error(error);
+      return res
+        .status(500)
+        .json({ isSuccess: true, message: "Server issue updating leader" });
+    });
 });
-
 
 app.get("/bookVotes/:groupCode", async (req, res) => {
   let groupCode = req.params.groupCode;

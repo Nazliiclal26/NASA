@@ -278,7 +278,7 @@
 #membersListWrapper {
   overflow-y: auto;
   overflow-x: hidden;
-  height: 100px;
+  height: 75px;
   background-color: white;
 }
 
@@ -319,8 +319,8 @@
 #messages {
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
   height: 100%;
+  overflow: auto;
 }
 
 #sendButton {

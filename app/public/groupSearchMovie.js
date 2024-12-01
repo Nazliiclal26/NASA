@@ -6,11 +6,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   let groupCode = decodeURIComponent(window.location.pathname).split("/").pop();
   let stopVoteButton = document.getElementById("stopVote");
   let startVoteButton = document.getElementById("startVote");
+  let reassignButton = document.getElementById("reassign");
   let mostVotedFilmSection = document.getElementById("mostVotedFilm");
   let leaveGroupButton = document.getElementById("leaveGroup");
 
   let form = document.getElementById("suggestionsForm");
   let resultsContainer = document.getElementById("suggestionsResult");
+
+  reassignButton.addEventListener("click", () => {
+    alert("to be implemented");
+  });
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -33,8 +38,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         body: JSON.stringify(preferences),
       });
 
-      let rawData = await response.json(); 
-      let chatGPTAnswer = rawData.choices[0].message.content; 
+      let rawData = await response.json();
+      let chatGPTAnswer = rawData.choices[0].message.content;
 
       resultsContainer.innerHTML = `<h2>Recommended Movies:</h2><pre>${chatGPTAnswer}</pre>`;
     } catch (error) {
@@ -42,7 +47,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       resultsContainer.innerHTML = `<p>Please try again later!</p>`;
     }
   });
-  
+
   async function fetchGroupWatchlist() {
     try {
       let response = await fetch(`/getGroupWatchlistMovies/${groupCode}`);
@@ -121,19 +126,22 @@ document.addEventListener("DOMContentLoaded", async () => {
               return a.num_votes > b.num_votes ? a : b;
             }
           });
-  
+
           let setMostVotedResponse = await fetch(`/votes/setMostVoted/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ groupCode, film_title: mostVoted.film_title })
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              groupCode,
+              film_title: mostVoted.film_title,
+            }),
           });
 
           if (setMostVotedResponse.ok) {
             let mostVoted = await setMostVotedResponse.json();
 
-          votedFilmsList.innerHTML = "";
+            votedFilmsList.innerHTML = "";
 
-          mostVotedFilmSection.innerHTML = `
+            mostVotedFilmSection.innerHTML = `
           <div class="winnerOuter">
             <div class="winnerContext">
               <h2>Most Voted Film</h2>
@@ -143,22 +151,25 @@ document.addEventListener("DOMContentLoaded", async () => {
             <img id="winnerPoster" src="${mostVoted.poster}" alt="${mostVoted.film_title} poster" style="max-width: 200px;">
           </div>
           `;
+          } else {
+            console.error("Failed to set the most voted film.");
+            mostVotedFilmSection.innerHTML =
+              "<p>Error setting the most voted film. Please try again later.</p>";
+          }
         } else {
-          console.error("Failed to set the most voted film.");
-          mostVotedFilmSection.innerHTML = "<p>Error setting the most voted film. Please try again later.</p>";
+          mostVotedFilmSection.innerHTML = "<p>No votes yet.</p>";
         }
       } else {
-        mostVotedFilmSection.innerHTML = "<p>No votes yet.</p>";
+        console.error("Failed to fetch votes.");
+        mostVotedFilmSection.innerHTML =
+          "<p>Error fetching votes. Please try again later.</p>";
       }
-    } else {
-      console.error("Failed to fetch votes.");
-      mostVotedFilmSection.innerHTML = "<p>Error fetching votes. Please try again later.</p>";
+    } catch (error) {
+      console.error("Error fetching or updating the most voted film:", error);
+      mostVotedFilmSection.innerHTML =
+        "<p>Something went wrong. Please try again later.</p>";
     }
-  } catch (error) {
-    console.error("Error fetching or updating the most voted film:", error);
-    mostVotedFilmSection.innerHTML = "<p>Something went wrong. Please try again later.</p>";
   }
-}
 
   searchButton.addEventListener("click", async () => {
     const title = document.getElementById("searchTitle").value;
@@ -320,7 +331,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
       //console.log("starting vote");
       mostVotedFilmSection.innerHTML = "";
-      votedFilmsTitle.innerHTML = "Voted Films"
+      votedFilmsTitle.innerHTML = "Voted Films";
       await fetch(`/clearVotes/${groupCode}`, { method: "DELETE" });
       await fetch(`/startVoting/${groupCode}`, {
         method: "POST",
@@ -336,7 +347,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.error("Error starting voting:", error);
     }
   });
-
 
   async function populateHeaderWithGroupInfo() {
     let header = document.getElementById("pageHeader");
@@ -370,13 +380,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (response.ok) {
         const body = await response.json();
         alert(body.message);
-        window.location.href = '/selection.html';
+        window.location.href = "/selection.html";
       } else {
         const errorBody = await response.json();
         alert(errorBody.message);
       }
     } catch (error) {
-      console.error('An error occurred:', error);
+      console.error("An error occurred:", error);
     }
   }
 
@@ -387,35 +397,36 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (response.ok) {
         const body = await response.json();
         localStorage.setItem("leaderUsername", body.rows[0].username);
-      }
-      else {
+      } else {
         console.error("Could not retrieve leader username");
       }
-    }
-    catch (error) {
+    } catch (error) {
       console.error(error);
     }
   }
 
   async function removeMemberFromGroup(userId, groupId) {
-    console.log("In remove member form group = userid:" , userId, "and groupdId:", groupId);
+    console.log(
+      "In remove member form group = userid:",
+      userId,
+      "and groupdId:",
+      groupId
+    );
     try {
       const response = await fetch(`/removeMemberFromGroup`, {
-        method: 'POST',
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({userId: userId, groupId: groupId})
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: userId, groupId: groupId }),
       });
       const body = await response.json();
       if (body.isSuccess) {
         alert("You have been successfully removed from group: " + groupCode);
-        window.location.href= '/selection.html';
-      }
-      else {
+        window.location.href = "/selection.html";
+      } else {
         alert("There was an error in removing you from the group. Try again.");
         console.error(body.message);
       }
-    }
-    catch (error) {
+    } catch (error) {
       console.error(error);
     }
   }
@@ -423,7 +434,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   function validateNewLeader(leader, usernames) {
     leader = leader.trim();
     while (!usernames.includes(leader)) {
-      leader = prompt("Please enter a valid username to reassign to:\n" + usernames.join(", "));
+      leader = prompt(
+        "Please enter a valid username to reassign to:\n" + usernames.join(", ")
+      );
     }
     return leader;
   }
@@ -431,26 +444,23 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function updateLeaderForGroup(groupId, newLeaderUsername) {
     try {
       const response = await fetch("/updateLeader", {
-        method: 'POST',
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({username: newLeaderUsername, groupId: groupId})
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: newLeaderUsername, groupId: groupId }),
       });
       const body = await response.json();
       if (body.isSuccess) {
         alert("Leader has been successfully updated");
-
-      }
-      else {
+      } else {
         alert(body.message);
       }
-    }
-    catch (error) {
+    } catch (error) {
       console.error(error);
     }
   }
 
   function buildQueryString(members) {
-    return `members=${members.join('&members=')}`;
+    return `members=${members.join("&members=")}`;
   }
 
   async function fetchMembers(queryString) {
@@ -475,14 +485,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       const queryString = buildQueryString(members);
       const body = await fetchMembers(queryString);
 
-      const noLeaderUsernames = body.usernames.filter(username => username !== localStorage.getItem("leaderUsername"));
+      const noLeaderUsernames = body.usernames.filter(
+        (username) => username !== localStorage.getItem("leaderUsername")
+      );
       let newLeader = getReassignPrompt(noLeaderUsernames);
       newLeader = validateNewLeader(newLeader, noLeaderUsernames);
 
       await updateLeaderForGroup(groupId, newLeader);
       await removeMemberFromGroup(storedUserId, groupId);
     } catch (error) {
-      console.error('An error occurred:', error);
+      console.error("An error occurred:", error);
     }
   }
 
@@ -490,7 +502,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
       if (storedUserId === leaderId && members.length === 1) {
         // Sole member scenario
-        if (confirm("You are the sole member of the group. If you leave, the group and all its data will be deleted. Proceed?")) {
+        if (
+          confirm(
+            "You are the sole member of the group. If you leave, the group and all its data will be deleted. Proceed?"
+          )
+        ) {
           try {
             await deleteGroup(groupId);
             console.log("Group deleted successfully.");
@@ -498,18 +514,25 @@ document.addEventListener("DOMContentLoaded", async () => {
             console.error("Failed to delete the group:", error);
           }
         }
-      } 
+      }
       // Leader reassignment scenario
       else if (storedUserId === leaderId) {
-        if (confirm("You are the leader of the group. Would you like to re-assign leadership and proceed with leaving the group?")) {
+        if (
+          confirm(
+            "You are the leader of the group. Would you like to re-assign leadership and proceed with leaving the group?"
+          )
+        ) {
           try {
             await reassignLeaderAndLeave(groupId, members, storedUserId);
             console.log("Leader reassigned and left the group successfully.");
           } catch (error) {
-            console.error("Failed to reassign leader or leave the group:", error);
+            console.error(
+              "Failed to reassign leader or leave the group:",
+              error
+            );
           }
         }
-      } 
+      }
       // Normal member leave scenario
       else {
         if (confirm("You are about to permanently exit the group. Proceed?")) {
@@ -526,12 +549,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-
   leaveGroupButton.addEventListener("click", async () => {
     // Check the which case should leave group execute under:
     let storedUserId = parseInt(localStorage.getItem("userId"));
     let groupBody = JSON.parse(localStorage.getItem("groupInfo"));
-    console.log(groupBody)
+    console.log(groupBody);
     if (groupBody === null || groupBody === undefined) {
       return;
     }
@@ -541,13 +563,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     await handleGroupExit(storedUserId, leaderId, groupId, members);
   });
 
-  populateGroupInfo().then(() => {
-    populateHeaderWithGroupInfo();
-    setLeaderUsername();
-  }).catch((error) => {
-    console.error(error);
-    window.location.reload();
-  });
+  populateGroupInfo()
+    .then(() => {
+      populateHeaderWithGroupInfo();
+      setLeaderUsername();
+    })
+    .catch((error) => {
+      console.error(error);
+      window.location.reload();
+    });
   fetchVotes();
   checkIfLeader();
 
