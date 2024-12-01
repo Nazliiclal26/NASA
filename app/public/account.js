@@ -18,14 +18,17 @@ homeButton.addEventListener("click", () => {
 
 logoutButton.addEventListener("click", () => {
   localStorage.clear("userId");
-  fetch('/clearCookie').then((response) => {
-    return response.json();
-  }).then((body) => {
-    window.location.href = "/";
-    console.log(body.message);
-  }).catch((error) => {
-    console.error(error);
-  });
+  fetch("/clearCookie")
+    .then((response) => {
+      return response.json();
+    })
+    .then((body) => {
+      window.location.href = "/";
+      console.log(body.message);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
 });
 
 confirmUserButton.addEventListener("click", () => {
@@ -178,34 +181,25 @@ genresButton.addEventListener("click", () => {
           <div class="button" id="action">Action</div>
           <div class="button" id="adventure">Adventure</div>
           <div class="button" id="animation">Animation</div>
-          <div class="button" id="biography">Biography</div>
         </div>
         <div class="row">
           <div class="button" id="comedy">Comedy</div>
           <div class="button" id="crime">Crime</div>
           <div class="button" id="documentary">Documentary</div>
-          <div class="button" id="drama">Drama</div>
         </div>
         <div class="row">
+          <div class="button" id="drama">Drama</div>
           <div class="button" id="family">Family</div>
           <div class="button" id="fantasy">Fantasy</div>
-          <div class="button" id="noir">Film Noir</div>
           <div class="button" id="history">History</div>
         </div>
         <div class="row">
           <div class="button" id="horror">Horror</div>
           <div class="button" id="music">Music</div>
-          <div class="button" id="musical">Musical</div>
           <div class="button" id="mystery">Mystery</div>
-        </div>
-        <div class="row">
           <div class="button" id="romance">Romance</div>
-          <div class="button" id="scifi">Sci-Fi</div>
-          <div class="button" id="short">Short</div>
-          <div class="button" id="sport">Sport</div>
         </div>
         <div class="row">
-          <div class="button" id="superhero">Superhero</div>
           <div class="button" id="thriller">Thriller</div>
           <div class="button" id="war">War</div>
           <div class="button" id="western">Western</div>

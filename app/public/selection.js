@@ -27,6 +27,26 @@ let searchType = document.getElementById("searchType");
 let booksButton = document.getElementById("books");
 let moviesButton = document.getElementById("movies");
 
+let mainGenres = [
+  { id: 28, name: "action" },
+  { id: 12, name: "adventure" },
+  { id: 16, name: "animation" },
+  { id: 35, name: "comedy" },
+  { id: 80, name: "crime" },
+  { id: 99, name: "documentary" },
+  { id: 18, name: "drama" },
+  { id: 10751, name: "family" },
+  { id: 14, name: "fantasy" },
+  { id: 36, name: "history" },
+  { id: 27, name: "horror" },
+  { id: 10402, name: "music" },
+  { id: 9648, name: "mystery" },
+  { id: 10749, name: "romance" },
+  { id: 53, name: "thriller" },
+  { id: 10752, name: "war" },
+  { id: 37, name: "western" },
+];
+
 document.addEventListener("DOMContentLoaded", () => {
   localStorage.removeItem("groupInfo");
   localStorage.removeItem("leaderUsername");
@@ -368,298 +388,17 @@ async function addGreeting() {
     });
 }
 
+function getNames(ids) {
+  let item = mainGenres
+    .filter((genre) => ids.includes(genre.id))
+    .map((genre) => genre.name.charAt(0).toUpperCase() + genre.name.slice(1))
+    .join(", ");
+
+  return item;
+}
+
 async function populateCatalog() {
   let userId = localStorage.getItem("userId");
-  let genreList = {
-    action: [
-      "Mad Max: Fury Road",
-      "Die Hard",
-      "John Wick",
-      "The Dark Knight",
-      "Gladiator",
-      "The Avengers",
-      "Terminator 2: Judgment Day",
-      "Inception",
-      "The Matrix",
-      "Mission: Impossible – Fallout",
-    ],
-    adventure: [
-      "Indiana Jones: Raiders of the Lost Ark",
-      "The Lord of the Rings: The Fellowship of the Ring",
-      "Pirates of the Caribbean: The Curse of the Black Pearl",
-      "Jurassic Park",
-      "Star Wars: Episode IV – A New Hope",
-      "Avatar",
-      "The Revenant",
-      "Life of Pi",
-      "The Princess Bride",
-      "Harry Potter and the Sorcerer's Stone",
-    ],
-    animation: [
-      "Toy Story",
-      "Spirited Away",
-      "Finding Nemo",
-      "The Lion King",
-      "Frozen",
-      "Shrek",
-      "Up",
-      "Inside Out",
-      "Coco",
-      "Zootopia",
-    ],
-    biography: [
-      "The Social Network",
-      "Schindler's List",
-      "A Beautiful Mind",
-      "Bohemian Rhapsody",
-      "The Imitation Game",
-      "Selma",
-      "Gandhi",
-      "The King's Speech",
-      "12 Years a Slave",
-      "Catch Me If You Can",
-    ],
-    comedy: [
-      "Superbad",
-      "The Hangover",
-      "Step Brothers",
-      "Anchorman: The Legend of Ron Burgundy",
-      "Bridesmaids",
-      "Groundhog Day",
-      "Monty Python and the Holy Grail",
-      "Dumb and Dumber",
-      "Mean Girls",
-      "Ferris Bueller's Day Off",
-    ],
-    crime: [
-      "The Godfather",
-      "Pulp Fiction",
-      "The Departed",
-      "Goodfellas",
-      "Heat",
-      "Seven",
-      "The Silence of the Lambs",
-      "Reservoir Dogs",
-      "Taxi Driver",
-      "No Country for Old Men",
-    ],
-    documentary: [
-      "Planet Earth II",
-      "Free Solo",
-      "13th",
-      "Won't You Be My Neighbor?",
-      "The Last Dance",
-      "Blackfish",
-      "Jiro Dreams of Sushi",
-      "Supersize Me",
-      "Bowling for Columbine",
-      "March of the Penguins",
-    ],
-    drama: [
-      "Forrest Gump",
-      "Fight Club",
-      "The Shawshank Redemption",
-      "The Godfather Part II",
-      "American Beauty",
-      "The Pursuit of Happyness",
-      "La La Land",
-      "Moonlight",
-      "The Green Mile",
-      "The Revenant",
-    ],
-    family: [
-      "Frozen",
-      "The Incredibles",
-      "Harry Potter and the Sorcerer's Stone",
-      "The Lion King",
-      "Finding Nemo",
-      "Moana",
-      "Tangled",
-      "Monsters, Inc.",
-      "Beauty and the Beast",
-      "Coco",
-    ],
-    fantasy: [
-      "The Lord of the Rings: The Return of the King",
-      "Harry Potter and the Goblet of Fire",
-      "Pan's Labyrinth",
-      "The Chronicles of Narnia: The Lion, the Witch and the Wardrobe",
-      "Harry Potter and the Philosopher's Stone",
-      "The Shape of Water",
-      "Stardust",
-      "Alice in Wonderland",
-      "The Princess Bride",
-      "The Hobbit: An Unexpected Journey",
-    ],
-    noir: [
-      "Double Indemnity",
-      "The Maltese Falcon",
-      "Chinatown",
-      "Laura",
-      "Out of the Past",
-      "Sunset Boulevard",
-      "The Big Sleep",
-      "Touch of Evil",
-      "Gilda",
-      "Memento",
-    ],
-    history: [
-      "Schindler's List",
-      "Braveheart",
-      "Gladiator",
-      "12 Years a Slave",
-      "Dunkirk",
-      "Lincoln",
-      "The Imitation Game",
-      "The King's Speech",
-      "Apollo 13",
-      "Saving Private Ryan",
-    ],
-    horror: [
-      "The Exorcist",
-      "Get Out",
-      "Hereditary",
-      "A Nightmare on Elm Street",
-      "The Shining",
-      "It",
-      "The Conjuring",
-      "Halloween",
-      "Alien",
-      "The Silence of the Lambs",
-    ],
-    music: [
-      "Amadeus",
-      "Walk the Line",
-      "Bohemian Rhapsody",
-      "La La Land",
-      "Whiplash",
-      "Ray",
-      "Inside Llewyn Davis",
-      "Across the Universe",
-      "August Rush",
-      "Once",
-    ],
-    musical: [
-      "The Sound of Music",
-      "La La Land",
-      "West Side Story",
-      "Singin' in the Rain",
-      "Mamma Mia!",
-      "Grease",
-      "Chicago",
-      "Les Misérables",
-      "Into the Woods",
-      "Mary Poppins",
-    ],
-    mystery: [
-      "Gone Girl",
-      "Zodiac",
-      "The Girl with the Dragon Tattoo",
-      "Se7en",
-      "Mystic River",
-      "Rear Window",
-      "Shutter Island",
-      "Memento",
-      "The Prestige",
-      "Knives Out",
-    ],
-    romance: [
-      "Titanic",
-      "The Notebook",
-      "Pride & Prejudice",
-      "La La Land",
-      "A Walk to Remember",
-      "Silver Linings Playbook",
-      "Before Sunrise",
-      "The Fault in Our Stars",
-      "Casablanca",
-      "Eternal Sunshine of the Spotless Mind",
-    ],
-    scifi: [
-      "Blade Runner 2049",
-      "Inception",
-      "Interstellar",
-      "The Matrix",
-      "Star Wars: Episode IV – A New Hope",
-      "The Terminator",
-      "Ex Machina",
-      "Arrival",
-      "Gravity",
-      "Her",
-    ],
-    short: [
-      "The Silent Child",
-      "Paperman",
-      "World of Tomorrow",
-      "Bao",
-      "Piper",
-      "La Luna",
-      "Snack Attack",
-      "Hair Love",
-      "Stutterer",
-      "Validation",
-    ],
-    sport: [
-      "Rocky",
-      "Raging Bull",
-      "Remember the Titans",
-      "Moneyball",
-      "The Blind Side",
-      "Field of Dreams",
-      "Hoosiers",
-      "Rush",
-      "Creed",
-      "A League of Their Own",
-    ],
-    superhero: [
-      "The Avengers",
-      "Spider-Man: Into the Spider-Verse",
-      "Iron Man",
-      "Black Panther",
-      "Batman Begins",
-      "The Dark Knight",
-      "Guardians of the Galaxy",
-      "Wonder Woman",
-      "Deadpool",
-      "Thor: Ragnarok",
-    ],
-    thriller: [
-      "Se7en",
-      "The Girl with the Dragon Tattoo",
-      "Gone Girl",
-      "Prisoners",
-      "Shutter Island",
-      "Zodiac",
-      "Fight Club",
-      "No Country for Old Men",
-      "The Silence of the Lambs",
-      "Nightcrawler",
-    ],
-    war: [
-      "Saving Private Ryan",
-      "Apocalypse Now",
-      "Full Metal Jacket",
-      "1917",
-      "Platoon",
-      "Black Hawk Down",
-      "Dunkirk",
-      "The Thin Red Line",
-      "Letters from Iwo Jima",
-      "Hacksaw Ridge",
-    ],
-    western: [
-      "Unforgiven",
-      "The Good, the Bad and the Ugly",
-      "Django Unchained",
-      "True Grit",
-      "Once Upon a Time in the West",
-      "Tombstone",
-      "Butch Cassidy and the Sundance Kid",
-      "The Revenant",
-      "No Country for Old Men",
-      "The Hateful Eight",
-    ],
-  };
 
   let catalogLoading = document.getElementById("catalog");
   catalogLoading.textContent = "Loading...";
@@ -675,63 +414,110 @@ async function populateCatalog() {
       if (data.status === "success") {
         let genres = data.rows[0].preferred_genres;
         let numGenres = data.rows[0].preferred_genres.length;
-        let outputGenres = [];
+
+        // console.log(genres);
 
         if (numGenres > 0) {
           let randomNum = Math.floor(Math.random() * numGenres);
           let randomGenre = genres[randomNum];
 
-          let selectedMovies = [];
+          console.log(randomGenre);
+          let apiObject = mainGenres.find(
+            (g) => g.name.toLowerCase() === randomGenre
+          );
+
+          let apiID = apiObject.id;
+
+          console.log(apiID);
+
           let movieApiData = [];
-          let alreadySelected = [];
 
-          for (let i = 0; i < 5; i++) {
-            //console.log(genreList[randomGenre]);
-            let movies = genreList[randomGenre];
-            let randomInt = Math.floor(Math.random() * 10);
+          try {
+            let response = await fetch(`/catalogSearchNewApi?id=${apiID}`);
+            let apiData = await response.json();
+            //console.log(apiData);
 
-            while (alreadySelected.includes(randomInt)) {
-              randomInt = Math.floor(Math.random() * 10);
+            for (let each of apiData) {
+              let { title, poster_path, vote_average, genre_ids, overview } =
+                each;
+
+              let newObject = {
+                title,
+                poster_path,
+                vote_average,
+                genre_ids,
+              };
+
+              console.log(newObject);
+
+              movieApiData.push(newObject);
             }
 
-            alreadySelected.push(randomInt);
-
-            let title = movies[randomInt];
-
-            //console.log(title);
-
-            try {
-              let response = await fetch(
-                `/groupSearch?title=${encodeURIComponent(title)}`
-              );
-              if (!response.ok) throw new Error("Film not found");
-
-              let data = await response.json();
-              let info = [data.poster, data.title, data.genre, data.rating];
-              movieApiData.push(info);
-            } catch (error) {
-              searchResult.innerText = "Film not found or an error occurred.";
-              console.error("Error fetching film:", error);
-            }
-
-            selectedMovies.push(movies[randomInt]);
+            if (!response.ok) throw new Error("Film not found");
+          } catch (error) {
+            searchResult.innerText = "Film not found or an error occurred.";
+            console.error("Error fetching film:", error);
           }
+
+          console.log(movieApiData);
+
+          // for (let i = 0; i < 5; i++) {
+          //   //console.log(genreList[randomGenre]);
+          //   let movies = genreList[randomGenre];
+          //   let randomInt = Math.floor(Math.random() * 10);
+
+          //   while (alreadySelected.includes(randomInt)) {
+          //     randomInt = Math.floor(Math.random() * 10);
+          //   }
+
+          //   alreadySelected.push(randomInt);
+
+          //   let title = movies[randomInt];
+
+          //   //console.log(title);
+
+          //   try {
+          //     let response = await fetch(
+          //       `/groupSearch?title=${encodeURIComponent(title)}`
+          //     );
+          //     if (!response.ok) throw new Error("Film not found");
+
+          //     let data = await response.json();
+          //     let info = [data.poster, data.title, data.genre, data.rating];
+          //     movieApiData.push(info);
+          //   } catch (error) {
+          //     searchResult.innerText = "Film not found or an error occurred.";
+          //     console.error("Error fetching film:", error);
+          //   }
+
+          //   selectedMovies.push(movies[randomInt]);
+          // }
 
           //console.log(movieApiData);
 
           let catalog = document.getElementById("catalog");
 
-          let originalTitle1 = movieApiData[0][1];
-          let originalTitle2 = movieApiData[1][1];
-          let originalTitle3 = movieApiData[2][1];
-          let originalTitle4 = movieApiData[3][1];
-          let originalTitle5 = movieApiData[4][1];
+          let originalTitle1 = movieApiData[0].title;
+          let originalTitle2 = movieApiData[1].title;
+          let originalTitle3 = movieApiData[2].title;
+          let originalTitle4 = movieApiData[3].title;
+          let originalTitle5 = movieApiData[4].title;
 
-          let moviePoster1 = movieApiData[0][0];
-          let moviePoster2 = movieApiData[1][0];
-          let moviePoster3 = movieApiData[2][0];
-          let moviePoster4 = movieApiData[3][0];
-          let moviePoster5 = movieApiData[4][0];
+          let moviePoster1 =
+            "https://image.tmdb.org/t/p/original/" +
+            movieApiData[0].poster_path;
+          let moviePoster2 =
+            "https://image.tmdb.org/t/p/original/" +
+            movieApiData[1].poster_path;
+          let moviePoster3 =
+            "https://image.tmdb.org/t/p/original/" +
+            movieApiData[2].poster_path;
+          let moviePoster4 =
+            "https://image.tmdb.org/t/p/original/" +
+            movieApiData[3].poster_path;
+          let moviePoster5 =
+            "https://image.tmdb.org/t/p/original/" +
+            movieApiData[4].poster_path;
 
           let title1 =
             originalTitle1.length > 15
@@ -764,56 +550,66 @@ async function populateCatalog() {
   <div id="listings">
     <div class="listing" id="one">
       <div class="poster">
-      <img src="${movieApiData[0][0]}"/>
+      <img src="${moviePoster1}"/>
       </div>
       <div class="title" id="oneTitle">${title1}</div>
-      <div class="miniTitle">${movieApiData[0][2]}</div>
+      <div class="miniTitle">${getNames(movieApiData[0].genre_ids)}</div>
       <div class="subBlock">
-        <div class="rating">${movieApiData[0][3]}</div>
+        <div class="rating">${
+          Math.round(movieApiData[0].vote_average * 10) / 10
+        }</div>
         <div class="watchlistButton" id="oneTitle">+</div>
       </div>
     </div>
     <div class="listing" id="two">
       <div class="poster">
-      <img src="${movieApiData[1][0]}"/>
+      <img src="${moviePoster2}"/>
       </div>
       <div class="title" id="twoTitle">${title2}</div>
-      <div class="miniTitle">${movieApiData[1][2]}</div>
+      <div class="miniTitle">${getNames(movieApiData[1].genre_ids)}</div>
       <div class="subBlock">
-        <div class="rating">${movieApiData[1][3]}</div>
+        <div class="rating">${
+          Math.round(movieApiData[1].vote_average * 10) / 10
+        }</div>
         <div class="watchlistButton" id="twoTitle">+</div>
       </div>
     </div>
     <div class="listing" id="three">
       <div class="poster">
-      <img src="${movieApiData[2][0]}"/>
+      <img src="${moviePoster3}"/>
       </div>
       <div class="title" id="threeTitle">${title3}</div>
-      <div class="miniTitle">${movieApiData[2][2]}</div>
+      <div class="miniTitle">${getNames(movieApiData[2].genre_ids)}</div>
       <div class="subBlock">
-        <div class="rating">${movieApiData[2][3]}</div>
+        <div class="rating">${
+          Math.round(movieApiData[2].vote_average * 10) / 10
+        }</div>
         <div class="watchlistButton" id="threeTitle">+</div>
       </div>
     </div>
     <div class="listing" id="four">
       <div class="poster">
-      <img src="${movieApiData[3][0]}"/>
+      <img src="${moviePoster4}"/>
       </div>
       <div class="title" id="fourTitle">${title4}</div>
-      <div class="miniTitle">${movieApiData[3][2]}</div>
+      <div class="miniTitle">${getNames(movieApiData[3].genre_ids)}</div>
       <div class="subBlock">
-        <div class="rating">${movieApiData[3][3]}</div>
+        <div class="rating">${
+          Math.round(movieApiData[3].vote_average * 10) / 10
+        }</div>
         <div class="watchlistButton" id="fourTitle">+</div>
       </div>
     </div>
     <div class="listing" id="five">
       <div class="poster">
-      <img src="${movieApiData[4][0]}"/>
+      <img src="${moviePoster5}"/>
       </div>
       <div class="title" id="fiveTitle">${title5}</div>
-      <div class="miniTitle">${movieApiData[4][2]}</div>
+      <div class="miniTitle">${getNames(movieApiData[4].genre_ids)}</div>
       <div class="subBlock">
-        <div class="rating">${movieApiData[4][3]}</div>
+        <div class="rating">${
+          Math.round(movieApiData[4].vote_average * 10) / 10
+        }</div>
         <div class="watchlistButton" id="fiveTitle">+</div>
       </div>
     </div>
@@ -883,97 +679,108 @@ async function populateCatalog() {
 
           //console.log(randomGenre);
         } else {
-          let genres = [
-            "action",
-            "adventure",
-            "animation",
-            "biography",
-            "comedy",
-            "crime",
-            "documentary",
-            "drama",
-            "family",
-            "fantasy",
-            "noir",
-            "history",
-            "horror",
-            "music",
-            "musical",
-            "mystery",
-            "romance",
-            "scifi",
-            "short",
-            "sport",
-            "superhero",
-            "thriller",
-            "war",
-            "western",
-          ];
-          let numGenres = genres.length;
+          let randomNum = Math.floor(Math.random() * 17);
+          let randomGenre = mainGenres[randomNum].name;
 
-          for (let i = 0; i < 5; i++) {
-            let randomNum = Math.floor(Math.random() * numGenres);
-            let randomGenre = genres[randomNum];
+          console.log(randomGenre);
 
-            if (!outputGenres.includes(randomGenre)) {
-              outputGenres.push(randomGenre);
-            } else {
-              i--;
-            }
-          }
+          // console.log(randomGenre);
+          let apiObject = mainGenres.find(
+            (g) => g.name.toLowerCase() === randomGenre
+          );
 
-          let selectedMovies = [];
+          let apiID = apiObject.id;
+
+          console.log(apiID);
+
           let movieApiData = [];
-          let alreadySelected = [];
 
-          for (let i = 0; i < outputGenres.length; i++) {
-            let genre = outputGenres[i];
-            //console.log(genre);
-            let movies = genreList[genre];
-            let randomInt = Math.floor(Math.random() * movies.length);
+          try {
+            let response = await fetch(`/catalogSearchNewApi?id=${apiID}`);
+            let apiData = await response.json();
+            //console.log(apiData);
 
-            while (alreadySelected.includes(randomInt)) {
-              randomInt = Math.floor(Math.random() * 10);
+            for (let each of apiData) {
+              let { title, poster_path, vote_average, genre_ids, overview } =
+                each;
+
+              let newObject = {
+                title,
+                poster_path,
+                vote_average,
+                genre_ids,
+              };
+
+              console.log(newObject);
+
+              movieApiData.push(newObject);
             }
 
-            alreadySelected.push(randomInt);
-
-            let title = movies[randomInt];
-
-            //console.log(title);
-
-            try {
-              let response = await fetch(
-                `/groupSearch?title=${encodeURIComponent(title)}`
-              );
-              if (!response.ok) throw new Error("Film not found");
-
-              let data = await response.json();
-              let info = [data.poster, data.title, data.genre, data.rating];
-              movieApiData.push(info);
-            } catch (error) {
-              searchResult.innerText = "Film not found or an error occurred.";
-              console.error("Error fetching film:", error);
-            }
-
-            selectedMovies.push(movies[randomInt]);
+            if (!response.ok) throw new Error("Film not found");
+          } catch (error) {
+            searchResult.innerText = "Film not found or an error occurred.";
+            console.error("Error fetching film:", error);
           }
+
+          console.log(movieApiData);
+
+          // for (let i = 0; i < 5; i++) {
+          //   //console.log(genreList[randomGenre]);
+          //   let movies = genreList[randomGenre];
+          //   let randomInt = Math.floor(Math.random() * 10);
+
+          //   while (alreadySelected.includes(randomInt)) {
+          //     randomInt = Math.floor(Math.random() * 10);
+          //   }
+
+          //   alreadySelected.push(randomInt);
+
+          //   let title = movies[randomInt];
+
+          //   //console.log(title);
+
+          //   try {
+          //     let response = await fetch(
+          //       `/groupSearch?title=${encodeURIComponent(title)}`
+          //     );
+          //     if (!response.ok) throw new Error("Film not found");
+
+          //     let data = await response.json();
+          //     let info = [data.poster, data.title, data.genre, data.rating];
+          //     movieApiData.push(info);
+          //   } catch (error) {
+          //     searchResult.innerText = "Film not found or an error occurred.";
+          //     console.error("Error fetching film:", error);
+          //   }
+
+          //   selectedMovies.push(movies[randomInt]);
+          // }
 
           //console.log(movieApiData);
 
           let catalog = document.getElementById("catalog");
 
-          let originalTitle1 = movieApiData[0][1];
-          let originalTitle2 = movieApiData[1][1];
-          let originalTitle3 = movieApiData[2][1];
-          let originalTitle4 = movieApiData[3][1];
-          let originalTitle5 = movieApiData[4][1];
+          let originalTitle1 = movieApiData[0].title;
+          let originalTitle2 = movieApiData[1].title;
+          let originalTitle3 = movieApiData[2].title;
+          let originalTitle4 = movieApiData[3].title;
+          let originalTitle5 = movieApiData[4].title;
 
-          let moviePoster1 = movieApiData[0][0];
-          let moviePoster2 = movieApiData[1][0];
-          let moviePoster3 = movieApiData[2][0];
-          let moviePoster4 = movieApiData[3][0];
-          let moviePoster5 = movieApiData[4][0];
+          let moviePoster1 =
+            "https://image.tmdb.org/t/p/original/" +
+            movieApiData[0].poster_path;
+          let moviePoster2 =
+            "https://image.tmdb.org/t/p/original/" +
+            movieApiData[1].poster_path;
+          let moviePoster3 =
+            "https://image.tmdb.org/t/p/original/" +
+            movieApiData[2].poster_path;
+          let moviePoster4 =
+            "https://image.tmdb.org/t/p/original/" +
+            movieApiData[3].poster_path;
+          let moviePoster5 =
+            "https://image.tmdb.org/t/p/original/" +
+            movieApiData[4].poster_path;
 
           let title1 =
             originalTitle1.length > 15
@@ -1006,56 +813,66 @@ async function populateCatalog() {
   <div id="listings">
     <div class="listing" id="one">
       <div class="poster">
-      <img src="${movieApiData[0][0]}"/>
+      <img src="${moviePoster1}"/>
       </div>
       <div class="title" id="oneTitle">${title1}</div>
-      <div class="miniTitle">${movieApiData[0][2]}</div>
+      <div class="miniTitle">${getNames(movieApiData[0].genre_ids)}</div>
       <div class="subBlock">
-        <div class="rating">${movieApiData[0][3]}</div>
+        <div class="rating">${
+          Math.round(movieApiData[0].vote_average * 10) / 10
+        }</div>
         <div class="watchlistButton" id="oneTitle">+</div>
       </div>
     </div>
     <div class="listing" id="two">
       <div class="poster">
-      <img src="${movieApiData[1][0]}"/>
+      <img src="${moviePoster2}"/>
       </div>
       <div class="title" id="twoTitle">${title2}</div>
-      <div class="miniTitle">${movieApiData[1][2]}</div>
+      <div class="miniTitle">${getNames(movieApiData[1].genre_ids)}</div>
       <div class="subBlock">
-        <div class="rating">${movieApiData[1][3]}</div>
+        <div class="rating">${
+          Math.round(movieApiData[1].vote_average * 10) / 10
+        }</div>
         <div class="watchlistButton" id="twoTitle">+</div>
       </div>
     </div>
     <div class="listing" id="three">
       <div class="poster">
-      <img src="${movieApiData[2][0]}"/>
+      <img src="${moviePoster3}"/>
       </div>
       <div class="title" id="threeTitle">${title3}</div>
-      <div class="miniTitle">${movieApiData[2][2]}</div>
+      <div class="miniTitle">${getNames(movieApiData[2].genre_ids)}</div>
       <div class="subBlock">
-        <div class="rating">${movieApiData[2][3]}</div>
+        <div class="rating">${
+          Math.round(movieApiData[2].vote_average * 10) / 10
+        }</div>
         <div class="watchlistButton" id="threeTitle">+</div>
       </div>
     </div>
     <div class="listing" id="four">
       <div class="poster">
-      <img src="${movieApiData[3][0]}"/>
+      <img src="${moviePoster4}"/>
       </div>
       <div class="title" id="fourTitle">${title4}</div>
-      <div class="miniTitle">${movieApiData[3][2]}</div>
+      <div class="miniTitle">${getNames(movieApiData[3].genre_ids)}</div>
       <div class="subBlock">
-        <div class="rating">${movieApiData[3][3]}</div>
+        <div class="rating">${
+          Math.round(movieApiData[3].vote_average * 10) / 10
+        }</div>
         <div class="watchlistButton" id="fourTitle">+</div>
       </div>
     </div>
     <div class="listing" id="five">
       <div class="poster">
-      <img src="${movieApiData[4][0]}"/>
+      <img src="${moviePoster5}"/>
       </div>
       <div class="title" id="fiveTitle">${title5}</div>
-      <div class="miniTitle">${movieApiData[4][2]}</div>
+      <div class="miniTitle">${getNames(movieApiData[4].genre_ids)}</div>
       <div class="subBlock">
-        <div class="rating">${movieApiData[4][3]}</div>
+        <div class="rating">${
+          Math.round(movieApiData[4].vote_average * 10) / 10
+        }</div>
         <div class="watchlistButton" id="fiveTitle">+</div>
       </div>
     </div>
@@ -1068,6 +885,7 @@ async function populateCatalog() {
               let titleID = document.querySelector(`.title#${productID}`);
               //let productTitle = titleID.textContent;
               let productTitle;
+              let productPoster;
               switch (productID) {
                 case "oneTitle":
                   productTitle = originalTitle1;
@@ -1121,6 +939,8 @@ async function populateCatalog() {
                 });
             });
           });
+
+          //console.log(randomGenre);
         }
       } else {
         alert(data.message);
