@@ -1,3 +1,8 @@
+let socket = io();
+socket.on("connect", () => {
+  console.log("Socket has been connected.");
+});
+
 document.addEventListener("DOMContentLoaded", async () => {
   let searchSection = document.getElementById("searchSection");
   let searchButton = document.getElementById("searchBook");
@@ -13,9 +18,37 @@ document.addEventListener("DOMContentLoaded", async () => {
   let form = document.getElementById("bookSuggestionsForm");
   let resultsContainer = document.getElementById("bookSuggestionsResult");
 
-  reassignButton.addEventListener("click", () => {
-    alert("to be implemented");
-  });
+  
+
+  async function reassignLeader() {
+    try {  
+
+      let groupBody = JSON.parse(localStorage.getItem("groupInfo"));
+      console.log(groupBody);
+      if (groupBody === null || groupBody === undefined) {
+        console.log("GroupInfo not populated, cannot reassign leader")
+        return;
+      }
+      let groupId = groupBody.id;
+      let members = groupBody.members;
+
+      const queryString = buildQueryString(members);
+      const body = await fetchMembers(queryString);
+
+      const noLeaderUsernames = body.usernames.filter(
+        (username) => username !== localStorage.getItem("leaderUsername")
+      );
+      let newLeader = getReassignPrompt(noLeaderUsernames);
+      newLeader = validateNewLeader(newLeader, noLeaderUsernames);
+
+      await updateLeaderForGroup(groupId, newLeader);
+    }
+    catch (err) {
+      console.error("An error occurred:", err);
+    }
+  }
+
+  reassignButton.addEventListener("click", reassignLeader);
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -624,10 +657,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 let groupCode = decodeURIComponent(window.location.pathname).split("/").pop();
 let username = null;
-let socket = io();
-socket.on("connect", () => {
-  console.log("Socket has been connected.");
-});
+
 let send = document.getElementById("sendButton");
 let input = document.getElementById("messageInput");
 let messages = document.getElementById("messages");
