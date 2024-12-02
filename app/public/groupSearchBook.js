@@ -235,7 +235,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       searchResult.innerHTML = `
         <div class="book-card">
           <img src="${data.poster}" alt="${data.title} poster">
-          <button class="vote-btn" data-title="${data.title}">+</button>
+          <button class="vote-btn" data-title="${data.title}">vote</button>
           <button class="close-btn">x</button>
           <h3>${data.title}</h3>
           <p>Author(s): ${data.authors}</p>

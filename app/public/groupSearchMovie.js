@@ -189,7 +189,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       searchResult.innerHTML = `
         <div class="film-card">
           <img src="${data.poster}" alt="${data.title} poster">
-          <button class="vote-btn" data-title="${data.title}" data-genre="${data.genre}">+</button>
+          <button class="vote-btn" data-title="${data.title}" data-genre="${data.genre}">vote</button>
           <button class="close-btn">x</button>
           <h3>${data.title}</h3>
           <p>IMDb Rating: ${data.rating}</p>
