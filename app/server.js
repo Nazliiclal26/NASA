@@ -1958,6 +1958,10 @@ app.get("/getMembersFromIDs", async (req, res) => {
     });
   }
 
+  if (members.length == 1) {
+    members = [members[0]]
+  } 
+
   await user
     .getUsernamesFromIDs(members)
     .then((result) => {
@@ -2556,6 +2560,13 @@ io.on("connection", (socket) => {
         continue;
       }
       rooms[roomId][roommateId].emit("receive", message, username);
+    }
+  });
+
+  socket.on("updateGroup", () => {
+    console.log("Updating group");
+    for (let roommateId of Object.keys(rooms[roomId])) {
+      rooms[roomId][roommateId].emit("groupUpdateNotice");
     }
   });
 
