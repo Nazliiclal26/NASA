@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let reassignButton = document.getElementById("reassign");
   let mostVotedFilmSection = document.getElementById("mostVotedFilm");
   let leaveGroupButton = document.getElementById("leaveGroup");
+  let searchMovieType = document.getElementById("searchMovieType");
 
   let form = document.getElementById("suggestionsForm");
   let resultsContainer = document.getElementById("suggestionsResult");
@@ -202,17 +203,23 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   searchButton.addEventListener("click", async () => {
-    const title = document.getElementById("searchTitle").value;
+    let searchValue = document.getElementById("searchValue").value;
+    let selectedSearchType = searchMovieType.value;
 
-    if (!title) {
-      searchResult.innerText = "Please enter a film title.";
+    if (!searchValue) {
+      searchResult.innerText = "Please enter a value.";
       return;
     }
 
+    let url;
     try {
-      const response = await fetch(
-        `/groupSearch?title=${encodeURIComponent(title)}`
-      );
+      if (selectedSearchType === "title") {
+        url = `/groupSearch?title=${encodeURIComponent(searchValue)}`;
+      } else {
+        url = `/movieSearchById?imdbId=${encodeURIComponent(searchValue)}`;
+      }
+
+      const response = await fetch(url);
       if (!response.ok) throw new Error("Film not found");
 
       const data = await response.json();

@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let reassignButton = document.getElementById("reassign");
   let mostVotedBookSection = document.getElementById("mostVotedBook");
   let leaveGroupButton = document.getElementById("leaveGroup");
+  let searchBookType = document.getElementById("searchBookType");
 
   let form = document.getElementById("bookSuggestionsForm");
   let resultsContainer = document.getElementById("bookSuggestionsResult");
@@ -251,19 +252,27 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   searchButton.addEventListener("click", async () => {
-    let title = document.getElementById("searchTitle").value;
+    let searchValue = document.getElementById("searchValue").value;
+    let selectedSearchType = searchBookType.value;
 
-    if (!title) {
-      searchResult.innerText = "Please enter a book title.";
+    if (!searchValue) {
+      searchResult.innerText = "Please enter a value.";
       return;
     }
 
+    let url;
     try {
-      const response = await fetch(
-        `/groupSearchBook?title=${encodeURIComponent(title)}`
-      );
-      if (!response.ok) throw new Error("Book not found");
+      if (selectedSearchType === "title") {
+        url = `/groupSearchBook?title=${encodeURIComponent(searchValue)}`;
+      } else if (selectedSearchType === "author") {
+        url = `/bookSearchByAuthor?author=${encodeURIComponent(searchValue)}`;
+      } else {
+        url = `/bookSearchByISBN?isbn=${encodeURIComponent(searchValue)}`;
+      }
 
+      let response = await fetch(url);
+      if (!response.ok) throw new Error("Book not found");
+      
       const data = await response.json();
       searchResult.innerHTML = `
         <div class="book-card">

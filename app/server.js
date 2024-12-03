@@ -1032,8 +1032,12 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
         </div>
       </div>
       <div id="searchBox">
+        <select id="searchMovieType">
+          <option value="title">Title</option>
+          <option value="imdbId">IMDb ID</option>
+        </select>
         <div id="searchSection" style="display: flex;">
-          <input type="text" id="searchTitle" placeholder="Search for a film...">
+          <input type="text" id="searchValue" placeholder="Search for a film...">
           <button id="searchFilm">Search</button>
         </div>
       </div>
@@ -1406,8 +1410,13 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
         </div>
       </div>
       <div id="searchBox">
+        <select id="searchBookType">
+          <option value="title">Title</option>
+          <option value="author">Author</option>
+          <option value="isbn">ISBN</option>
+        </select>
         <div id="searchSection" style="display: flex;">
-          <input type="text" id="searchTitle" placeholder="Search for a book...">
+          <input type="text" id="searchValue" placeholder="Search for a book...">
           <button id="searchBook">Search</button>
         </div>
       </div>
