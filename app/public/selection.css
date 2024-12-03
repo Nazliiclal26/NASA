@@ -46,7 +46,7 @@ body {
 
 #buttonContainer {
   display: flex;
-  margin-left: 120px;
+  margin-left: 0px;
   gap: 45px;
 }
 
