@@ -79,6 +79,40 @@ let https = require("https");
 
 app.use(bodyParser.json());
 
+app.get("/findMoviesByGenre", async (req, res) => {
+  let genre = req.query.genre;
+
+  if (!genre) {
+    return res.status(400).json({ message: "Genre is required" });
+  }
+
+  try {
+    let genreResponse = await axios.get(`https://api.themoviedb.org/3/genre/movie/list?api_key=${MOVIEDB_API_KEY}&language=en-US`);
+    let genres = genreResponse.data.genres;
+    let genreObj = genres.find((g) => g.name.toLowerCase() === genre.toLowerCase());
+
+    if (!genreObj) {
+      return res.status(404).json({ message: "Genre not found" });
+    }
+
+    let genreId = genreObj.id;
+
+    let moviesResponse = await axios.get(`https://api.themoviedb.org/3/discover/movie?api_key=${MOVIEDB_API_KEY}&with_genres=${genreId}`);
+    let movies = moviesResponse.data.results;
+
+    if (!movies || movies.length === 0) {
+      return res.status(404).json({ message: "No movies found for this genre" });
+    }
+
+    let titles = movies.slice(0, 9).map((movie) => movie.title);
+
+    res.status(200).json({ titles });
+  } catch (error) {
+    console.error("Error fetching movie data:", error.message);
+    res.status(500).json({ message: "Error fetching movie data" });
+  }
+});
+
 app.post("/votes/setMostVotedBook/", async (req, res) => {
   try {
     let { groupCode, book_title } = req.body;
@@ -1034,6 +1068,7 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
       <div id="searchBox">
         <select id="searchMovieType">
           <option value="title">Title</option>
+          <option value="genre">Genre</option>
           <option value="imdbId">IMDb ID</option>
         </select>
         <div id="searchSection" style="display: flex;">
