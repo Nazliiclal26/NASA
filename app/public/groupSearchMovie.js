@@ -359,6 +359,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       searchSection.style.display = "none";
       votedFilmsList.innerHTML = "";
       votedFilmsTitle.innerHTML = "";
+      searchMovieType.innerHTML = "";
     } catch (error) {
       console.error("Error stopping voting:", error);
     }
@@ -378,6 +379,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       searchSection.style.display = "flex";
       searchSection.style.display = "block";
       mostVotedFilmSection.innerHTML = "";
+      searchMovieType.style.display = "block";
 
       fetchVotes();
     } catch (error) {
