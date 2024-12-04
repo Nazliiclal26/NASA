@@ -22,6 +22,42 @@ document.addEventListener("DOMContentLoaded", async () => {
   let form = document.getElementById("bookSuggestionsForm");
   let resultsContainer = document.getElementById("bookSuggestionsResult");
 
+  socket.on("groupUpdateNotice", () => {
+    populateGroupInfo()
+      .then(() => {
+        populateHeaderWithGroupInfo();
+        setLeaderUsername();
+        checkIfLeaderSync();
+      })
+      .catch((error) => {
+        console.error(error);
+        window.location.reload();
+      });
+  });
+
+  // Compares local storage of leader id and user id and see if they match
+  function checkIfLeaderSync() {
+    let leaderId = parseInt(
+      JSON.parse(localStorage.getItem("groupInfo")).leader_id
+    );
+    let userId = parseInt(localStorage.getItem("userId"));
+    let isLeader = leaderId == userId;
+    if (isLeader) {
+      console.log("User is leader");
+      // User is the leader naturally or user was assigned leadership, either way
+      document.getElementById("buttonContainer").style.display = "flex";
+      document.getElementById("startVote").style.display = "block";
+      document.getElementById("stopVote").style.display = "block";
+      document.getElementById("reassign").style.display = "block";
+    } else {
+      console.log("User is not leader");
+      // User is no longer the leader and the button styling needs to be updated
+      document.getElementById("startVote").style.display = "none";
+      document.getElementById("stopVote").style.display = "none";
+      document.getElementById("reassign").style.display = "none";
+    }
+  }
+
   async function reassignLeader() {
     try {
       let groupBody = JSON.parse(localStorage.getItem("groupInfo"));
@@ -43,6 +79,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       newLeader = validateNewLeader(newLeader, noLeaderUsernames);
 
       await updateLeaderForGroup(groupId, newLeader);
+      socket.emit("updateGroup");
     } catch (err) {
       console.error("An error occurred:", err);
     }
@@ -268,6 +305,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       searchSection.style.display = "none";
       votedBooksList.innerHTML = "";
       votedBooksTitle.innerHTML = "";
+      searchBookType.innerHTML = "";
+      searchBox.style.display = "none";
     } catch (error) {
       console.error("Error stopping voting:", error);
     }
@@ -285,6 +324,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       searchSection.style.display = "flex";
       mostVotedBookSection.innerHTML = "";
       votedBooksTitle.innerHTML = "Voted Books";
+      searchBookType.style.display = "block";
+      searchBox.style.display = "block";
       fetchVotes();
     } catch (error) {
       console.error("Error starting voting:", error);
@@ -427,6 +468,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   fetchGroupWatchlist();
 
+  // No longer in use
   async function checkIfLeader() {
     const response = await fetch(`/checkIfLeader`, {
       method: "POST",
@@ -439,10 +481,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     let data = await response.json();
     console.log(data.message);
     if (data.isLeader && response.ok) {
+      // User is the leader naturally or user was assigned leadership, either way
       document.getElementById("buttonContainer").style.display = "flex";
+      document.getElementById("startVote").style.display = "block";
+      document.getElementById("stopVote").style.display = "block";
+      document.getElementById("reassign").style.display = "block";
     } else {
+      // User is no longer the leader and the button styling needs to be updated
       document.getElementById("startVote").style.display = "none";
       document.getElementById("stopVote").style.display = "none";
+      document.getElementById("reassign").style.display = "none";
     }
   }
 
@@ -451,6 +499,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     let attributeDisplay = document.createElement("h4");
     let data = JSON.parse(localStorage.getItem("groupInfo"));
     //console.log(data);
+    if (header.childElementCount > 1) {
+      let existingHeader = header.lastElementChild;
+      header.removeChild(existingHeader);
+    }
     if (data.privacy === "public") {
       attributeDisplay.textContent = `Privacy: Public - Code: ${data.secret_code}`;
     } else if (
@@ -687,19 +739,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     let groupId = groupBody.id;
     let members = groupBody.members;
     await handleGroupExit(storedUserId, leaderId, groupId, members);
+    socket.emit("updateGroup");
   });
 
   populateGroupInfo()
     .then(() => {
       populateHeaderWithGroupInfo();
       setLeaderUsername();
+      checkIfLeaderSync();
     })
     .catch((error) => {
       console.error(error);
       window.location.reload();
     });
   fetchVotes();
-  checkIfLeader();
 
   const membersButton = document.getElementById("membersButton");
   const membersList = document.getElementById("membersList");

@@ -14,12 +14,49 @@ document.addEventListener("DOMContentLoaded", async () => {
   let mostVotedFilmSection = document.getElementById("mostVotedFilm");
   let leaveGroupButton = document.getElementById("leaveGroup");
   let searchMovieType = document.getElementById("searchMovieType");
+  const searchBox = document.getElementById("searchBox");
 
   let gptButton = document.getElementById("getAIResultsMovie");
   let aiSubmit = document.getElementById("aiSubmitMovie");
   let mainForm = document.getElementById("mainFormMovie");
   let form = document.getElementById("suggestionsForm");
   let resultsContainer = document.getElementById("suggestionsResult");
+
+  socket.on("groupUpdateNotice", () => {
+    populateGroupInfo()
+      .then(() => {
+        populateHeaderWithGroupInfo();
+        setLeaderUsername();
+        checkIfLeaderSync();
+      })
+      .catch((error) => {
+        console.error(error);
+        window.location.reload();
+      });
+  });
+
+  // Compares local storage of leader id and user id and see if they match
+  function checkIfLeaderSync() {
+    let leaderId = parseInt(
+      JSON.parse(localStorage.getItem("groupInfo")).leader_id
+    );
+    let userId = parseInt(localStorage.getItem("userId"));
+    let isLeader = leaderId == userId;
+    if (isLeader) {
+      console.log("User is leader");
+      // User is the leader naturally or user was assigned leadership, either way
+      document.getElementById("buttonContainer").style.display = "flex";
+      document.getElementById("startVote").style.display = "block";
+      document.getElementById("stopVote").style.display = "block";
+      document.getElementById("reassign").style.display = "block";
+    } else {
+      console.log("User is not leader");
+      // User is no longer the leader and the button styling needs to be updated
+      document.getElementById("startVote").style.display = "none";
+      document.getElementById("stopVote").style.display = "none";
+      document.getElementById("reassign").style.display = "none";
+    }
+  }
 
   async function reassignLeader() {
     try {
@@ -42,6 +79,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       newLeader = validateNewLeader(newLeader, noLeaderUsernames);
 
       await updateLeaderForGroup(groupId, newLeader);
+      socket.emit("updateGroup");
     } catch (err) {
       console.error("An error occurred:", err);
     }
@@ -179,6 +217,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       votedFilmsTitle.innerHTML = "";
       await displayMostVotedFilm();
       searchSection.style.display = "none";
+      searchBox.style.display = "none";
     } else {
       searchSection.style.display = "flex";
     }
@@ -324,6 +363,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
+  function attachEventListeners() {
+    document.querySelectorAll(".close-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.target.closest(".film-card").remove();
+      });
+    });
+
+    document.querySelectorAll(".vote-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        let filmTitle = e.target.dataset.title;
+        let filmGenre = e.target.dataset.genre;
+        let poster = e.target.closest(".film-card").querySelector("img").src;
+        voteForFilm(filmTitle, poster, filmGenre);
+        e.target.closest(".film-card").remove();
+      });
+    });
+  }
+
   async function voteForFilm(title, poster, film_genre) {
     try {
       const response = await fetch("/vote", {
@@ -402,6 +459,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+  // No longer in use
   async function checkIfLeader() {
     const response = await fetch(`/checkIfLeader`, {
       method: "POST",
@@ -414,10 +472,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     let data = await response.json();
     console.log(data.message);
     if (data.isLeader && response.ok) {
+      // User is the leader naturally or user was assigned leadership, either way
       document.getElementById("buttonContainer").style.display = "flex";
+      document.getElementById("startVote").style.display = "block";
+      document.getElementById("stopVote").style.display = "block";
+      document.getElementById("reassign").style.display = "block";
     } else {
+      // User is no longer the leader and the button styling needs to be updated
       document.getElementById("startVote").style.display = "none";
       document.getElementById("stopVote").style.display = "none";
+      document.getElementById("reassign").style.display = "none";
     }
   }
 
@@ -431,6 +495,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       searchSection.style.display = "none";
       votedFilmsList.innerHTML = "";
       votedFilmsTitle.innerHTML = "";
+      searchMovieType.innerHTML = "";
+      searchBox.style.display = "none";
     } catch (error) {
       console.error("Error stopping voting:", error);
     }
@@ -448,7 +514,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
 
       searchSection.style.display = "flex";
+      searchSection.style.display = "block";
       mostVotedFilmSection.innerHTML = "";
+      searchMovieType.style.display = "block";
+      searchBox.style.display = "block";
 
       fetchVotes();
     } catch (error) {
@@ -461,6 +530,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     let attributeDisplay = document.createElement("h4");
     let data = JSON.parse(localStorage.getItem("groupInfo"));
     //console.log(data);
+    if (header.childElementCount > 1) {
+      let existingHeader = header.lastElementChild;
+      header.removeChild(existingHeader);
+    }
     if (data.privacy === "public") {
       attributeDisplay.textContent = `Privacy: Public - Code: ${data.secret_code}`;
     } else if (
@@ -669,19 +742,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     let groupId = groupBody.id;
     let members = groupBody.members;
     await handleGroupExit(storedUserId, leaderId, groupId, members);
+    socket.emit("updateGroup");
   });
 
   populateGroupInfo()
     .then(() => {
       populateHeaderWithGroupInfo();
       setLeaderUsername();
+      checkIfLeaderSync();
     })
     .catch((error) => {
       console.error(error);
       window.location.reload();
     });
   fetchVotes();
-  checkIfLeader();
 
   const membersButton = document.getElementById("membersButton");
   const membersList = document.getElementById("membersList");

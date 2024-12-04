@@ -2,6 +2,7 @@ booksButton.addEventListener("click", () => {
   localStorage.setItem("type", "books");
   searchType.innerHTML = `
     <option value="title">Title</option>
+    <option value="genre">Genre</option>
     <option value="author">Author</option>
     <option value="isbn">ISBN</option>
   `;
@@ -11,6 +12,7 @@ moviesButton.addEventListener("click", () => {
   localStorage.setItem("type", "movies");
   searchType.innerHTML = `
     <option value="title">Title</option>
+    <option value="genre">Genre</option>
     <option value="imdbId">IMDb ID</option>
   `;
 });
@@ -26,22 +28,60 @@ searchButton.addEventListener("click", async () => {
   }
 
   try {
+    searchResult.innerHTML = "";
     let url;
     if (type === "movies") {
+      // Movies
       if (selectedSearchType === "title") {
         url = `/groupSearchMax?title=${encodeURIComponent(searchValue)}`;
+      } else if (selectedSearchType === "genre") {
+        let genreResponse = await fetch(
+          `/findMoviesByGenre?genre=${encodeURIComponent(searchValue)}`
+        );
+        if (!genreResponse.ok) throw new Error("Genre not found");
+        let genreData = await genreResponse.json();
+
+        for (let title of genreData.titles) {
+          let titleResponse = await fetch(
+            `/groupSearch?title=${encodeURIComponent(title)}`
+          );
+          if (!titleResponse.ok) throw new Error("Film not found");
+
+          let data = await titleResponse.json();
+
+          searchResult.innerHTML += `
+            <div class="film-card">
+              <div class="top">
+                <div class="leftContent">
+                  <img class="searchImage" src="${data.poster}" alt="${data.title} poster">
+                </div>
+                <div class="rightContent"> 
+                  <h3 class="searchTitle">${data.title}</h3>
+                  <p>IMDb Rating: ${data.rating}</p>
+                  <p>Genre: ${data.genre}</p>
+                  <button class="watchlist-btn watchlistButton2" data-title="${data.title}" data-genre="${data.genre}" data-poster="${data.poster}">+</button>
+                </div>
+              </div>
+              <div id="bottom">
+                <p>Plot: ${data.plot}</p>
+              </div> 
+            </div>
+          `;
+        }
+        attachWatchlistListeners();
+        return;
       } else {
         // IMDb ID
         url = `/movieSearchById?imdbId=${encodeURIComponent(searchValue)}`;
       }
     } else {
-      // books
+      // Books
       if (selectedSearchType === "title") {
         url = `/groupSearchBookMax?title=${encodeURIComponent(searchValue)}`;
       } else if (selectedSearchType === "author") {
-        url = `/bookSearchByAuthorMax?author=${encodeURIComponent(
-          searchValue
-        )}`;
+        url = `/bookSearchByAuthor?author=${encodeURIComponent(searchValue)}`;
+      } else if (selectedSearchType === "genre") {
+        url = `/bookSearchByGenre?genre=${encodeURIComponent(searchValue)}`;
       } else {
         // ISBN
         url = `/bookSearchByISBN?isbn=${encodeURIComponent(searchValue)}`;
@@ -50,7 +90,9 @@ searchButton.addEventListener("click", async () => {
 
     let response = await fetch(url);
     if (!response.ok) {
-      searchResult.innerText = "Film not found or an error occurred.";
+      searchResult.innerText = `${
+        type === "movies" ? "Film" : "Book"
+      } not found or an error occurred.`;
       console.error("Response not OK:", response.statusText);
       return;
     }
@@ -59,7 +101,9 @@ searchButton.addEventListener("click", async () => {
     // console.log(data);
 
     if (!data || Object.keys(data).length === 0) {
-      searchResult.innerText = "No data received for the film.";
+      searchResult.innerText = `No data received for the ${
+        type === "movies" ? "film" : "book"
+      }.`;
       return;
     }
 
@@ -160,43 +204,7 @@ searchButton.addEventListener("click", async () => {
       searchResult.appendChild(newSection);
     }
 
-    // Attach event listeners to new watchlist buttons
-    document.querySelectorAll(".watchlist-btn").forEach((button) => {
-      button.addEventListener("click", () => {
-        let userId = localStorage.getItem("userId");
-        if (!userId) {
-          alert("You need to be logged in to add to the watchlist.");
-          return;
-        }
-
-        let productInfo = {
-          type: type, // this will use either "movies" or "books" based on the selection
-          title: button.getAttribute("data-title"),
-          poster: button.getAttribute("data-poster"), // Pass poster URL to the server
-          userId: userId,
-        };
-
-        fetch(`/addToWatchlist`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(productInfo),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.status === "success") {
-              alert("Added to watchlist!");
-            } else {
-              alert("Failed to add to watchlist: " + data.message);
-            }
-          })
-          .catch((error) => {
-            console.error("Error adding to watchlist:", error);
-            alert("Error adding to watchlist.");
-          });
-      });
-    });
+    attachWatchlistListeners();
   } catch (error) {
     searchResult.innerText = `${
       type === "movies" ? "Film" : "Book"
@@ -204,3 +212,41 @@ searchButton.addEventListener("click", async () => {
     console.error("Error fetching data:", error);
   }
 });
+function attachWatchlistListeners() {
+  document.querySelectorAll(".watchlist-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+      let userId = localStorage.getItem("userId");
+      if (!userId) {
+        alert("You need to be logged in to add to the watchlist.");
+        return;
+      }
+
+      let productInfo = {
+        type: localStorage.getItem("type"), // "movies" or "books"
+        title: button.getAttribute("data-title"),
+        poster: button.getAttribute("data-poster"),
+        userId: userId,
+      };
+
+      fetch(`/addToWatchlist`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(productInfo),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.status === "success") {
+            alert("Added to watchlist!");
+          } else {
+            alert(`Failed to add to watchlist: ${data.message}`);
+          }
+        })
+        .catch((error) => {
+          console.error("Error adding to watchlist:", error);
+          alert("Error adding to watchlist.");
+        });
+    });
+  });
+}
