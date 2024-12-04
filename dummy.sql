@@ -1,4 +1,4 @@
---Assumes an empty database
+--Assumes an empty database 
 
 -- USER SETUP
 -- Password for each user is the same, it's 'password'
@@ -16,19 +16,22 @@ INSERT INTO users (username, first_name, last_name password, preferred_genres)
 
 
 -- GROUP SETUP (Group IDs are hardcoded, this is assuming an empty database)
--- 'TeamNASA', Public, Book: Leader - Ajani, Members - Ajani, Nazli, Ashifur, Susie
+-- 'TeamNASA', Book, Public: Leader - Ajani, Members - Ajani, Nazli, Ashifur, Susie
 INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, members) 
     VALUES ('TeamNASA', 'iCHqb', 1, 'book', 'public', '{1,2,3,4}')
 
--- 'We Love Movies', Private, Movie: Leader - Nazli, Members - Nazli, Ashifur
+-- 'We Love Movies', Movie, Private: Leader - Nazli, Members - Nazli, Ashifur
 INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, members) 
     VALUES ('We Love Movies', '1A06U', 2, 'movie', 'private', '{2,3}')
 
--- 'MovieFun', Public, Movie: Leader - Ashifur, Members - Ashifur, Susie
+-- 'MovieFun', Movie, Public: Leader - Ashifur, Members - Ashifur, Susie
 INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, members) 
     VALUES ('MovieFun', 'jbJxl', 3, 'movie', 'public', '{3,4}')
 
--- 'MovieFun', Private, Book: Leader - Susie, Members - Susie, Ajani
+-- 'Book Nerds', Book, Private: Leader - Susie, Members - Susie, Ajani
 INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, members) 
     VALUES ('Book Nerds', 'foJfD', 4, 'book', 'private', '{4,1}')
 
+-- 'SoloLiving', Book, Public: Leader - Ajani, Members - Ajani
+INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, members) 
+    VALUES ('SoloLiving', 'chEET', 1, 'book', 'public', '{1}')
