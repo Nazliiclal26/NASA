@@ -545,6 +545,26 @@ body {
   background-color: #ddd;
 }
 
+#searchBookType {
+  height: 69px;
+  border: 2px solid;
+  border-right: none;
+}
+
+#searchBookType:hover {
+  background-color: #ddd;
+}
+
+#searchMovieType {
+  height: 69px;
+  border: 2px solid;
+  border-right: none;
+}
+
+#searchMovieType:hover {
+  background-color: #ddd;
+}
+
 #searchFilm,
 #searchBook {
   height: 69px;
@@ -713,6 +733,12 @@ a:visited {
   #searchFilm,
   #searchBook,
   #searchType {
+    height: 69px;
+  }
+  #searchBookType {
+    height: 69px;
+  }
+  #searchMovieType {
     height: 69px;
   }
 
