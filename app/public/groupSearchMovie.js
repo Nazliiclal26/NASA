@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let mostVotedFilmSection = document.getElementById("mostVotedFilm");
   let leaveGroupButton = document.getElementById("leaveGroup");
   let searchMovieType = document.getElementById("searchMovieType");
+  const searchBox = document.getElementById("searchBox");
 
   let form = document.getElementById("suggestionsForm");
   let resultsContainer = document.getElementById("suggestionsResult");
@@ -137,6 +138,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       votedFilmsTitle.innerHTML = "";
       await displayMostVotedFilm();
       searchSection.style.display = "none";
+      searchBox.style.display = "none";
     } else {
       searchSection.style.display = "flex";
     }
@@ -360,6 +362,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       votedFilmsList.innerHTML = "";
       votedFilmsTitle.innerHTML = "";
       searchMovieType.innerHTML = "";
+      searchBox.style.display = "none";
     } catch (error) {
       console.error("Error stopping voting:", error);
     }
@@ -380,6 +383,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       searchSection.style.display = "block";
       mostVotedFilmSection.innerHTML = "";
       searchMovieType.style.display = "block";
+      searchBox.style.display = "block";
 
       fetchVotes();
     } catch (error) {
