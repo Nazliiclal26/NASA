@@ -295,48 +295,61 @@ document.addEventListener("DOMContentLoaded", async () => {
   searchButton.addEventListener("click", async () => {
     let searchValue = document.getElementById("searchValue").value;
     let selectedSearchType = searchBookType.value;
-
+  
     if (!searchValue) {
       searchResult.innerText = "Please enter a value.";
       return;
     }
-
+  
     let url;
     try {
       if (selectedSearchType === "title") {
         url = `/groupSearchBook?title=${encodeURIComponent(searchValue)}`;
+      } else if (selectedSearchType === "genre") {
+        url = `/bookSearchByGenre?genre=${encodeURIComponent(searchValue)}`;
       } else if (selectedSearchType === "author") {
         url = `/bookSearchByAuthor?author=${encodeURIComponent(searchValue)}`;
       } else {
         url = `/bookSearchByISBN?isbn=${encodeURIComponent(searchValue)}`;
       }
-
+  
       let response = await fetch(url);
       if (!response.ok) throw new Error("Book not found");
-      
-      const data = await response.json();
-      searchResult.innerHTML = `
-        <div class="book-card">
-          <img src="${data.poster}" alt="${data.title} poster">
-          <button class="vote-btn" data-title="${data.title}">vote</button>
-          <button class="close-btn">x</button>
-          <h3>${data.title}</h3>
-          <p>Author(s): ${data.authors}</p>
-          <p>Date Published: ${data.publishedDate}</p>
-          <p>Rating: ${data.rating}/5</p>
-          <p>Description: ${data.description}</p>
-        </div>
-      `;
-
-      document.querySelector(".close-btn").addEventListener("click", (e) => {
-        searchResult.innerHTML = "";
+  
+      let data = await response.json();
+  
+      searchResult.innerHTML = "";
+  
+      let books = Array.isArray(data.books) ? data.books : [data];
+  
+      books.forEach((book) => {
+        searchResult.innerHTML += `
+          <div class="book-card">
+            <img src="${book.poster || 'https://via.placeholder.com/150'}" alt="${book.title} poster">
+            <button class="vote-btn" data-title="${book.title}">vote</button>
+            <button class="close-btn">x</button>
+            <h3>${book.title}</h3>
+            <p>Author(s): ${book.authors || "Unknown"}</p>
+            <p>Date Published: ${book.publishedDate || "Unknown"}</p>
+            <p>Rating: ${book.rating || "N/A"}/5</p>
+            <p>Description: ${book.description || "No description available."}</p>
+          </div>
+        `;
       });
-
-      document.querySelector(".vote-btn").addEventListener("click", (e) => {
-        let bookTitle = e.target.dataset.title;
-        let poster = e.target.closest(".book-card").querySelector("img").src;
-        voteForBook(bookTitle, poster);
-        searchResult.innerHTML = "";
+  
+      document.querySelectorAll(".close-btn").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.target.closest(".book-card").remove();
+        });
+      });
+  
+      document.querySelectorAll(".vote-btn").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          let bookTitle = e.target.dataset.title;
+          let poster = e.target.closest(".book-card").querySelector("img").src;
+          voteForBook(bookTitle, poster);
+          e.target.closest(".book-card").remove();
+        });
       });
     } catch (error) {
       searchResult.innerText = "Book not found or an error occurred.";
