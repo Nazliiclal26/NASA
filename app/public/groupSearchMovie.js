@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let mostVotedFilmSection = document.getElementById("mostVotedFilm");
   let leaveGroupButton = document.getElementById("leaveGroup");
   let searchMovieType = document.getElementById("searchMovieType");
+  const searchBox = document.getElementById("searchBox");
 
   let form = document.getElementById("suggestionsForm");
   let resultsContainer = document.getElementById("suggestionsResult");
@@ -173,6 +174,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       votedFilmsTitle.innerHTML = "";
       await displayMostVotedFilm();
       searchSection.style.display = "none";
+      searchBox.style.display = "none";
     } else {
       searchSection.style.display = "flex";
     }
@@ -241,24 +243,54 @@ document.addEventListener("DOMContentLoaded", async () => {
   searchButton.addEventListener("click", async () => {
     let searchValue = document.getElementById("searchValue").value;
     let selectedSearchType = searchMovieType.value;
-
+  
     if (!searchValue) {
       searchResult.innerText = "Please enter a value.";
       return;
     }
-
-    let url;
+  
     try {
+      searchResult.innerHTML = "";
+
+      let url;
+  
       if (selectedSearchType === "title") {
         url = `/groupSearch?title=${encodeURIComponent(searchValue)}`;
+      } else if (selectedSearchType === "genre") {
+        let genreResponse = await fetch(`/findMoviesByGenre?genre=${encodeURIComponent(searchValue)}`);
+        if (!genreResponse.ok) throw new Error("Genre not found");
+        let genreData = await genreResponse.json();
+  
+        for (let title of genreData.titles) {
+          let titleResponse = await fetch(`/groupSearch?title=${encodeURIComponent(title)}`);
+          if (!titleResponse.ok) throw new Error("Film not found");
+  
+          let data = await titleResponse.json();
+  
+          searchResult.innerHTML += `
+            <div class="film-card">
+              <img src="${data.poster}" alt="${data.title} poster">
+              <button class="vote-btn" data-title="${data.title}" data-genre="${data.genre}">vote</button>
+              <button class="close-btn">x</button>
+              <h3>${data.title}</h3>
+              <p>IMDb Rating: ${data.rating}</p>
+              <p>Genre: ${data.genre}</p>
+              <p>Plot: ${data.plot}</p>
+            </div>
+          `;
+  
+          attachEventListeners();
+        }
+        return;
       } else {
         url = `/movieSearchById?imdbId=${encodeURIComponent(searchValue)}`;
       }
-
-      const response = await fetch(url);
+  
+      let response = await fetch(url);
       if (!response.ok) throw new Error("Film not found");
-
-      const data = await response.json();
+  
+      let data = await response.json();
+  
       searchResult.innerHTML = `
         <div class="film-card">
           <img src="${data.poster}" alt="${data.title} poster">
@@ -270,24 +302,32 @@ document.addEventListener("DOMContentLoaded", async () => {
           <p>Plot: ${data.plot}</p>
         </div>
       `;
-
-      document.querySelector(".close-btn").addEventListener("click", (e) => {
-        searchResult.innerHTML = "";
-      });
-
-      document.querySelector(".vote-btn").addEventListener("click", (e) => {
-        let filmTitle = e.target.dataset.title;
-        let film_genre = e.target.dataset.genre;
-        let poster = e.target.closest(".film-card").querySelector("img").src;
-        voteForFilm(filmTitle, poster, film_genre);
-        searchResult.innerHTML = "";
-      });
+  
+      attachEventListeners();
     } catch (error) {
       searchResult.innerText = "Film not found or an error occurred.";
       console.error("Error fetching film:", error);
     }
   });
-
+  
+  function attachEventListeners() {
+    document.querySelectorAll(".close-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.target.closest(".film-card").remove();
+      });
+    });
+  
+    document.querySelectorAll(".vote-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        let filmTitle = e.target.dataset.title;
+        let filmGenre = e.target.dataset.genre;
+        let poster = e.target.closest(".film-card").querySelector("img").src;
+        voteForFilm(filmTitle, poster, filmGenre);
+        e.target.closest(".film-card").remove();
+      });
+    });
+  }
+  
   async function voteForFilm(title, poster, film_genre) {
     try {
       const response = await fetch("/vote", {
@@ -402,6 +442,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       searchSection.style.display = "none";
       votedFilmsList.innerHTML = "";
       votedFilmsTitle.innerHTML = "";
+      searchMovieType.innerHTML = "";
+      searchBox.style.display = "none";
     } catch (error) {
       console.error("Error stopping voting:", error);
     }
@@ -421,6 +463,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       searchSection.style.display = "flex";
       searchSection.style.display = "block";
       mostVotedFilmSection.innerHTML = "";
+      searchMovieType.style.display = "block";
+      searchBox.style.display = "block";
 
       fetchVotes();
     } catch (error) {
