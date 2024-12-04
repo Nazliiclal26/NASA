@@ -30,6 +30,7 @@ searchButton.addEventListener("click", async () => {
   try {
     searchResult.innerHTML = "";
     let url;
+
     if (type === "movies") {
       // Movies
       if (selectedSearchType === "title") {
@@ -38,6 +39,7 @@ searchButton.addEventListener("click", async () => {
         let genreResponse = await fetch(
           `/findMoviesByGenre?genre=${encodeURIComponent(searchValue)}`
         );
+
         if (!genreResponse.ok) throw new Error("Genre not found");
         let genreData = await genreResponse.json();
 
@@ -71,7 +73,6 @@ searchButton.addEventListener("click", async () => {
         attachWatchlistListeners();
         return;
       } else {
-        // IMDb ID
         url = `/movieSearchById?imdbId=${encodeURIComponent(searchValue)}`;
       }
     } else {
@@ -83,7 +84,6 @@ searchButton.addEventListener("click", async () => {
       } else if (selectedSearchType === "genre") {
         url = `/bookSearchByGenre?genre=${encodeURIComponent(searchValue)}`;
       } else {
-        // ISBN
         url = `/bookSearchByISBN?isbn=${encodeURIComponent(searchValue)}`;
       }
     }
@@ -106,8 +106,6 @@ searchButton.addEventListener("click", async () => {
       }.`;
       return;
     }
-
-    searchResult.innerHTML = ""; // Clear previous results
 
     if (type === "movies") {
       // Display movie information
@@ -203,7 +201,6 @@ searchButton.addEventListener("click", async () => {
       //console.log(newSection);
       searchResult.appendChild(newSection);
     }
-
     attachWatchlistListeners();
   } catch (error) {
     searchResult.innerText = `${
@@ -212,6 +209,7 @@ searchButton.addEventListener("click", async () => {
     console.error("Error fetching data:", error);
   }
 });
+
 function attachWatchlistListeners() {
   document.querySelectorAll(".watchlist-btn").forEach((button) => {
     button.addEventListener("click", () => {
@@ -250,3 +248,4 @@ function attachWatchlistListeners() {
     });
   });
 }
+

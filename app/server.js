@@ -79,6 +79,79 @@ let https = require("https");
 
 app.use(bodyParser.json());
 
+app.get("/bookSearchByGenre", (req, res) => {
+  let genre = req.query.genre;
+
+  if (!genre) {
+    return res.status(400).json({ message: "Please input genre" });
+  }
+
+  let url = `https://www.googleapis.com/books/v1/volumes?q=subject:${encodeURIComponent(
+    genre
+  )}&key=${GOOGLE_API_KEY}`;
+
+  axios
+    .get(url)
+    .then((response) => {
+      let books = response.data.items;
+      if (!books || books.length === 0) {
+        return res.status(404).json({ message: "No books found for this genre." });
+      }
+
+      let bookDetails = books.slice(0, 10).map((item) => {
+        let book = item.volumeInfo;
+        return {
+          title: book.title,
+          poster: book.imageLinks ? book.imageLinks.thumbnail : "",
+          authors: book.authors ? book.authors.join(", ") : "N/A",
+          publishedDate: book.publishedDate || "Unknown",
+          rating: book.averageRating || "N/A",
+          description: book.description || "No description available.",
+        };
+      });
+
+      res.status(200).json({ books: bookDetails });
+    })
+    .catch((error) => {
+      console.error("Error fetching book data:", error.message);
+      res.status(500).json({ message: "Error fetching book data" });
+    });
+});
+
+app.get("/findMoviesByGenre", async (req, res) => {
+  let genre = req.query.genre;
+
+  if (!genre) {
+    return res.status(400).json({ message: "Genre is required" });
+  }
+
+  try {
+    let genreResponse = await axios.get(`https://api.themoviedb.org/3/genre/movie/list?api_key=${MOVIEDB_API_KEY}&language=en-US`);
+    let genres = genreResponse.data.genres;
+    let genreObj = genres.find((g) => g.name.toLowerCase() === genre.toLowerCase());
+
+    if (!genreObj) {
+      return res.status(404).json({ message: "Genre not found" });
+    }
+
+    let genreId = genreObj.id;
+
+    let moviesResponse = await axios.get(`https://api.themoviedb.org/3/discover/movie?api_key=${MOVIEDB_API_KEY}&with_genres=${genreId}`);
+    let movies = moviesResponse.data.results;
+
+    if (!movies || movies.length === 0) {
+      return res.status(404).json({ message: "No movies found for this genre" });
+    }
+
+    let titles = movies.slice(0, 10).map((movie) => movie.title);
+
+    res.status(200).json({ titles });
+  } catch (error) {
+    console.error("Error fetching movie data:", error.message);
+    res.status(500).json({ message: "Error fetching movie data" });
+  }
+});
+
 app.post("/votes/setMostVotedBook/", async (req, res) => {
   try {
     let { groupCode, book_title } = req.body;
@@ -1036,6 +1109,7 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
       <div id="searchBox">
         <select id="searchMovieType">
           <option value="title">Title</option>
+          <option value="genre">Genre</option>
           <option value="imdbId">IMDb ID</option>
         </select>
         <div id="searchSection" style="display: flex;">
@@ -1437,6 +1511,7 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
       <div id="searchBox">
         <select id="searchBookType">
           <option value="title">Title</option>
+          <option value="genre">Genre</option>
           <option value="author">Author</option>
           <option value="isbn">ISBN</option>
         </select>
@@ -2018,6 +2093,10 @@ app.get("/getMembersFromIDs", async (req, res) => {
       message: "The query does not contain a members to return usernames from.",
     });
   }
+
+  if (members.length == 1) {
+    members = [members[0]]
+  } 
 
   await user
     .getUsernamesFromIDs(members)
@@ -2702,6 +2781,13 @@ io.on("connection", (socket) => {
         continue;
       }
       rooms[roomId][roommateId].emit("receive", message, username);
+    }
+  });
+
+  socket.on("updateGroup", () => {
+    console.log("Updating group");
+    for (let roommateId of Object.keys(rooms[roomId])) {
+      rooms[roomId][roommateId].emit("groupUpdateNotice");
     }
   });
 

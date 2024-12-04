@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       await updateLeaderForGroup(groupId, newLeader);
       socket.emit("updateGroup");
-    } catch (err) {
+    }catch (err) {
       console.error("An error occurred:", err);
     }
   }
@@ -286,21 +286,50 @@ document.addEventListener("DOMContentLoaded", async () => {
   searchButton.addEventListener("click", async () => {
     let searchValue = document.getElementById("searchValue").value;
     let selectedSearchType = searchMovieType.value;
-
+  
     if (!searchValue) {
       searchResult.innerText = "Please enter a value.";
       return;
     }
-
-    let url;
+  
     try {
+      searchResult.innerHTML = "";
+
+      let url;
+  
       if (selectedSearchType === "title") {
         url = `/groupSearchMax?title=${encodeURIComponent(searchValue)}`;
+      } else if (selectedSearchType === "genre") {
+        let genreResponse = await fetch(`/findMoviesByGenre?genre=${encodeURIComponent(searchValue)}`);
+        if (!genreResponse.ok) throw new Error("Genre not found");
+        let genreData = await genreResponse.json();
+  
+        for (let title of genreData.titles) {
+          let titleResponse = await fetch(`/groupSearch?title=${encodeURIComponent(title)}`);
+          if (!titleResponse.ok) throw new Error("Film not found");
+  
+          let data = await titleResponse.json();
+  
+          searchResult.innerHTML += `
+            <div class="film-card">
+              <img src="${data.poster}" alt="${data.title} poster">
+              <button class="vote-btn" data-title="${data.title}" data-genre="${data.genre}">vote</button>
+              <button class="close-btn">x</button>
+              <h3>${data.title}</h3>
+              <p>IMDb Rating: ${data.rating}</p>
+              <p>Genre: ${data.genre}</p>
+              <p>Plot: ${data.plot}</p>
+            </div>
+          `;
+  
+          attachEventListeners();
+        }
+        return;
       } else {
         url = `/movieSearchById?imdbId=${encodeURIComponent(searchValue)}`;
       }
-
-      const response = await fetch(url);
+  
+      let response = await fetch(url);
       if (!response.ok) throw new Error("Film not found");
 
       const data = await response.json();
@@ -332,7 +361,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           <p>Plot: ${newData.plot}</p>
         </div>
       `;
-
           let closeButton = newSectionContent.querySelector(".close-btn");
           closeButton.addEventListener("click", (e) => {
             searchResult.innerHTML = "";
@@ -357,6 +385,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       //console.log(newSection);
       searchResult.appendChild(newSection);
+      attachEventListeners();
     } catch (error) {
       searchResult.innerText = "Film not found or an error occurred.";
       console.error("Error fetching film:", error);

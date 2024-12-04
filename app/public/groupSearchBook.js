@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let mainForm = document.getElementById("mainForm");
   let form = document.getElementById("bookSuggestionsForm");
   let resultsContainer = document.getElementById("bookSuggestionsResult");
-
+  
   socket.on("groupUpdateNotice", () => {
     populateGroupInfo()
       .then(() => {
@@ -80,7 +80,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       await updateLeaderForGroup(groupId, newLeader);
       socket.emit("updateGroup");
-    } catch (err) {
+
+
+    }catch (err) {
       console.error("An error occurred:", err);
     }
   }
@@ -170,6 +172,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       await displayMostVotedBook();
       searchSection.style.display = "none";
       votedBooksTitle.innerHTML = "";
+      searchBox.style.display = "none";
     } else {
       searchSection.style.display = "flex";
     }
@@ -335,16 +338,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   searchButton.addEventListener("click", async () => {
     let searchValue = document.getElementById("searchValue").value;
     let selectedSearchType = searchBookType.value;
-
+  
     if (!searchValue) {
       searchResult.innerText = "Please enter a value.";
       return;
     }
-
+  
     let url;
     try {
       if (selectedSearchType === "title") {
         url = `/groupSearchBookMax?title=${encodeURIComponent(searchValue)}`;
+      } else if (selectedSearchType === "genre") {
+        url = `/bookSearchByGenre?genre=${encodeURIComponent(searchValue)}`;
       } else if (selectedSearchType === "author") {
         url = `/bookSearchByAuthorMax?author=${encodeURIComponent(
           searchValue
@@ -352,7 +357,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       } else {
         url = `/bookSearchByISBN?isbn=${encodeURIComponent(searchValue)}`;
       }
-
+  
       let response = await fetch(url);
       if (!response.ok) throw new Error("Book not found");
 
