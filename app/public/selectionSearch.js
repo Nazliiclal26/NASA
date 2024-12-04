@@ -11,6 +11,7 @@ moviesButton.addEventListener("click", () => {
   localStorage.setItem("type", "movies");
   searchType.innerHTML = `
     <option value="title">Title</option>
+    <option value="genre">Genre</option>
     <option value="imdbId">IMDb ID</option>
   `;
 });
@@ -30,7 +31,42 @@ searchButton.addEventListener("click", async () => {
     if (type === "movies") {
       if (selectedSearchType === "title") {
         url = `/groupSearch?title=${encodeURIComponent(searchValue)}`;
-      } else {
+      } 
+      else if (selectedSearchType === "genre") {
+        let genreResponse = await fetch(`/findMoviesByGenre?genre=${encodeURIComponent(searchValue)}`);
+        if (!genreResponse.ok) throw new Error("Genre not found");
+        let genreData = await genreResponse.json();
+  
+        for (let title of genreData.titles) {
+          let titleResponse = await fetch(`/groupSearch?title=${encodeURIComponent(title)}`);
+          if (!titleResponse.ok) throw new Error("Film not found");
+  
+          let data = await titleResponse.json();
+  
+          searchResult.innerHTML += `
+        <div class="film-card">
+        <div class="top">
+          <div class="leftContent">
+            <img class="searchImage" src="${data.poster}" alt="${data.title} poster">
+          </div>
+          <div class="rightContent"> 
+            <h3 class="searchTitle">${data.title}</h3>
+            <p>IMDb Rating: ${data.rating}</p>
+            <p>Genre: ${data.genre}</p>
+            <button class="watchlist-btn watchlistButton2" data-title="${data.title}" data-genre="${data.genre}" data-poster="${data.poster}">+</button>
+          </div>
+        </div>
+        <div id="bottom">
+          <p>Plot: ${data.plot}</p>
+        </div> 
+        </div>
+      `;
+  
+      attachWatchlistListeners();
+        }
+        return;
+      } 
+      else {
         // IMDb ID
         url = `/movieSearchById?imdbId=${encodeURIComponent(searchValue)}`;
       }
@@ -142,6 +178,7 @@ searchButton.addEventListener("click", async () => {
           });
       });
     });
+    attachWatchlistListeners();
   } catch (error) {
     searchResult.innerText = `${
       type === "movies" ? "Film" : "Book"
@@ -149,3 +186,43 @@ searchButton.addEventListener("click", async () => {
     console.error("Error fetching data:", error);
   }
 });
+
+function attachWatchlistListeners() {
+  document.querySelectorAll(".watchlist-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+      let userId = localStorage.getItem("userId");
+      if (!userId) {
+        alert("You need to be logged in to add to the watchlist.");
+        return;
+      }
+
+      let productInfo = {
+        type: localStorage.getItem("type"),
+        title: button.getAttribute("data-title"),
+        poster: button.getAttribute("data-poster"),
+        userId: userId,
+      };
+
+      fetch(`/addToWatchlist`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(productInfo),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.status === "success") {
+            alert("Added to watchlist!");
+          } else {
+            alert(`Failed to add to watchlist: ${data.message}`);
+          }
+        })
+        .catch((error) => {
+          console.error("Error adding to watchlist:", error);
+          alert("Error adding to watchlist.");
+        });
+    });
+  });
+}
+
