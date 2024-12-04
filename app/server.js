@@ -79,6 +79,45 @@ let https = require("https");
 
 app.use(bodyParser.json());
 
+app.get("/bookSearchByGenre", (req, res) => {
+  let genre = req.query.genre;
+
+  if (!genre) {
+    return res.status(400).json({ message: "Please input genre" });
+  }
+
+  let url = `https://www.googleapis.com/books/v1/volumes?q=subject:${encodeURIComponent(
+    genre
+  )}&key=${GOOGLE_API_KEY}`;
+
+  axios
+    .get(url)
+    .then((response) => {
+      let books = response.data.items;
+      if (!books || books.length === 0) {
+        return res.status(404).json({ message: "No books found for this genre." });
+      }
+
+      let bookDetails = books.slice(0, 10).map((item) => {
+        let book = item.volumeInfo;
+        return {
+          title: book.title,
+          poster: book.imageLinks ? book.imageLinks.thumbnail : "",
+          authors: book.authors ? book.authors.join(", ") : "N/A",
+          publishedDate: book.publishedDate || "Unknown",
+          rating: book.averageRating || "N/A",
+          description: book.description || "No description available.",
+        };
+      });
+
+      res.status(200).json({ books: bookDetails });
+    })
+    .catch((error) => {
+      console.error("Error fetching book data:", error.message);
+      res.status(500).json({ message: "Error fetching book data" });
+    });
+});
+
 app.get("/findMoviesByGenre", async (req, res) => {
   let genre = req.query.genre;
 
@@ -1447,6 +1486,7 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
       <div id="searchBox">
         <select id="searchBookType">
           <option value="title">Title</option>
+          <option value="genre">Genre</option>
           <option value="author">Author</option>
           <option value="isbn">ISBN</option>
         </select>
