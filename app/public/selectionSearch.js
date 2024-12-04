@@ -29,7 +29,7 @@ searchButton.addEventListener("click", async () => {
     let url;
     if (type === "movies") {
       if (selectedSearchType === "title") {
-        url = `/groupSearch?title=${encodeURIComponent(searchValue)}`;
+        url = `/groupSearchMax?title=${encodeURIComponent(searchValue)}`;
       } else {
         // IMDb ID
         url = `/movieSearchById?imdbId=${encodeURIComponent(searchValue)}`;
@@ -54,6 +54,8 @@ searchButton.addEventListener("click", async () => {
     }
 
     let data = await response.json();
+    let movieObjs = data.Search;
+
     if (!data || Object.keys(data).length === 0) {
       searchResult.innerText = "No data received for the film.";
       return;
@@ -64,24 +66,48 @@ searchButton.addEventListener("click", async () => {
     if (type === "movies") {
       // Display movie information
 
-      searchResult.innerHTML = `
+      let newSection = document.createElement("ul");
+      newSection.classList.add("verticalSearch");
+
+      for (let each of movieObjs) {
+        console.log(each.Title);
+        try {
+          let newResponse = await fetch(
+            `/groupSearch?title=${encodeURIComponent(each.Title)}`
+          );
+
+          let newData = await newResponse.json();
+
+          console.log(newData);
+
+          let newSectionContent = document.createElement("li");
+          newSectionContent.innerHTML = `
         <div class="film-card">
         <div class="top">
           <div class="leftContent">
-            <img class="searchImage" src="${data.poster}" alt="${data.title} poster">
+            <img class="searchImage" src="${newData.poster}" alt="${newData.title} poster">
           </div>
           <div class="rightContent"> 
-            <h3 class="searchTitle">${data.title}</h3>
-            <p>IMDb Rating: ${data.rating}</p>
-            <p>Genre: ${data.genre}</p>
-            <button class="watchlist-btn watchlistButton2" data-title="${data.title}" data-genre="${data.genre}" data-poster="${data.poster}">+</button>
+            <h3 class="searchTitle">${newData.title}</h3>
+            <p>IMDb Rating: ${newData.rating}</p>
+            <p>Genre: ${newData.genre}</p>
+            <button class="watchlist-btn watchlistButton2" data-title="${newData.title}" data-genre="${newData.genre}" data-poster="${newData.poster}">+</button>
           </div>
         </div>
         <div id="bottom">
-          <p>Plot: ${data.plot}</p>
+          <p>Plot: ${newData.plot}</p>
         </div> 
         </div>
       `;
+
+          newSection.appendChild(newSectionContent);
+        } catch (error) {
+          newSection.appendChild(error);
+        }
+      }
+
+      console.log(newSection);
+      searchResult.appendChild(newSection);
     } else {
       // books
       // Display book information

@@ -19,12 +19,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   let resultsContainer = document.getElementById("suggestionsResult");
 
   async function reassignLeader() {
-    try {  
-
+    try {
       let groupBody = JSON.parse(localStorage.getItem("groupInfo"));
       console.log(groupBody);
       if (groupBody === null || groupBody === undefined) {
-        console.log("GroupInfo not populated, cannot reassign leader")
+        console.log("GroupInfo not populated, cannot reassign leader");
         return;
       }
       let groupId = groupBody.id;
@@ -40,8 +39,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       newLeader = validateNewLeader(newLeader, noLeaderUsernames);
 
       await updateLeaderForGroup(groupId, newLeader);
-    }
-    catch (err) {
+    } catch (err) {
       console.error("An error occurred:", err);
     }
   }

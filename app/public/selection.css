@@ -709,6 +709,11 @@ a:visited {
   width: 100%;
 }
 
+.verticalSearch {
+  overflow-y: auto;
+  max-height: 450px;
+}
+
 @media (max-width: 1600px) {
   #searchFilm,
   #searchBook,
