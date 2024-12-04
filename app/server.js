@@ -104,7 +104,7 @@ app.get("/findMoviesByGenre", async (req, res) => {
       return res.status(404).json({ message: "No movies found for this genre" });
     }
 
-    let titles = movies.slice(0, 9).map((movie) => movie.title);
+    let titles = movies.slice(0, 10).map((movie) => movie.title);
 
     res.status(200).json({ titles });
   } catch (error) {
