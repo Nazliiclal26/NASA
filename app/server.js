@@ -2346,6 +2346,34 @@ app.get("/groupSearchBook", (req, res) => {
     });
 });
 
+app.get("/groupSearchBookMax", (req, res) => {
+  let title = req.query.title;
+
+  if (!title) {
+    return res.status(400).json({ message: "Input title" });
+  }
+
+  let url = `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(
+    title
+  )}&key=${GOOGLE_API_KEY}`;
+
+  axios
+    .get(url)
+    .then((response) => {
+      let books = response.data.items;
+
+      if (!books || books.length === 0) {
+        return res.status(404).json({ message: "Book not found" });
+      }
+      let bookMax = books.splice(0, 10);
+
+      res.status(200).json(bookMax);
+    })
+    .catch((error) => {
+      res.status(500).json({ message: "Error fetching book data" });
+    });
+});
+
 app.get("/bookSearchByAuthor", (req, res) => {
   let author = req.query.author;
 
@@ -2379,6 +2407,36 @@ app.get("/bookSearchByAuthor", (req, res) => {
       };
 
       res.status(200).json(information);
+    })
+    .catch((error) => {
+      res.status(500).json({ message: "Error fetching book data" });
+    });
+});
+
+app.get("/bookSearchByAuthorMax", (req, res) => {
+  let author = req.query.author;
+
+  if (!author) {
+    return res.status(400).json({ message: "Input author" });
+  }
+
+  let url = `https://www.googleapis.com/books/v1/volumes?q=inauthor:${encodeURIComponent(
+    author
+  )}
+  &key=${GOOGLE_API_KEY}`;
+
+  axios
+    .get(url)
+    .then((response) => {
+      let books = response.data.items;
+      if (!books || books.length === 0) {
+        return res.status(404).json({ message: "Book not found" });
+      }
+      let book = books.splice(0, 10);
+
+      // console.log(book);
+
+      res.status(200).json(book);
     })
     .catch((error) => {
       res.status(500).json({ message: "Error fetching book data" });

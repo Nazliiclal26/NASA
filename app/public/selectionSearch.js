@@ -37,9 +37,11 @@ searchButton.addEventListener("click", async () => {
     } else {
       // books
       if (selectedSearchType === "title") {
-        url = `/groupSearchBook?title=${encodeURIComponent(searchValue)}`;
+        url = `/groupSearchBookMax?title=${encodeURIComponent(searchValue)}`;
       } else if (selectedSearchType === "author") {
-        url = `/bookSearchByAuthor?author=${encodeURIComponent(searchValue)}`;
+        url = `/bookSearchByAuthorMax?author=${encodeURIComponent(
+          searchValue
+        )}`;
       } else {
         // ISBN
         url = `/bookSearchByISBN?isbn=${encodeURIComponent(searchValue)}`;
@@ -54,7 +56,7 @@ searchButton.addEventListener("click", async () => {
     }
 
     let data = await response.json();
-    let movieObjs = data.Search;
+    // console.log(data);
 
     if (!data || Object.keys(data).length === 0) {
       searchResult.innerText = "No data received for the film.";
@@ -65,12 +67,13 @@ searchButton.addEventListener("click", async () => {
 
     if (type === "movies") {
       // Display movie information
+      let movieObjs = data.Search;
 
       let newSection = document.createElement("ul");
       newSection.classList.add("verticalSearch");
 
       for (let each of movieObjs) {
-        console.log(each.Title);
+        //console.log(each.Title);
         try {
           let newResponse = await fetch(
             `/groupSearch?title=${encodeURIComponent(each.Title)}`
@@ -78,7 +81,7 @@ searchButton.addEventListener("click", async () => {
 
           let newData = await newResponse.json();
 
-          console.log(newData);
+          //console.log(newData);
 
           let newSectionContent = document.createElement("li");
           newSectionContent.innerHTML = `
@@ -106,29 +109,55 @@ searchButton.addEventListener("click", async () => {
         }
       }
 
-      console.log(newSection);
+      //console.log(newSection);
       searchResult.appendChild(newSection);
     } else {
       // books
       // Display book information
-      searchResult.innerHTML = `
+      let newSection = document.createElement("ul");
+      newSection.classList.add("verticalSearch");
+
+      for (let each of data) {
+        //console.log(each.volumeInfo.title);
+        try {
+          let newResponse = await fetch(
+            `/groupSearchBook?title=${encodeURIComponent(
+              each.volumeInfo.title
+            )}`
+          );
+
+          let newData = await newResponse.json();
+
+          //console.log(newData);
+
+          let newSectionContent = document.createElement("li");
+          newSectionContent.innerHTML = `
         <div class="book-card">
         <div class="top">
           <div class="leftContent">
-            <img class="searchImage" src="${data.poster}" alt="${data.title} poster">
+            <img class="searchImage" src="${newData.poster}" alt="${newData.title} poster">
           </div>
           <div class="rightContent"> 
-            <h3 class="searchTitle">${data.title}</h3>
-            <p class="searchAuthors">Author(s): ${data.authors}</p>
-            <p class="searchPublished">Date Published: ${data.publishedDate}</p>
-            <button class="watchlist-btn watchlistButton2" data-title="${data.title}" data-authors="${data.authors}" data-poster="${data.poster}">+</button>
+            <h3 class="searchTitle">${newData.title}</h3>
+            <p class="searchAuthors">Author(s): ${newData.authors}</p>
+            <p class="searchPublished">Date Published: ${newData.publishedDate}</p>
+            <button class="watchlist-btn watchlistButton2" data-title="${newData.title}" data-authors="${newData.authors}" data-poster="${newData.poster}">+</button>
           </div>
         </div>
         <div id="bottom">
-          <p>Description: ${data.description}</p>
+          <p>Description: ${newData.description}</p>
         </div> 
         </div>
       `;
+
+          newSection.appendChild(newSectionContent);
+        } catch (error) {
+          newSection.appendChild(error);
+        }
+      }
+
+      //console.log(newSection);
+      searchResult.appendChild(newSection);
     }
 
     // Attach event listeners to new watchlist buttons
