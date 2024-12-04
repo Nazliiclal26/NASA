@@ -15,6 +15,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   let leaveGroupButton = document.getElementById("leaveGroup");
   let searchMovieType = document.getElementById("searchMovieType");
 
+  let gptButton = document.getElementById("getAIResultsMovie");
+  let aiSubmit = document.getElementById("aiSubmitMovie");
+  let mainForm = document.getElementById("mainFormMovie");
   let form = document.getElementById("suggestionsForm");
   let resultsContainer = document.getElementById("suggestionsResult");
 
@@ -46,9 +49,50 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   reassignButton.addEventListener("click", reassignLeader);
 
+  gptButton.addEventListener("click", () => {
+    changeTextButton();
+    if (resultsContainer.textContent === "") {
+      updateForm();
+    }
+    updateButton();
+    updateResults();
+  });
+
+  function updateResults() {
+    resultsContainer.innerHTML = "";
+  }
+
+  function changeTextButton() {
+    gptButton.textContent =
+      gptButton.textContent === "AI Recommendations"
+        ? "Close"
+        : "AI Recommendations";
+  }
+
+  function updateForm() {
+    if (mainForm.classList.contains("hidden-box")) {
+      mainForm.classList.remove("hidden-box");
+      mainForm.classList.add("display-flex");
+    } else {
+      mainForm.classList.add("hidden-box");
+      mainForm.classList.remove("display-flex");
+    }
+  }
+
+  function updateButton() {
+    if (aiSubmit.classList.contains("hidden-box")) {
+      aiSubmit.classList.remove("hidden-box");
+      aiSubmit.classList.add("display-flex");
+    } else {
+      aiSubmit.classList.add("hidden-box");
+      aiSubmit.classList.remove("display-flex");
+    }
+  }
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    resultsContainer.innerHTML = "";
+    resultsContainer.innerHTML = "Loading";
+    updateForm();
 
     let preferences = {
       genres: document.getElementById("genres").value,
@@ -212,7 +256,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     let url;
     try {
       if (selectedSearchType === "title") {
-        url = `/groupSearch?title=${encodeURIComponent(searchValue)}`;
+        url = `/groupSearchMax?title=${encodeURIComponent(searchValue)}`;
       } else {
         url = `/movieSearchById?imdbId=${encodeURIComponent(searchValue)}`;
       }
@@ -221,29 +265,59 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!response.ok) throw new Error("Film not found");
 
       const data = await response.json();
-      searchResult.innerHTML = `
+      let movieObjs = data.Search;
+
+      let newSection = document.createElement("ul");
+      newSection.classList.add("verticalSearch");
+
+      for (let each of movieObjs) {
+        //console.log(each.Title);
+        try {
+          let newResponse = await fetch(
+            `/groupSearch?title=${encodeURIComponent(each.Title)}`
+          );
+
+          let newData = await newResponse.json();
+
+          //console.log(newData);
+
+          let newSectionContent = document.createElement("li");
+          newSectionContent.innerHTML = `
         <div class="film-card">
-          <img src="${data.poster}" alt="${data.title} poster">
-          <button class="vote-btn" data-title="${data.title}" data-genre="${data.genre}">vote</button>
+          <img src="${newData.poster}" alt="${newData.title} poster">
+          <button class="vote-btn" data-title="${newData.title}" data-genre="${newData.genre}">vote</button>
           <button class="close-btn">x</button>
-          <h3>${data.title}</h3>
-          <p>IMDb Rating: ${data.rating}</p>
-          <p>Genre: ${data.genre}</p>
-          <p>Plot: ${data.plot}</p>
+          <h3>${newData.title}</h3>
+          <p>IMDb Rating: ${newData.rating}</p>
+          <p>Genre: ${newData.genre}</p>
+          <p>Plot: ${newData.plot}</p>
         </div>
       `;
 
-      document.querySelector(".close-btn").addEventListener("click", (e) => {
-        searchResult.innerHTML = "";
-      });
+          let closeButton = newSectionContent.querySelector(".close-btn");
+          closeButton.addEventListener("click", (e) => {
+            searchResult.innerHTML = "";
+          });
 
-      document.querySelector(".vote-btn").addEventListener("click", (e) => {
-        let filmTitle = e.target.dataset.title;
-        let film_genre = e.target.dataset.genre;
-        let poster = e.target.closest(".film-card").querySelector("img").src;
-        voteForFilm(filmTitle, poster, film_genre);
-        searchResult.innerHTML = "";
-      });
+          let voteButton = newSectionContent.querySelector(".vote-btn");
+          voteButton.addEventListener("click", (e) => {
+            let filmTitle = e.target.dataset.title;
+            let film_genre = e.target.dataset.genre;
+            let poster = e.target
+              .closest(".film-card")
+              .querySelector("img").src;
+            voteForFilm(filmTitle, poster, film_genre);
+            searchResult.innerHTML = "";
+          });
+
+          newSection.appendChild(newSectionContent);
+        } catch (error) {
+          newSection.appendChild(error);
+        }
+      }
+
+      //console.log(newSection);
+      searchResult.appendChild(newSection);
     } catch (error) {
       searchResult.innerText = "Film not found or an error occurred.";
       console.error("Error fetching film:", error);
@@ -374,7 +448,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
 
       searchSection.style.display = "flex";
-      searchSection.style.display = "block";
       mostVotedFilmSection.innerHTML = "";
 
       fetchVotes();

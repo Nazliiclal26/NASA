@@ -16,18 +16,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   let leaveGroupButton = document.getElementById("leaveGroup");
   let searchBookType = document.getElementById("searchBookType");
 
+  let gptButton = document.getElementById("getAIResults");
+  let aiSubmit = document.getElementById("aiSubmit");
+  let mainForm = document.getElementById("mainForm");
   let form = document.getElementById("bookSuggestionsForm");
   let resultsContainer = document.getElementById("bookSuggestionsResult");
 
-  
-
   async function reassignLeader() {
-    try {  
-
+    try {
       let groupBody = JSON.parse(localStorage.getItem("groupInfo"));
       console.log(groupBody);
       if (groupBody === null || groupBody === undefined) {
-        console.log("GroupInfo not populated, cannot reassign leader")
+        console.log("GroupInfo not populated, cannot reassign leader");
         return;
       }
       let groupId = groupBody.id;
@@ -43,17 +43,57 @@ document.addEventListener("DOMContentLoaded", async () => {
       newLeader = validateNewLeader(newLeader, noLeaderUsernames);
 
       await updateLeaderForGroup(groupId, newLeader);
-    }
-    catch (err) {
+    } catch (err) {
       console.error("An error occurred:", err);
     }
   }
 
   reassignButton.addEventListener("click", reassignLeader);
 
+  gptButton.addEventListener("click", () => {
+    changeTextButton();
+    if (resultsContainer.textContent === "") {
+      updateForm();
+    }
+    updateButton();
+    updateResults();
+  });
+
+  function updateResults() {
+    resultsContainer.innerHTML = "";
+  }
+
+  function changeTextButton() {
+    gptButton.textContent =
+      gptButton.textContent === "AI Recommendations"
+        ? "Close"
+        : "AI Recommendations";
+  }
+
+  function updateForm() {
+    if (mainForm.classList.contains("hidden-box")) {
+      mainForm.classList.remove("hidden-box");
+      mainForm.classList.add("display-flex");
+    } else {
+      mainForm.classList.add("hidden-box");
+      mainForm.classList.remove("display-flex");
+    }
+  }
+
+  function updateButton() {
+    if (aiSubmit.classList.contains("hidden-box")) {
+      aiSubmit.classList.remove("hidden-box");
+      aiSubmit.classList.add("display-flex");
+    } else {
+      aiSubmit.classList.add("hidden-box");
+      aiSubmit.classList.remove("display-flex");
+    }
+  }
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    resultsContainer.innerHTML = "";
+    resultsContainer.innerHTML = "Loading";
+    updateForm();
 
     let preferences = {
       genre: document.getElementById("bookGenre").value,
@@ -78,7 +118,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       let rawData = await response.json();
       let chatGPTAnswer = rawData.choices[0].message.content;
 
-      resultsContainer.innerHTML = `<h2>Recommended Books:</h2><pre>${chatGPTAnswer}</pre>`;
+      resultsContainer.innerHTML = `<h2>Recommended Books:</h2><pre class="preStyle">${chatGPTAnswer}</pre>`;
     } catch (error) {
       //console.error("Error fetching recommendations:", error);
       resultsContainer.innerHTML = `<p>Please try again later!</p>`;
@@ -263,40 +303,74 @@ document.addEventListener("DOMContentLoaded", async () => {
     let url;
     try {
       if (selectedSearchType === "title") {
-        url = `/groupSearchBook?title=${encodeURIComponent(searchValue)}`;
+        url = `/groupSearchBookMax?title=${encodeURIComponent(searchValue)}`;
       } else if (selectedSearchType === "author") {
-        url = `/bookSearchByAuthor?author=${encodeURIComponent(searchValue)}`;
+        url = `/bookSearchByAuthorMax?author=${encodeURIComponent(
+          searchValue
+        )}`;
       } else {
         url = `/bookSearchByISBN?isbn=${encodeURIComponent(searchValue)}`;
       }
 
       let response = await fetch(url);
       if (!response.ok) throw new Error("Book not found");
-      
+
       const data = await response.json();
-      searchResult.innerHTML = `
-        <div class="book-card">
-          <img src="${data.poster}" alt="${data.title} poster">
-          <button class="vote-btn" data-title="${data.title}">vote</button>
-          <button class="close-btn">x</button>
-          <h3>${data.title}</h3>
-          <p>Author(s): ${data.authors}</p>
-          <p>Date Published: ${data.publishedDate}</p>
-          <p>Rating: ${data.rating}/5</p>
-          <p>Description: ${data.description}</p>
-        </div>
-      `;
+      //console.log(data);
 
-      document.querySelector(".close-btn").addEventListener("click", (e) => {
-        searchResult.innerHTML = "";
-      });
+      searchResult.innerHTML = ""; // Clear previous results
 
-      document.querySelector(".vote-btn").addEventListener("click", (e) => {
-        let bookTitle = e.target.dataset.title;
-        let poster = e.target.closest(".book-card").querySelector("img").src;
-        voteForBook(bookTitle, poster);
-        searchResult.innerHTML = "";
-      });
+      let newSection = document.createElement("ul");
+      newSection.classList.add("verticalSearch");
+
+      for (let each of data) {
+        //console.log(each.volumeInfo.title);
+        try {
+          let newResponse = await fetch(
+            `/groupSearchBook?title=${encodeURIComponent(
+              each.volumeInfo.title
+            )}`
+          );
+
+          let newData = await newResponse.json();
+
+          //console.log(newData);
+
+          let newSectionContent = document.createElement("li");
+          newSectionContent.innerHTML = `
+          <div class="book-card">
+            <img src="${newData.poster}" alt="${newData.title} poster">
+            <button class="vote-btn" data-title="${newData.title}">vote</button>
+            <button class="close-btn">x</button>
+            <h3>${newData.title}</h3>
+            <p>Author(s): ${newData.authors}</p>
+            <p>Date Published: ${newData.publishedDate}</p>
+            <p>Rating: ${newData.rating}/5</p>
+            <p>Description: ${newData.description}</p>
+          </div>
+        `;
+
+          let closeButton = newSectionContent.querySelector(".close-btn");
+          closeButton.addEventListener("click", (e) => {
+            searchResult.innerHTML = "";
+          });
+
+          let voteButton = newSectionContent.querySelector(".vote-btn");
+          voteButton.addEventListener("click", (e) => {
+            let bookTitle = e.target.dataset.title;
+            let poster = e.target
+              .closest(".book-card")
+              .querySelector("img").src;
+            voteForBook(bookTitle, poster);
+            searchResult.innerHTML = "";
+          });
+
+          newSection.appendChild(newSectionContent);
+        } catch (error) {
+          console.log(error);
+        }
+      }
+      searchResult.appendChild(newSection);
     } catch (error) {
       searchResult.innerText = "Book not found or an error occurred.";
       console.error("Error fetching book:", error);
