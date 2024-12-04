@@ -11,6 +11,6 @@
   },
   "scripts": {
     "start": "cd app && node server.js",
-    "setup": "psql -U postgres -f setup.sql"
+    "setup": "psql -U postgres -f setup.sql && psql -U postgres -f dummy.sql"
   }
 }
