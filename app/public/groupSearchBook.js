@@ -16,9 +16,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   let leaveGroupButton = document.getElementById("leaveGroup");
   let searchBookType = document.getElementById("searchBookType");
 
+  let gptButton = document.getElementById("getAIResults");
+  let aiSubmit = document.getElementById("aiSubmit");
+  let mainForm = document.getElementById("mainForm");
   let form = document.getElementById("bookSuggestionsForm");
   let resultsContainer = document.getElementById("bookSuggestionsResult");
-
 
   socket.on("groupUpdateNotice", () => {
     populateGroupInfo()
@@ -55,14 +57,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   }
   
-
   async function reassignLeader() {
-    try {  
-
+    try {
       let groupBody = JSON.parse(localStorage.getItem("groupInfo"));
       console.log(groupBody);
       if (groupBody === null || groupBody === undefined) {
-        console.log("GroupInfo not populated, cannot reassign leader")
+        console.log("GroupInfo not populated, cannot reassign leader");
         return;
       }
       let groupId = groupBody.id;
@@ -87,9 +87,50 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   reassignButton.addEventListener("click", reassignLeader);
 
+  gptButton.addEventListener("click", () => {
+    changeTextButton();
+    if (resultsContainer.textContent === "") {
+      updateForm();
+    }
+    updateButton();
+    updateResults();
+  });
+
+  function updateResults() {
+    resultsContainer.innerHTML = "";
+  }
+
+  function changeTextButton() {
+    gptButton.textContent =
+      gptButton.textContent === "AI Recommendations"
+        ? "Close"
+        : "AI Recommendations";
+  }
+
+  function updateForm() {
+    if (mainForm.classList.contains("hidden-box")) {
+      mainForm.classList.remove("hidden-box");
+      mainForm.classList.add("display-flex");
+    } else {
+      mainForm.classList.add("hidden-box");
+      mainForm.classList.remove("display-flex");
+    }
+  }
+
+  function updateButton() {
+    if (aiSubmit.classList.contains("hidden-box")) {
+      aiSubmit.classList.remove("hidden-box");
+      aiSubmit.classList.add("display-flex");
+    } else {
+      aiSubmit.classList.add("hidden-box");
+      aiSubmit.classList.remove("display-flex");
+    }
+  }
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    resultsContainer.innerHTML = "";
+    resultsContainer.innerHTML = "Loading";
+    updateForm();
 
     let preferences = {
       genre: document.getElementById("bookGenre").value,
@@ -114,7 +155,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       let rawData = await response.json();
       let chatGPTAnswer = rawData.choices[0].message.content;
 
-      resultsContainer.innerHTML = `<h2>Recommended Books:</h2><pre>${chatGPTAnswer}</pre>`;
+      resultsContainer.innerHTML = `<h2>Recommended Books:</h2><pre class="preStyle">${chatGPTAnswer}</pre>`;
     } catch (error) {
       //console.error("Error fetching recommendations:", error);
       resultsContainer.innerHTML = `<p>Please try again later!</p>`;
@@ -308,7 +349,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       } else if (selectedSearchType === "genre") {
         url = `/bookSearchByGenre?genre=${encodeURIComponent(searchValue)}`;
       } else if (selectedSearchType === "author") {
-        url = `/bookSearchByAuthor?author=${encodeURIComponent(searchValue)}`;
+        url = `/bookSearchByAuthorMax?author=${encodeURIComponent(
+          searchValue
+        )}`;
       } else {
         url = `/bookSearchByISBN?isbn=${encodeURIComponent(searchValue)}`;
       }

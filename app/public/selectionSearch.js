@@ -73,7 +73,7 @@ searchButton.addEventListener("click", async () => {
     } else {
       // Books 
       if (selectedSearchType === "title") {
-        url = `/groupSearchBook?title=${encodeURIComponent(searchValue)}`;
+        url = `/groupSearchBookMax?title=${encodeURIComponent(searchValue)}`;
       } else if (selectedSearchType === "author") {
         url = `/bookSearchByAuthor?author=${encodeURIComponent(searchValue)}`;
       } else if (selectedSearchType === "genre") {
@@ -91,6 +91,8 @@ searchButton.addEventListener("click", async () => {
     }
 
     let data = await response.json();
+    // console.log(data);
+
     if (!data || Object.keys(data).length === 0) {
       searchResult.innerText = `No data received for the ${type === "movies" ? "film" : "book"}.`;
       return;
@@ -113,8 +115,18 @@ searchButton.addEventListener("click", async () => {
           <div id="bottom">
             <p>Plot: ${data.plot}</p>
           </div> 
+
         </div>
       `;
+
+          newSection.appendChild(newSectionContent);
+        } catch (error) {
+          newSection.appendChild(error);
+        }
+      }
+
+      //console.log(newSection);
+      searchResult.appendChild(newSection);
     } else {
       let books = Array.isArray(data.books) ? data.books : [data]; 
       books.forEach((book) => {

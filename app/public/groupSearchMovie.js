@@ -16,6 +16,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   let searchMovieType = document.getElementById("searchMovieType");
   const searchBox = document.getElementById("searchBox");
 
+  let gptButton = document.getElementById("getAIResultsMovie");
+  let aiSubmit = document.getElementById("aiSubmitMovie");
+  let mainForm = document.getElementById("mainFormMovie");
   let form = document.getElementById("suggestionsForm");
   let resultsContainer = document.getElementById("suggestionsResult");
 
@@ -55,12 +58,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   async function reassignLeader() {
-    try {  
-
+    try {
       let groupBody = JSON.parse(localStorage.getItem("groupInfo"));
       console.log(groupBody);
       if (groupBody === null || groupBody === undefined) {
-        console.log("GroupInfo not populated, cannot reassign leader")
+        console.log("GroupInfo not populated, cannot reassign leader");
         return;
       }
       let groupId = groupBody.id;
@@ -85,9 +87,50 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   reassignButton.addEventListener("click", reassignLeader);
 
+  gptButton.addEventListener("click", () => {
+    changeTextButton();
+    if (resultsContainer.textContent === "") {
+      updateForm();
+    }
+    updateButton();
+    updateResults();
+  });
+
+  function updateResults() {
+    resultsContainer.innerHTML = "";
+  }
+
+  function changeTextButton() {
+    gptButton.textContent =
+      gptButton.textContent === "AI Recommendations"
+        ? "Close"
+        : "AI Recommendations";
+  }
+
+  function updateForm() {
+    if (mainForm.classList.contains("hidden-box")) {
+      mainForm.classList.remove("hidden-box");
+      mainForm.classList.add("display-flex");
+    } else {
+      mainForm.classList.add("hidden-box");
+      mainForm.classList.remove("display-flex");
+    }
+  }
+
+  function updateButton() {
+    if (aiSubmit.classList.contains("hidden-box")) {
+      aiSubmit.classList.remove("hidden-box");
+      aiSubmit.classList.add("display-flex");
+    } else {
+      aiSubmit.classList.add("hidden-box");
+      aiSubmit.classList.remove("display-flex");
+    }
+  }
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    resultsContainer.innerHTML = "";
+    resultsContainer.innerHTML = "Loading";
+    updateForm();
 
     let preferences = {
       genres: document.getElementById("genres").value,
@@ -293,13 +336,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   
       searchResult.innerHTML = `
         <div class="film-card">
-          <img src="${data.poster}" alt="${data.title} poster">
-          <button class="vote-btn" data-title="${data.title}" data-genre="${data.genre}">vote</button>
+          <img src="${newData.poster}" alt="${newData.title} poster">
+          <button class="vote-btn" data-title="${newData.title}" data-genre="${newData.genre}">vote</button>
           <button class="close-btn">x</button>
-          <h3>${data.title}</h3>
-          <p>IMDb Rating: ${data.rating}</p>
-          <p>Genre: ${data.genre}</p>
-          <p>Plot: ${data.plot}</p>
+          <h3>${newData.title}</h3>
+          <p>IMDb Rating: ${newData.rating}</p>
+          <p>Genre: ${newData.genre}</p>
+          <p>Plot: ${newData.plot}</p>
         </div>
       `;
   
@@ -461,7 +504,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
 
       searchSection.style.display = "flex";
-      searchSection.style.display = "block";
       mostVotedFilmSection.innerHTML = "";
       searchMovieType.style.display = "block";
       searchBox.style.display = "block";
