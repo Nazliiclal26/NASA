@@ -19,6 +19,8 @@ let eventIdCounter = 1;
 async function loadEventsFromDatabase(groupCode) {
     try {
         const response = await fetch(`/api/getEvents/${groupCode}`);
+        const rawEvents = await response.json();
+        console.log("Raw events data from API:", rawEvents);
         if (response.ok) {
             events = (await response.json()).map(event => ({
                 id: event.event_id,
@@ -26,8 +28,6 @@ async function loadEventsFromDatabase(groupCode) {
                 title: event.event_title,
                 description: event.description
             }));
-            const rawEvents = await response.json();
-            console.log("Raw events data from API:", rawEvents);
 
             console.log("Loaded events from database:", events); // Debug: inspect loaded events
             displayReminders();
@@ -306,9 +306,10 @@ document.addEventListener("DOMContentLoaded", function() {
     const pathParts = window.location.pathname.split("/");
     const groupCodename = pathParts[pathParts.length - 1];
     console.log("group name for calendar: ", groupCodename);
-    if (groupCodename) {
+    /*if (groupCodename) {
         loadEventsFromDatabase(groupCodename);
     } else {
         console.error("No group codename found in the URL.");
-    }
+    }*/
+    loadEventsFromDatabase(groupCodename);
 });
