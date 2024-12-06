@@ -22,7 +22,7 @@ async function loadEventsFromDatabase(groupCode) {
         const rawEvents = await response.json();
         console.log("Raw events data from API:", rawEvents);
         if (response.ok) {
-            events = (await response.json()).map(event => ({
+            events = (await response.json()).rows.map(event => ({
                 id: event.event_id,
                 date: event.event_date.split("T")[0], // Strip off the time part
                 title: event.event_title,
@@ -314,4 +314,5 @@ document.addEventListener("DOMContentLoaded", function() {
         console.error("No group codename found in the URL.");
     }*/
     loadEventsFromDatabase(groupCodename);
+    console.log("Load events is being called");
 });

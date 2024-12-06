@@ -2901,7 +2901,7 @@ app.get("/api/getEvents/:groupCode", async (req, res) => {
       [groupCode]
     );
     console.log("getEvents results for ", groupCode, ": ", result.rows);
-    res.json(result.rows);
+    res.json({rows : result.rows});
   } catch (err) {
     console.error("Error retrieving events:", err.stack);
     res.status(500).json({ error: err.message });
