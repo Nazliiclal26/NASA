@@ -19,8 +19,6 @@ let eventIdCounter = 1;
 async function loadEventsFromDatabase(groupCode) {
     try {
         const response = await fetch(`/api/getEvents/${groupCode}`);
-        const rawEvents = await response.json();
-        console.log("Raw events data from API:", rawEvents);
         if (response.ok) {
             events = (await response.json()).rows.map(event => ({
                 id: event.event_id,
