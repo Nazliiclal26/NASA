@@ -65,6 +65,9 @@ const Group = {
             `SELECT * FROM groups WHERE group_name = $1`,
             [groupName]
         );
+        if (result === null) {
+            throw new Error("GroupId search resulted in null");
+        }
         
         return result.rows[0];
     },

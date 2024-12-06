@@ -1106,13 +1106,16 @@ app.get("/getGroupInfo", (req, res) => {
     return res.status(400).json({});
   }
 
+  console.log("Here is the name in getGroupInfo", name);
+
   group
     .findByName(name)
     .then((body) => {
+      console.log("Group info", body);
       return res.status(200).json(body);
     })
     .catch((error) => {
-      console.error(error);
+      console.error("In get getGroup"+error);
       return res.status(500).json({});
     });
 });
@@ -2040,7 +2043,8 @@ app.post("/addMessage", async (req, res) => {
 app.get("/getUsernameForGroup", (req, res) => {
   // Utilize cookies to return username
   let { token } = req.cookies;
-  console.log("THIS IS COOKIES" + req.cookies);
+  console.log("THIS IS COOKIES" + JSON.parse(req.cookies)
+    );
   if (token === undefined) {
     console.log("No cookies set for this username.");
     return res.status(500).json({
