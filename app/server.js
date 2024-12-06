@@ -2058,6 +2058,7 @@ app.get("/getUsernameForGroup", (req, res) => {
 });
 
 app.get("/getMessages", async (req, res) => {
+  console.log("From getMessages:", tokenStorage);
   let groupName = req.query.groupName;
 
   let { token } = req.cookies;
@@ -2380,6 +2381,7 @@ app.get("/getGenres/:userId", async (req, res) => {
 
 app.get("/getUsername/:userId", async (req, res) => {
   let userId = req.params.userId;
+  console.log("From getUsername:", tokenStorage, "and here's the userId:", userId);
   try {
     let { rows } = await pool.query(
       "SELECT username FROM users WHERE id = $1",
