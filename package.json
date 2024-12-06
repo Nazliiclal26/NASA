@@ -3,14 +3,17 @@
     "argon2": "^0.41.1",
     "axios": "^1.7.7",
     "cookie-parser": "^1.4.7",
+    "dotenv": "^16.4.5",
     "express": "^4.18.2",
     "nodemon": "^3.1.7",
     "pg": "^8.8.0",
-    "socket.io": "^4.8.1",
-    "dotenv": "^16.4.5"
+    "socket.io": "^4.8.1"
   },
   "scripts": {
     "start": "cd app && node server.js",
-    "setup": "psql -U postgres -f setup.sql && psql -U postgres -f dummy.sql"
+    "setup": "psql -U $POSTGRES_USER -h $POSTGRES_HOST -d $DATABASE_URL -f setup.sql"
+  },
+  "devDependencies": {
+    "@flydotio/dockerfile": "^0.5.9"
   }
 }

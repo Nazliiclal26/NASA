@@ -1,15 +1,14 @@
-DROP DATABASE IF EXISTS book_film_club;
-CREATE database book_film_club;
-\c book_film_club;
+\c nasabookfilmclub;
 
 -- Create a dedicated PostgreSQL user for the book club project
 CREATE USER book_club_user WITH PASSWORD 'your_password';
 
 -- Grant all privileges on the database to the new user
-GRANT ALL PRIVILEGES ON DATABASE book_film_club TO book_club_user;
+GRANT ALL PRIVILEGES ON DATABASE nasabookfilmclub TO book_club_user;
 
 -- Users Table
-CREATE TABLE IF NOT EXISTS users (
+DROP TABLE IF EXISTS users;
+CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(255) UNIQUE NOT NULL,
     first_name VARCHAR(255) NOT NULL,
@@ -19,7 +18,8 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- User Watchlist Table
-CREATE TABLE IF NOT EXISTS user_watchlists (
+DROP TABLE IF EXISTS users_watchlists;
+CREATE TABLE user_watchlists (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id) ON DELETE CASCADE,
     item_id VARCHAR(255) NOT NULL,
@@ -29,7 +29,8 @@ CREATE TABLE IF NOT EXISTS user_watchlists (
 );
 
 -- Group Watchlist Table
-CREATE TABLE IF NOT EXISTS group_watchlists (
+DROP TABLE IF EXISTS group_watchlists;
+CREATE TABLE group_watchlists (
     id SERIAL PRIMARY KEY,
     group_id VARCHAR(255),
     item_id VARCHAR(255) NOT NULL,
@@ -39,7 +40,8 @@ CREATE TABLE IF NOT EXISTS group_watchlists (
 );
 
 -- Groups Table
-CREATE TABLE IF NOT EXISTS groups (
+DROP TABLE IF EXISTS groups;
+CREATE TABLE groups (
     id SERIAL PRIMARY KEY,
     group_name VARCHAR(255) UNIQUE NOT NULL,
     secret_code VARCHAR(255) NOT NULL,
@@ -51,7 +53,8 @@ CREATE TABLE IF NOT EXISTS groups (
 );
 
 -- Votes Table
-CREATE TABLE IF NOT EXISTS votes (
+DROP TABLE IF EXISTS votes;
+CREATE TABLE votes (
     id SERIAL PRIMARY KEY,
     group_code VARCHAR(10) NOT NULL,  
     film_title VARCHAR(255), 
@@ -64,7 +67,8 @@ CREATE TABLE IF NOT EXISTS votes (
 );
 
 -- Messages Table
-CREATE TABLE IF NOT EXISTS messages (
+DROP TABLE IF EXISTS messages;
+CREATE TABLE messages (
     id SERIAL PRIMARY KEY,
     group_id INT REFERENCES groups(id) NOT NULL,
     sender_id INT REFERENCES users(id) NOT NULL,
@@ -73,6 +77,7 @@ CREATE TABLE IF NOT EXISTS messages (
 );
 
 --Group Calendar Events Table
+DROP TABLE IF EXISTS groups_events;;
 CREATE TABLE group_events (
     event_id SERIAL PRIMARY KEY,
     group_code VARCHAR(255) NOT NULL,

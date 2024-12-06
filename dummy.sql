@@ -2,16 +2,16 @@
 
 -- USER SETUP
 -- Password for each user is the same, it's 'password'
-INSERT INTO users (username, first_name, last_name password, preferred_genres) 
+INSERT INTO users (username, first_name, last_name, password, preferred_genres) 
     VALUES ('ajani', 'Ajani', 'Levere', '$argon2id$v=19$m=65536,t=3,p=4$XGZxYe/PLtaHUgrmhKqEqQ$WBsA6yshA9o5rHB4PxMOcSBXfdShPgfks0PN9gjyZxc', '{}') 
 
-INSERT INTO users (username, first_name, last_name password, preferred_genres) 
+INSERT INTO users (username, first_name, last_name, password, preferred_genres) 
     VALUES ('nazli', 'Nazli', 'Ilcal', '$argon2id$v=19$m=65536,t=3,p=4$XGZxYe/PLtaHUgrmhKqEqQ$WBsA6yshA9o5rHB4PxMOcSBXfdShPgfks0PN9gjyZxc', '{action,adventure,animation}') 
 
-INSERT INTO users (username, first_name, last_name password, preferred_genres) 
+INSERT INTO users (username, first_name, last_name, password, preferred_genres) 
     VALUES ('ashifur', 'Ashifur', 'Rahman', '$argon2id$v=19$m=65536,t=3,p=4$XGZxYe/PLtaHUgrmhKqEqQ$WBsA6yshA9o5rHB4PxMOcSBXfdShPgfks0PN9gjyZxc', '{adventure}') 
 
-INSERT INTO users (username, first_name, last_name password, preferred_genres) 
+INSERT INTO users (username, first_name, last_name, password, preferred_genres) 
     VALUES ('susie', 'Susie', 'Choi', '$argon2id$v=19$m=65536,t=3,p=4$XGZxYe/PLtaHUgrmhKqEqQ$WBsA6yshA9o5rHB4PxMOcSBXfdShPgfks0PN9gjyZxc', '{animation}') 
 
 
