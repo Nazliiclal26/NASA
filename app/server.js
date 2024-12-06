@@ -2043,12 +2043,11 @@ app.post("/addMessage", async (req, res) => {
 });
 
 app.get("/getUsernameForGroup", (req, res) => {
+  console.log("Token storage in getUsernameForGroup", tokenStorage)
   // Utilize cookies to return username
   let { token } = req.cookies;
-  console.log("THIS IS COOKIES" + JSON.parse(req.cookies)
-    );
-  if (token === undefined) {
-    console.log("No cookies set for this username.");
+  if (token === undefined) { 
+    console.log("In getUsernameForGroup, No cookies set for this username.");
     return res.status(500).json({
       error: "No cookie set for this user, internal issue with user setup.",
     });
@@ -2069,12 +2068,12 @@ app.get("/getMessages", async (req, res) => {
 
   let { token } = req.cookies;
   if (token === undefined) {
-    console.log("No cookies set for this username.");
+    console.log("In get messages, No cookies set for this username.");
     return res.status(500).json({
       error: "No cookie set for this user, internal issue with user setup.",
     });
   } else if (tokenStorage[token] === undefined) {
-    console.log("Server storage not properly accounting for this username.");
+    console.log("In get messages, Server storage not properly accounting for this username.");
     return res.status(500).json({
       error:
         "No cookie set for this user, ensure user was initialized properly.",
