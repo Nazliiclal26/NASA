@@ -33,7 +33,7 @@ if (process.env.NODE_ENV == "production") {
 //const hostname = "localhost";
 
 const env = require("../env.json");
-const Pool = pg.Pool;
+// const Pool = pg.Pool;
 //const pool = new Pool(env);
 const group = require("../models/Group");
 const messages = require("../models/Messages");
@@ -46,7 +46,9 @@ let io = new Server(server);
 /*pool.connect().then(() => {
   console.log(`Connected to database ${env.database}`);
 });*/
-let pool = new Pool(databaseConfig);
+// let pool = new Pool(databaseConfig);
+const pool = require('../config/db');
+
 pool.connect().then(() => {
 	console.log("Connected to db");
 });
