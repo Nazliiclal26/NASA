@@ -26,7 +26,9 @@ async function loadEventsFromDatabase(groupCode) {
                 title: event.event_title,
                 description: event.description
             }));
-            
+            const rawEvents = await response.json();
+            console.log("Raw events data from API:", rawEvents);
+
             console.log("Loaded events from database:", events); // Debug: inspect loaded events
             displayReminders();
             showCalendar(currentMonth, currentYear);
@@ -78,7 +80,7 @@ async function addEventToDatabase(groupCode, eventDate, eventTitle, description)
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
-        
+        console.log()
         if (response.ok) {
             const newEvent = await response.json();
             return {
@@ -303,6 +305,7 @@ function daysInMonth(iMonth, iYear) {
 document.addEventListener("DOMContentLoaded", function() {
     const pathParts = window.location.pathname.split("/");
     const groupCodename = pathParts[pathParts.length - 1];
+    console.log("group name for calendar: ", groupCodename);
     if (groupCodename) {
         loadEventsFromDatabase(groupCodename);
     } else {

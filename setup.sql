@@ -7,7 +7,7 @@ CREATE USER book_club_user WITH PASSWORD 'your_password';
 GRANT ALL PRIVILEGES ON DATABASE nasabookfilmclub TO book_club_user;
 
 -- Users Table
-DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS users CASCADE;
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(255) UNIQUE NOT NULL,
@@ -40,7 +40,7 @@ CREATE TABLE group_watchlists (
 );
 
 -- Groups Table
-DROP TABLE IF EXISTS groups;
+DROP TABLE IF EXISTS groups CASCADE;
 CREATE TABLE groups (
     id SERIAL PRIMARY KEY,
     group_name VARCHAR(255) UNIQUE NOT NULL,
@@ -77,7 +77,7 @@ CREATE TABLE messages (
 );
 
 --Group Calendar Events Table
-DROP TABLE IF EXISTS groups_events;;
+DROP TABLE IF EXISTS groups_events;
 CREATE TABLE group_events (
     event_id SERIAL PRIMARY KEY,
     group_code VARCHAR(255) NOT NULL,
