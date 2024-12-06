@@ -303,8 +303,9 @@ function daysInMonth(iMonth, iYear) {
 
 // Initialize calendar on page load
 document.addEventListener("DOMContentLoaded", function() {
-    const pathParts = window.location.pathname.split("/");
-    const groupCodename = pathParts[pathParts.length - 1];
+    //const pathParts = window.location.pathname.split("/");
+    //const groupCodename = pathParts[pathParts.length - 1];
+    groupCodename = decodeURIComponent(window.location.pathname).split("/").pop();
     console.log("group name for calendar: ", groupCodename);
     /*if (groupCodename) {
         loadEventsFromDatabase(groupCodename);
