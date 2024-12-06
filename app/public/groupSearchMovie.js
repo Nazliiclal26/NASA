@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       await updateLeaderForGroup(groupId, newLeader);
       socket.emit("updateGroup");
-    }catch (err) {
+    } catch (err) {
       console.error("An error occurred:", err);
     }
   }
@@ -217,7 +217,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       votedFilmsTitle.innerHTML = "";
       await displayMostVotedFilm();
       searchSection.style.display = "none";
-      searchBox.style.display = "none";
+      searchBox.style.display = "flex";
     } else {
       searchSection.style.display = "flex";
     }
@@ -286,63 +286,38 @@ document.addEventListener("DOMContentLoaded", async () => {
   searchButton.addEventListener("click", async () => {
     let searchValue = document.getElementById("searchValue").value;
     let selectedSearchType = searchMovieType.value;
-  
+
     if (!searchValue) {
       searchResult.innerText = "Please enter a value.";
       return;
     }
-  
+
     try {
       searchResult.innerHTML = "";
 
       let url;
-  
+
       if (selectedSearchType === "title") {
         url = `/groupSearchMax?title=${encodeURIComponent(searchValue)}`;
       } else if (selectedSearchType === "genre") {
-        let genreResponse = await fetch(`/findMoviesByGenre?genre=${encodeURIComponent(searchValue)}`);
-        if (!genreResponse.ok) throw new Error("Genre not found");
-        let genreData = await genreResponse.json();
-  
-        for (let title of genreData.titles) {
-          let titleResponse = await fetch(`/groupSearch?title=${encodeURIComponent(title)}`);
-          if (!titleResponse.ok) throw new Error("Film not found");
-  
-          let data = await titleResponse.json();
-  
-          searchResult.innerHTML += `
-            <div class="film-card">
-              <img src="${data.poster}" alt="${data.title} poster">
-              <button class="vote-btn" data-title="${data.title}" data-genre="${data.genre}">vote</button>
-              <button class="close-btn">x</button>
-              <h3>${data.title}</h3>
-              <p>IMDb Rating: ${data.rating}</p>
-              <p>Genre: ${data.genre}</p>
-              <p>Plot: ${data.plot}</p>
-            </div>
-          `;
-  
-          attachEventListeners();
-        }
-        return;
+        url = `/findMoviesByGenre?genre=${encodeURIComponent(searchValue)}`;
       } else {
         url = `/movieSearchById?imdbId=${encodeURIComponent(searchValue)}`;
       }
-  
+
       let response = await fetch(url);
       if (!response.ok) throw new Error("Film not found");
 
       const data = await response.json();
-      let movieObjs = data.Search;
 
       let newSection = document.createElement("ul");
       newSection.classList.add("verticalSearch");
 
-      for (let each of movieObjs) {
+      for (let each of data) {
         //console.log(each.Title);
         try {
           let newResponse = await fetch(
-            `/groupSearch?title=${encodeURIComponent(each.Title)}`
+            `/groupSearch?title=${encodeURIComponent(each)}`
           );
 
           let newData = await newResponse.json();
@@ -524,7 +499,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       searchSection.style.display = "none";
       votedFilmsList.innerHTML = "";
       votedFilmsTitle.innerHTML = "";
-      searchMovieType.innerHTML = "";
       searchBox.style.display = "none";
     } catch (error) {
       console.error("Error stopping voting:", error);
@@ -543,10 +517,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
 
       searchSection.style.display = "flex";
-      searchSection.style.display = "block";
+      searchSection.style.display = "flex";
       mostVotedFilmSection.innerHTML = "";
-      searchMovieType.style.display = "block";
-      searchBox.style.display = "block";
+      searchMovieType.style.display = "flex";
+      searchBox.style.display = "flex";
 
       fetchVotes();
     } catch (error) {

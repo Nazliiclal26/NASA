@@ -95,7 +95,9 @@ app.get("/bookSearchByGenre", (req, res) => {
     .then((response) => {
       let books = response.data.items;
       if (!books || books.length === 0) {
-        return res.status(404).json({ message: "No books found for this genre." });
+        return res
+          .status(404)
+          .json({ message: "No books found for this genre." });
       }
 
       let bookDetails = books.slice(0, 10).map((item) => {
@@ -118,6 +120,37 @@ app.get("/bookSearchByGenre", (req, res) => {
     });
 });
 
+app.get("/bookSearchByGenreMax", (req, res) => {
+  let genre = req.query.genre;
+
+  if (!genre) {
+    return res.status(400).json({ message: "Please input genre" });
+  }
+
+  let url = `https://www.googleapis.com/books/v1/volumes?q=insubject:${encodeURIComponent(
+    genre
+  )}&key=${GOOGLE_API_KEY}`;
+
+  axios
+    .get(url)
+    .then((response) => {
+      let books = response.data.items;
+      if (!books || books.length === 0) {
+        return res
+          .status(404)
+          .json({ message: "No books found for this genre." });
+      }
+
+      let bookDetails = books.slice(0, 10);
+
+      res.status(200).json(bookDetails);
+    })
+    .catch((error) => {
+      console.error("Error fetching book data:", error.message);
+      res.status(500).json({ message: "Error fetching book data" });
+    });
+});
+
 app.get("/findMoviesByGenre", async (req, res) => {
   let genre = req.query.genre;
 
@@ -126,9 +159,13 @@ app.get("/findMoviesByGenre", async (req, res) => {
   }
 
   try {
-    let genreResponse = await axios.get(`https://api.themoviedb.org/3/genre/movie/list?api_key=${MOVIEDB_API_KEY}&language=en-US`);
+    let genreResponse = await axios.get(
+      `https://api.themoviedb.org/3/genre/movie/list?api_key=${MOVIEDB_API_KEY}&language=en-US`
+    );
     let genres = genreResponse.data.genres;
-    let genreObj = genres.find((g) => g.name.toLowerCase() === genre.toLowerCase());
+    let genreObj = genres.find(
+      (g) => g.name.toLowerCase() === genre.toLowerCase()
+    );
 
     if (!genreObj) {
       return res.status(404).json({ message: "Genre not found" });
@@ -136,16 +173,20 @@ app.get("/findMoviesByGenre", async (req, res) => {
 
     let genreId = genreObj.id;
 
-    let moviesResponse = await axios.get(`https://api.themoviedb.org/3/discover/movie?api_key=${MOVIEDB_API_KEY}&with_genres=${genreId}`);
+    let moviesResponse = await axios.get(
+      `https://api.themoviedb.org/3/discover/movie?api_key=${MOVIEDB_API_KEY}&with_genres=${genreId}`
+    );
     let movies = moviesResponse.data.results;
 
     if (!movies || movies.length === 0) {
-      return res.status(404).json({ message: "No movies found for this genre" });
+      return res
+        .status(404)
+        .json({ message: "No movies found for this genre" });
     }
 
     let titles = movies.slice(0, 10).map((movie) => movie.title);
 
-    res.status(200).json({ titles });
+    res.status(200).json(titles);
   } catch (error) {
     console.error("Error fetching movie data:", error.message);
     res.status(500).json({ message: "Error fetching movie data" });
@@ -2095,8 +2136,8 @@ app.get("/getMembersFromIDs", async (req, res) => {
   }
 
   if (members.length == 1) {
-    members = [members[0]]
-  } 
+    members = [members[0]];
+  }
 
   await user
     .getUsernamesFromIDs(members)
@@ -2190,7 +2231,9 @@ app.get("/groupSearchMax", (req, res) => {
         return res.status(404).json({ message: "Film not found" });
       }
 
-      res.status(200).json(data);
+      let titles = data.Search.slice(0, 10).map((movie) => movie.Title);
+
+      res.status(200).json(titles);
     })
     .catch((error) => {
       res.status(500).json({ message: "Error fetching film data" });

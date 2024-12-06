@@ -28,7 +28,7 @@ searchButton.addEventListener("click", async () => {
   }
 
   try {
-    searchResult.innerHTML = "";
+    searchResult.innerHTML = "Loading";
     let url;
 
     if (type === "movies") {
@@ -36,42 +36,57 @@ searchButton.addEventListener("click", async () => {
       if (selectedSearchType === "title") {
         url = `/groupSearchMax?title=${encodeURIComponent(searchValue)}`;
       } else if (selectedSearchType === "genre") {
-        let genreResponse = await fetch(
-          `/findMoviesByGenre?genre=${encodeURIComponent(searchValue)}`
-        );
+        url = `/findMoviesByGenre?genre=${encodeURIComponent(searchValue)}`;
 
-        if (!genreResponse.ok) throw new Error("Genre not found");
-        let genreData = await genreResponse.json();
+        // if (!genreResponse.ok) throw new Error("Genre not found");
+        // let genreData = await genreResponse.json();
 
-        for (let title of genreData.titles) {
-          let titleResponse = await fetch(
-            `/groupSearch?title=${encodeURIComponent(title)}`
-          );
-          if (!titleResponse.ok) throw new Error("Film not found");
+        // ///
 
-          let data = await titleResponse.json();
+        // let newSection = document.createElement("ul");
+        // newSection.classList.add("verticalSearch");
 
-          searchResult.innerHTML += `
-            <div class="film-card">
-              <div class="top">
-                <div class="leftContent">
-                  <img class="searchImage" src="${data.poster}" alt="${data.title} poster">
-                </div>
-                <div class="rightContent"> 
-                  <h3 class="searchTitle">${data.title}</h3>
-                  <p>IMDb Rating: ${data.rating}</p>
-                  <p>Genre: ${data.genre}</p>
-                  <button class="watchlist-btn watchlistButton2" data-title="${data.title}" data-genre="${data.genre}" data-poster="${data.poster}">+</button>
-                </div>
-              </div>
-              <div id="bottom">
-                <p>Plot: ${data.plot}</p>
-              </div> 
-            </div>
-          `;
-        }
-        attachWatchlistListeners();
-        return;
+        // for (let each of genreData.titles) {
+        //   //console.log(each.Title);
+        //   try {
+        //     let newResponse = await fetch(
+        //       `/groupSearch?title=${encodeURIComponent(each)}`
+        //     );
+
+        //     let newData = await newResponse.json();
+
+        //     //console.log(newData);
+
+        //     let newSectionContent = document.createElement("li");
+        //     newSectionContent.innerHTML = `
+        //   <div class="film-card">
+        //   <div class="top">
+        //     <div class="leftContent">
+        //       <img class="searchImage" src="${newData.poster}" alt="${newData.title} poster">
+        //     </div>
+        //     <div class="rightContent">
+        //       <h3 class="searchTitle">${newData.title}</h3>
+        //       <p>IMDb Rating: ${newData.rating}</p>
+        //       <p>Genre: ${newData.genre}</p>
+        //       <button class="watchlist-btn watchlistButton2" data-title="${newData.title}" data-genre="${newData.genre}" data-poster="${newData.poster}">+</button>
+        //     </div>
+        //   </div>
+        //   <div id="bottom">
+        //     <p>Plot: ${newData.plot}</p>
+        //   </div>
+        //   </div>
+        // `;
+
+        //     newSection.appendChild(newSectionContent);
+        //   } catch (error) {
+        //     newSection.appendChild(error);
+        //   }
+        // }
+
+        // //console.log(newSection);
+        // searchResult.appendChild(newSection);
+        // attachWatchlistListeners();
+        // return;
       } else {
         url = `/movieSearchById?imdbId=${encodeURIComponent(searchValue)}`;
       }
@@ -80,15 +95,18 @@ searchButton.addEventListener("click", async () => {
       if (selectedSearchType === "title") {
         url = `/groupSearchBookMax?title=${encodeURIComponent(searchValue)}`;
       } else if (selectedSearchType === "author") {
-        url = `/bookSearchByAuthor?author=${encodeURIComponent(searchValue)}`;
+        url = `/bookSearchByAuthorMax?author=${encodeURIComponent(
+          searchValue
+        )}`;
       } else if (selectedSearchType === "genre") {
-        url = `/bookSearchByGenre?genre=${encodeURIComponent(searchValue)}`;
+        url = `/bookSearchByGenreMax?genre=${encodeURIComponent(searchValue)}`;
       } else {
         url = `/bookSearchByISBN?isbn=${encodeURIComponent(searchValue)}`;
       }
     }
 
     let response = await fetch(url);
+
     if (!response.ok) {
       searchResult.innerText = `${
         type === "movies" ? "Film" : "Book"
@@ -98,7 +116,7 @@ searchButton.addEventListener("click", async () => {
     }
 
     let data = await response.json();
-    // console.log(data);
+    console.log(data);
 
     if (!data || Object.keys(data).length === 0) {
       searchResult.innerText = `No data received for the ${
@@ -109,16 +127,17 @@ searchButton.addEventListener("click", async () => {
 
     if (type === "movies") {
       // Display movie information
-      let movieObjs = data.Search;
 
       let newSection = document.createElement("ul");
       newSection.classList.add("verticalSearch");
 
-      for (let each of movieObjs) {
+      console.log(data);
+
+      for (let each of data) {
         //console.log(each.Title);
         try {
           let newResponse = await fetch(
-            `/groupSearch?title=${encodeURIComponent(each.Title)}`
+            `/groupSearch?title=${encodeURIComponent(each)}`
           );
 
           let newData = await newResponse.json();
@@ -152,12 +171,16 @@ searchButton.addEventListener("click", async () => {
       }
 
       //console.log(newSection);
+      searchResult.innerHTML = "";
       searchResult.appendChild(newSection);
     } else {
       // books
       // Display book information
+
       let newSection = document.createElement("ul");
       newSection.classList.add("verticalSearch");
+
+      // console.log(data.books);
 
       for (let each of data) {
         //console.log(each.volumeInfo.title);
@@ -199,6 +222,7 @@ searchButton.addEventListener("click", async () => {
       }
 
       //console.log(newSection);
+      searchResult.innerHTML = "";
       searchResult.appendChild(newSection);
     }
     attachWatchlistListeners();
@@ -248,4 +272,3 @@ function attachWatchlistListeners() {
     });
   });
 }
-
