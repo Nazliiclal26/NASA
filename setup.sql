@@ -18,7 +18,7 @@ CREATE TABLE users (
 );
 
 -- User Watchlist Table
-DROP TABLE IF EXISTS users_watchlists;
+DROP TABLE IF EXISTS users_watchlists CASCADE;
 CREATE TABLE user_watchlists (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id) ON DELETE CASCADE,
@@ -29,7 +29,7 @@ CREATE TABLE user_watchlists (
 );
 
 -- Group Watchlist Table
-DROP TABLE IF EXISTS group_watchlists;
+DROP TABLE IF EXISTS group_watchlists CASCADE;
 CREATE TABLE group_watchlists (
     id SERIAL PRIMARY KEY,
     group_id VARCHAR(255),
@@ -77,7 +77,7 @@ CREATE TABLE messages (
 );
 
 --Group Calendar Events Table
-DROP TABLE IF EXISTS groups_events;
+DROP TABLE IF EXISTS groups_events CASCADE;
 CREATE TABLE group_events (
     event_id SERIAL PRIMARY KEY,
     group_code VARCHAR(255) NOT NULL,

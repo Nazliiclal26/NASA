@@ -2900,6 +2900,7 @@ app.get("/api/getEvents/:groupCode", async (req, res) => {
       "SELECT * FROM group_events WHERE group_code = $1 ORDER BY event_date",
       [groupCode]
     );
+    console.log("getEvents results for ", groupCode, ": ", result.rows);
     res.json(result.rows);
   } catch (err) {
     console.error("Error retrieving events:", err.stack);

@@ -45,8 +45,9 @@ function addEvent() {
     const date = eventDateInput.value;
     const title = eventTitleInput.value;
     const description = eventDescriptionInput.value;
-    const pathParts = window.location.pathname.split("/");
-    const groupCode = pathParts[pathParts.length - 1];
+    //const pathParts = window.location.pathname.split("/");
+    //const groupCode = pathParts[pathParts.length - 1];
+    groupCode = decodeURIComponent(window.location.pathname).split("/").pop();
 
     console.log("Extracted date:", date); // Debugging output
     console.log("Extracted groupCode:", groupCode); // Debugging output
@@ -303,7 +304,7 @@ function daysInMonth(iMonth, iYear) {
 
 // Initialize calendar on page load
 document.addEventListener("DOMContentLoaded", function() {
-    //const pathParts = window.location.pathname.split("/");
+    //yconst pathParts = window.location.pathname.split("/");
     //const groupCodename = pathParts[pathParts.length - 1];
     groupCodename = decodeURIComponent(window.location.pathname).split("/").pop();
     console.log("group name for calendar: ", groupCodename);
