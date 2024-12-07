@@ -16,27 +16,32 @@ document.addEventListener("DOMContentLoaded", async () => {
   let searchMovieType = document.getElementById("searchMovieType");
   const searchBox = document.getElementById("searchBox");
 
+  let gptButton = document.getElementById("getAIResultsMovie");
+  let aiSubmit = document.getElementById("aiSubmitMovie");
+  let mainForm = document.getElementById("mainFormMovie");
   let form = document.getElementById("suggestionsForm");
   let resultsContainer = document.getElementById("suggestionsResult");
 
   socket.on("groupUpdateNotice", () => {
     populateGroupInfo()
-    .then(() => {
-      populateHeaderWithGroupInfo();
-      setLeaderUsername();
-      checkIfLeaderSync();
-    })
-    .catch((error) => {
-      console.error(error);
-      window.location.reload();
-    });
+      .then(() => {
+        populateHeaderWithGroupInfo();
+        setLeaderUsername();
+        checkIfLeaderSync();
+      })
+      .catch((error) => {
+        console.error(error);
+        window.location.reload();
+      });
   });
 
   // Compares local storage of leader id and user id and see if they match
   function checkIfLeaderSync() {
-    let leaderId = parseInt(JSON.parse(localStorage.getItem("groupInfo")).leader_id);
+    let leaderId = parseInt(
+      JSON.parse(localStorage.getItem("groupInfo")).leader_id
+    );
     let userId = parseInt(localStorage.getItem("userId"));
-    let isLeader = leaderId == userId; 
+    let isLeader = leaderId == userId;
     if (isLeader) {
       console.log("User is leader");
       // User is the leader naturally or user was assigned leadership, either way
@@ -51,16 +56,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       document.getElementById("stopVote").style.display = "none";
       document.getElementById("reassign").style.display = "none";
     }
-
   }
 
   async function reassignLeader() {
-    try {  
-
+    try {
       let groupBody = JSON.parse(localStorage.getItem("groupInfo"));
       console.log(groupBody);
       if (groupBody === null || groupBody === undefined) {
-        console.log("GroupInfo not populated, cannot reassign leader")
+        console.log("GroupInfo not populated, cannot reassign leader");
         return;
       }
       let groupId = groupBody.id;
@@ -77,17 +80,57 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       await updateLeaderForGroup(groupId, newLeader);
       socket.emit("updateGroup");
-    }
-    catch (err) {
+    } catch (err) {
       console.error("An error occurred:", err);
     }
   }
 
   reassignButton.addEventListener("click", reassignLeader);
 
+  gptButton.addEventListener("click", () => {
+    changeTextButton();
+    if (resultsContainer.textContent === "") {
+      updateForm();
+    }
+    updateButton();
+    updateResults();
+  });
+
+  function updateResults() {
+    resultsContainer.innerHTML = "";
+  }
+
+  function changeTextButton() {
+    gptButton.textContent =
+      gptButton.textContent === "AI Recommendations"
+        ? "Close"
+        : "AI Recommendations";
+  }
+
+  function updateForm() {
+    if (mainForm.classList.contains("hidden-box")) {
+      mainForm.classList.remove("hidden-box");
+      mainForm.classList.add("display-flex");
+    } else {
+      mainForm.classList.add("hidden-box");
+      mainForm.classList.remove("display-flex");
+    }
+  }
+
+  function updateButton() {
+    if (aiSubmit.classList.contains("hidden-box")) {
+      aiSubmit.classList.remove("hidden-box");
+      aiSubmit.classList.add("display-flex");
+    } else {
+      aiSubmit.classList.add("hidden-box");
+      aiSubmit.classList.remove("display-flex");
+    }
+  }
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    resultsContainer.innerHTML = "";
+    resultsContainer.innerHTML = "Loading";
+    updateForm();
 
     let preferences = {
       genres: document.getElementById("genres").value,
@@ -174,7 +217,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       votedFilmsTitle.innerHTML = "";
       await displayMostVotedFilm();
       searchSection.style.display = "none";
-      searchBox.style.display = "none";
+      searchBox.style.display = "flex";
     } else {
       searchSection.style.display = "flex";
     }
@@ -243,80 +286,94 @@ document.addEventListener("DOMContentLoaded", async () => {
   searchButton.addEventListener("click", async () => {
     let searchValue = document.getElementById("searchValue").value;
     let selectedSearchType = searchMovieType.value;
-  
+
     if (!searchValue) {
       searchResult.innerText = "Please enter a value.";
       return;
     }
-  
+
     try {
       searchResult.innerHTML = "";
 
       let url;
-  
+
       if (selectedSearchType === "title") {
-        url = `/groupSearch?title=${encodeURIComponent(searchValue)}`;
+        url = `/groupSearchMax?title=${encodeURIComponent(searchValue)}`;
       } else if (selectedSearchType === "genre") {
-        let genreResponse = await fetch(`/findMoviesByGenre?genre=${encodeURIComponent(searchValue)}`);
-        if (!genreResponse.ok) throw new Error("Genre not found");
-        let genreData = await genreResponse.json();
-  
-        for (let title of genreData.titles) {
-          let titleResponse = await fetch(`/groupSearch?title=${encodeURIComponent(title)}`);
-          if (!titleResponse.ok) throw new Error("Film not found");
-  
-          let data = await titleResponse.json();
-  
-          searchResult.innerHTML += `
-            <div class="film-card">
-              <img src="${data.poster}" alt="${data.title} poster">
-              <button class="vote-btn" data-title="${data.title}" data-genre="${data.genre}">vote</button>
-              <button class="close-btn">x</button>
-              <h3>${data.title}</h3>
-              <p>IMDb Rating: ${data.rating}</p>
-              <p>Genre: ${data.genre}</p>
-              <p>Plot: ${data.plot}</p>
-            </div>
-          `;
-  
-          attachEventListeners();
-        }
-        return;
+        url = `/findMoviesByGenre?genre=${encodeURIComponent(searchValue)}`;
       } else {
         url = `/movieSearchById?imdbId=${encodeURIComponent(searchValue)}`;
       }
-  
+
       let response = await fetch(url);
       if (!response.ok) throw new Error("Film not found");
-  
-      let data = await response.json();
-  
-      searchResult.innerHTML = `
+
+      const data = await response.json();
+
+      let newSection = document.createElement("ul");
+      newSection.classList.add("verticalSearch");
+
+      for (let each of data) {
+        //console.log(each.Title);
+        try {
+          let newResponse = await fetch(
+            `/groupSearch?title=${encodeURIComponent(each)}`
+          );
+
+          let newData = await newResponse.json();
+
+          //console.log(newData);
+
+          let newSectionContent = document.createElement("li");
+          newSectionContent.innerHTML = `
         <div class="film-card">
-          <img src="${data.poster}" alt="${data.title} poster">
-          <button class="vote-btn" data-title="${data.title}" data-genre="${data.genre}">vote</button>
+          <img src="${newData.poster}" alt="${newData.title} poster">
+          <button class="vote-btn" data-title="${newData.title}" data-genre="${newData.genre}">vote</button>
           <button class="close-btn">x</button>
-          <h3>${data.title}</h3>
-          <p>IMDb Rating: ${data.rating}</p>
-          <p>Genre: ${data.genre}</p>
-          <p>Plot: ${data.plot}</p>
+          <h3>${newData.title}</h3>
+          <p>IMDb Rating: ${newData.rating}</p>
+          <p>Genre: ${newData.genre}</p>
+          <p>Plot: ${newData.plot}</p>
         </div>
       `;
-  
+          let closeButton = newSectionContent.querySelector(".close-btn");
+          closeButton.addEventListener("click", (e) => {
+            searchResult.innerHTML = "";
+          });
+
+          let voteButton = newSectionContent.querySelector(".vote-btn");
+          voteButton.addEventListener("click", (e) => {
+            let filmTitle = e.target.dataset.title;
+            let film_genre = e.target.dataset.genre;
+            let poster = e.target
+              .closest(".film-card")
+              .querySelector("img").src;
+            voteForFilm(filmTitle, poster, film_genre);
+            searchResult.innerHTML = "";
+          });
+
+          newSection.appendChild(newSectionContent);
+        } catch (error) {
+          newSection.appendChild(error);
+        }
+      }
+
+      //console.log(newSection);
+      searchResult.appendChild(newSection);
       attachEventListeners();
     } catch (error) {
       searchResult.innerText = "Film not found or an error occurred.";
       console.error("Error fetching film:", error);
     }
   });
-  
+
   function attachEventListeners() {
     document.querySelectorAll(".close-btn").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         e.target.closest(".film-card").remove();
       });
     });
-  
+
     document.querySelectorAll(".vote-btn").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         let filmTitle = e.target.dataset.title;
@@ -327,7 +384,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     });
   }
-  
+
   async function voteForFilm(title, poster, film_genre) {
     try {
       const response = await fetch("/vote", {
@@ -442,7 +499,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       searchSection.style.display = "none";
       votedFilmsList.innerHTML = "";
       votedFilmsTitle.innerHTML = "";
-      searchMovieType.innerHTML = "";
       searchBox.style.display = "none";
     } catch (error) {
       console.error("Error stopping voting:", error);
@@ -461,10 +517,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
 
       searchSection.style.display = "flex";
-      searchSection.style.display = "block";
+      searchSection.style.display = "flex";
       mostVotedFilmSection.innerHTML = "";
-      searchMovieType.style.display = "block";
-      searchBox.style.display = "block";
+      searchMovieType.style.display = "flex";
+      searchBox.style.display = "flex";
 
       fetchVotes();
     } catch (error) {
