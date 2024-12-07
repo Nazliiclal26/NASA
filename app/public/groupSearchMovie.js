@@ -114,6 +114,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     } else {
       mainForm.classList.add("hidden-box");
       mainForm.classList.remove("display-flex");
+      aiSubmit.classList.add("hidden-box");
+      aiSubmit.classList.remove("display-flex");
     }
   }
 
