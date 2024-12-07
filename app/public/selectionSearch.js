@@ -28,117 +28,203 @@ searchButton.addEventListener("click", async () => {
   }
 
   try {
-    searchResult.innerHTML = "";
+    searchResult.innerHTML = "Loading";
     let url;
 
     if (type === "movies") {
       // Movies
       if (selectedSearchType === "title") {
-        url = `/groupSearch?title=${encodeURIComponent(searchValue)}`;
+        url = `/groupSearchMax?title=${encodeURIComponent(searchValue)}`;
       } else if (selectedSearchType === "genre") {
-        let genreResponse = await fetch(`/findMoviesByGenre?genre=${encodeURIComponent(searchValue)}`);
-        if (!genreResponse.ok) throw new Error("Genre not found");
-        let genreData = await genreResponse.json();
+        url = `/findMoviesByGenre?genre=${encodeURIComponent(searchValue)}`;
 
-        for (let title of genreData.titles) {
-          let titleResponse = await fetch(`/groupSearch?title=${encodeURIComponent(title)}`);
-          if (!titleResponse.ok) throw new Error("Film not found");
+        // if (!genreResponse.ok) throw new Error("Genre not found");
+        // let genreData = await genreResponse.json();
 
-          let data = await titleResponse.json();
+        // ///
 
-          searchResult.innerHTML += `
-            <div class="film-card">
-              <div class="top">
-                <div class="leftContent">
-                  <img class="searchImage" src="${data.poster}" alt="${data.title} poster">
-                </div>
-                <div class="rightContent"> 
-                  <h3 class="searchTitle">${data.title}</h3>
-                  <p>IMDb Rating: ${data.rating}</p>
-                  <p>Genre: ${data.genre}</p>
-                  <button class="watchlist-btn watchlistButton2" data-title="${data.title}" data-genre="${data.genre}" data-poster="${data.poster}">+</button>
-                </div>
-              </div>
-              <div id="bottom">
-                <p>Plot: ${data.plot}</p>
-              </div> 
-            </div>
-          `;
-        }
-        attachWatchlistListeners();
-        return;
+        // let newSection = document.createElement("ul");
+        // newSection.classList.add("verticalSearch");
+
+        // for (let each of genreData.titles) {
+        //   //console.log(each.Title);
+        //   try {
+        //     let newResponse = await fetch(
+        //       `/groupSearch?title=${encodeURIComponent(each)}`
+        //     );
+
+        //     let newData = await newResponse.json();
+
+        //     //console.log(newData);
+
+        //     let newSectionContent = document.createElement("li");
+        //     newSectionContent.innerHTML = `
+        //   <div class="film-card">
+        //   <div class="top">
+        //     <div class="leftContent">
+        //       <img class="searchImage" src="${newData.poster}" alt="${newData.title} poster">
+        //     </div>
+        //     <div class="rightContent">
+        //       <h3 class="searchTitle">${newData.title}</h3>
+        //       <p>IMDb Rating: ${newData.rating}</p>
+        //       <p>Genre: ${newData.genre}</p>
+        //       <button class="watchlist-btn watchlistButton2" data-title="${newData.title}" data-genre="${newData.genre}" data-poster="${newData.poster}">+</button>
+        //     </div>
+        //   </div>
+        //   <div id="bottom">
+        //     <p>Plot: ${newData.plot}</p>
+        //   </div>
+        //   </div>
+        // `;
+
+        //     newSection.appendChild(newSectionContent);
+        //   } catch (error) {
+        //     newSection.appendChild(error);
+        //   }
+        // }
+
+        // //console.log(newSection);
+        // searchResult.appendChild(newSection);
+        // attachWatchlistListeners();
+        // return;
       } else {
         url = `/movieSearchById?imdbId=${encodeURIComponent(searchValue)}`;
       }
     } else {
-      // Books 
+      // Books
       if (selectedSearchType === "title") {
-        url = `/groupSearchBook?title=${encodeURIComponent(searchValue)}`;
+        url = `/groupSearchBookMax?title=${encodeURIComponent(searchValue)}`;
       } else if (selectedSearchType === "author") {
-        url = `/bookSearchByAuthor?author=${encodeURIComponent(searchValue)}`;
+        url = `/bookSearchByAuthorMax?author=${encodeURIComponent(
+          searchValue
+        )}`;
       } else if (selectedSearchType === "genre") {
-        url = `/bookSearchByGenre?genre=${encodeURIComponent(searchValue)}`;
+        url = `/bookSearchByGenreMax?genre=${encodeURIComponent(searchValue)}`;
       } else {
         url = `/bookSearchByISBN?isbn=${encodeURIComponent(searchValue)}`;
       }
     }
 
     let response = await fetch(url);
+
     if (!response.ok) {
-      searchResult.innerText = `${type === "movies" ? "Film" : "Book"} not found or an error occurred.`;
+      searchResult.innerText = `${
+        type === "movies" ? "Film" : "Book"
+      } not found or an error occurred.`;
       console.error("Response not OK:", response.statusText);
       return;
     }
 
     let data = await response.json();
+    console.log(data);
+
     if (!data || Object.keys(data).length === 0) {
-      searchResult.innerText = `No data received for the ${type === "movies" ? "film" : "book"}.`;
+      searchResult.innerText = `No data received for the ${
+        type === "movies" ? "film" : "book"
+      }.`;
       return;
     }
 
     if (type === "movies") {
-      searchResult.innerHTML += `
+      // Display movie information
+
+      let newSection = document.createElement("ul");
+      newSection.classList.add("verticalSearch");
+
+      console.log(data);
+
+      for (let each of data) {
+        //console.log(each.Title);
+        try {
+          let newResponse = await fetch(
+            `/groupSearch?title=${encodeURIComponent(each)}`
+          );
+
+          let newData = await newResponse.json();
+
+          //console.log(newData);
+
+          let newSectionContent = document.createElement("li");
+          newSectionContent.innerHTML = `
         <div class="film-card">
-          <div class="top">
-            <div class="leftContent">
-              <img class="searchImage" src="${data.poster}" alt="${data.title} poster">
-            </div>
-            <div class="rightContent"> 
-              <h3 class="searchTitle">${data.title}</h3>
-              <p>IMDb Rating: ${data.rating}</p>
-              <p>Genre: ${data.genre}</p>
-              <button class="watchlist-btn watchlistButton2" data-title="${data.title}" data-genre="${data.genre}" data-poster="${data.poster}">+</button>
-            </div>
+        <div class="top">
+          <div class="leftContent">
+            <img class="searchImage" src="${newData.poster}" alt="${newData.title} poster">
           </div>
-          <div id="bottom">
-            <p>Plot: ${data.plot}</p>
-          </div> 
+          <div class="rightContent"> 
+            <h3 class="searchTitle">${newData.title}</h3>
+            <p>IMDb Rating: ${newData.rating}</p>
+            <p>Genre: ${newData.genre}</p>
+            <button class="watchlist-btn watchlistButton2" data-title="${newData.title}" data-genre="${newData.genre}" data-poster="${newData.poster}">+</button>
+          </div>
+        </div>
+        <div id="bottom">
+          <p>Plot: ${newData.plot}</p>
+        </div> 
         </div>
       `;
-    } else {
-      let books = Array.isArray(data.books) ? data.books : [data]; 
-      books.forEach((book) => {
-        searchResult.innerHTML += `
-          <div class="book-card">
-            <div class="top">
-              <div class="leftContent">
-                <img class="searchImage" src="${book.poster || 'https://via.placeholder.com/150'}" alt="${book.title} poster">
-              </div>
-              <div class="rightContent"> 
-                <h3 class="searchTitle">${book.title}</h3>
-                <p class="searchAuthors">Author(s): ${book.authors || "Unknown"}</p>
-                <p class="searchPublished">Date Published: ${book.publishedDate || "Unknown"}</p>
-                <button class="watchlist-btn watchlistButton2" data-title="${book.title}" data-authors="${book.authors}" data-poster="${book.poster}">+</button>
-              </div>
-            </div>
-            <div id="bottom">
-              <p>Description: ${book.description || "No description available."}</p>
-            </div> 
-          </div>
-        `;
-      });
-    }
 
+          newSection.appendChild(newSectionContent);
+        } catch (error) {
+          newSection.appendChild(error);
+        }
+      }
+
+      //console.log(newSection);
+      searchResult.innerHTML = "";
+      searchResult.appendChild(newSection);
+    } else {
+      // books
+      // Display book information
+
+      let newSection = document.createElement("ul");
+      newSection.classList.add("verticalSearch");
+
+      // console.log(data.books);
+
+      for (let each of data) {
+        //console.log(each.volumeInfo.title);
+        try {
+          let newResponse = await fetch(
+            `/groupSearchBook?title=${encodeURIComponent(
+              each.volumeInfo.title
+            )}`
+          );
+
+          let newData = await newResponse.json();
+
+          //console.log(newData);
+
+          let newSectionContent = document.createElement("li");
+          newSectionContent.innerHTML = `
+        <div class="book-card">
+        <div class="top">
+          <div class="leftContent">
+            <img class="searchImage" src="${newData.poster}" alt="${newData.title} poster">
+          </div>
+          <div class="rightContent"> 
+            <h3 class="searchTitle">${newData.title}</h3>
+            <p class="searchAuthors">Author(s): ${newData.authors}</p>
+            <p class="searchPublished">Date Published: ${newData.publishedDate}</p>
+            <button class="watchlist-btn watchlistButton2" data-title="${newData.title}" data-authors="${newData.authors}" data-poster="${newData.poster}">+</button>
+          </div>
+        </div>
+        <div id="bottom">
+          <p>Description: ${newData.description}</p>
+        </div> 
+        </div>
+      `;
+
+          newSection.appendChild(newSectionContent);
+        } catch (error) {
+          newSection.appendChild(error);
+        }
+      }
+
+      //console.log(newSection);
+      searchResult.innerHTML = "";
+      searchResult.appendChild(newSection);
+    }
     attachWatchlistListeners();
   } catch (error) {
     searchResult.innerText = `${
@@ -186,4 +272,3 @@ function attachWatchlistListeners() {
     });
   });
 }
-

@@ -22,16 +22,15 @@ const port = 3000;
 let hostname;
 let databaseConfig;
 if (process.env.NODE_ENV == "production") {
-	hostname = "0.0.0.0";
-	databaseConfig = { connectionString: process.env.DATABASE_URL };
+  hostname = "0.0.0.0";
+  databaseConfig = { connectionString: process.env.DATABASE_URL };
 } else {
-	hostname = "localhost";
-	let { PGUSER, PGPASSWORD, PGDATABASE, PGHOST, PGPORT } = process.env;
-	databaseConfig = { PGUSER, PGPASSWORD, PGDATABASE, PGHOST, PGPORT };
+  hostname = "localhost";
+  let { PGUSER, PGPASSWORD, PGDATABASE, PGHOST, PGPORT } = process.env;
+  databaseConfig = { PGUSER, PGPASSWORD, PGDATABASE, PGHOST, PGPORT };
 }
 
 //const hostname = "localhost";
-
 const env = require("../env.json");
 // const Pool = pg.Pool;
 //const pool = new Pool(env);
@@ -47,12 +46,11 @@ let io = new Server(server);
   console.log(`Connected to database ${env.database}`);
 });*/
 // let pool = new Pool(databaseConfig);
-const pool = require('../config/db');
+const pool = require("../config/db");
 
 pool.connect().then(() => {
-	console.log("Connected to db");
+  console.log("Connected to db");
 });
-
 
 app.use(express.static("public", { index: false }));
 app.use(express.json());
@@ -1117,7 +1115,7 @@ app.get("/getGroupInfo", (req, res) => {
       return res.status(200).json(body);
     })
     .catch((error) => {
-      console.error("In get getGroup"+error);
+      console.error("In get getGroup" + error);
       return res.status(500).json({});
     });
 });
@@ -2043,10 +2041,10 @@ app.post("/addMessage", async (req, res) => {
 });
 
 app.get("/getUsernameForGroup", (req, res) => {
-  console.log("Token storage in getUsernameForGroup", tokenStorage)
+  console.log("Token storage in getUsernameForGroup", tokenStorage);
   // Utilize cookies to return username
   let { token } = req.cookies;
-  if (token === undefined) { 
+  if (token === undefined) {
     console.log("In getUsernameForGroup, No cookies set for this username.");
     return res.status(500).json({
       error: "No cookie set for this user, internal issue with user setup.",
@@ -2073,7 +2071,9 @@ app.get("/getMessages", async (req, res) => {
       error: "No cookie set for this user, internal issue with user setup.",
     });
   } else if (tokenStorage[token] === undefined) {
-    console.log("In get messages, Server storage not properly accounting for this username.");
+    console.log(
+      "In get messages, Server storage not properly accounting for this username."
+    );
     return res.status(500).json({
       error:
         "No cookie set for this user, ensure user was initialized properly.",
@@ -2386,7 +2386,12 @@ app.get("/getGenres/:userId", async (req, res) => {
 
 app.get("/getUsername/:userId", async (req, res) => {
   let userId = req.params.userId;
-  console.log("From getUsername:", tokenStorage, "and here's the userId:", userId);
+  console.log(
+    "From getUsername:",
+    tokenStorage,
+    "and here's the userId:",
+    userId
+  );
   try {
     let { rows } = await pool.query(
       "SELECT username FROM users WHERE id = $1",
@@ -2901,7 +2906,7 @@ app.get("/api/getEvents/:groupCode", async (req, res) => {
       [groupCode]
     );
     console.log("getEvents results for ", groupCode, ": ", result.rows);
-    res.json({rows : result.rows});
+    res.json({ rows: result.rows });
   } catch (err) {
     console.error("Error retrieving events:", err.stack);
     res.status(500).json({ error: err.message });
