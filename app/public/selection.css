@@ -699,7 +699,7 @@ body {
   display: flex;
 }
 
-.searchTitle {
+.searchValue {
   font-size: 30px;
   margin-top: 0px;
 }
@@ -727,6 +727,11 @@ a:visited {
   color: black;
   text-decoration: none;
   width: 100%;
+}
+
+.verticalSearch {
+  overflow-y: auto;
+  max-height: 450px;
 }
 
 @media (max-width: 1600px) {

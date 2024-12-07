@@ -18,25 +18,38 @@ const server = http.createServer(app);
 const path = require("path");
 
 const port = 3000;
-const hostname = "localhost";
 
+let hostname;
+let databaseConfig;
+if (process.env.NODE_ENV == "production") {
+  hostname = "0.0.0.0";
+  databaseConfig = { connectionString: process.env.DATABASE_URL };
+} else {
+  hostname = "localhost";
+  let { PGUSER, PGPASSWORD, PGDATABASE, PGHOST, PGPORT } = process.env;
+  databaseConfig = { PGUSER, PGPASSWORD, PGDATABASE, PGHOST, PGPORT };
+}
+
+//const hostname = "localhost";
 const env = require("../env.json");
-const Pool = pg.Pool;
-const pool = new Pool(env);
+// const Pool = pg.Pool;
+//const pool = new Pool(env);
 const group = require("../models/Group");
 const messages = require("../models/Messages");
 const user = require("../models/user");
-
-//const authRoutes = require('../routes/authRoutes');
-//const calendarRoutes = require('../routes/calendarRoutes');
-//app.use('/calendar', calendarRoutes);
 
 let { Server } = require("socket.io");
 const { timeStamp } = require("console");
 let io = new Server(server);
 
-pool.connect().then(() => {
+/*pool.connect().then(() => {
   console.log(`Connected to database ${env.database}`);
+});*/
+// let pool = new Pool(databaseConfig);
+const pool = require("../config/db");
+
+pool.connect().then(() => {
+  console.log("Connected to db");
 });
 
 app.use(express.static("public", { index: false }));
@@ -95,7 +108,9 @@ app.get("/bookSearchByGenre", (req, res) => {
     .then((response) => {
       let books = response.data.items;
       if (!books || books.length === 0) {
-        return res.status(404).json({ message: "No books found for this genre." });
+        return res
+          .status(404)
+          .json({ message: "No books found for this genre." });
       }
 
       let bookDetails = books.slice(0, 10).map((item) => {
@@ -118,6 +133,37 @@ app.get("/bookSearchByGenre", (req, res) => {
     });
 });
 
+app.get("/bookSearchByGenreMax", (req, res) => {
+  let genre = req.query.genre;
+
+  if (!genre) {
+    return res.status(400).json({ message: "Please input genre" });
+  }
+
+  let url = `https://www.googleapis.com/books/v1/volumes?q=insubject:${encodeURIComponent(
+    genre
+  )}&key=${GOOGLE_API_KEY}`;
+
+  axios
+    .get(url)
+    .then((response) => {
+      let books = response.data.items;
+      if (!books || books.length === 0) {
+        return res
+          .status(404)
+          .json({ message: "No books found for this genre." });
+      }
+
+      let bookDetails = books.slice(0, 10);
+
+      res.status(200).json(bookDetails);
+    })
+    .catch((error) => {
+      console.error("Error fetching book data:", error.message);
+      res.status(500).json({ message: "Error fetching book data" });
+    });
+});
+
 app.get("/findMoviesByGenre", async (req, res) => {
   let genre = req.query.genre;
 
@@ -126,9 +172,13 @@ app.get("/findMoviesByGenre", async (req, res) => {
   }
 
   try {
-    let genreResponse = await axios.get(`https://api.themoviedb.org/3/genre/movie/list?api_key=${MOVIEDB_API_KEY}&language=en-US`);
+    let genreResponse = await axios.get(
+      `https://api.themoviedb.org/3/genre/movie/list?api_key=${MOVIEDB_API_KEY}&language=en-US`
+    );
     let genres = genreResponse.data.genres;
-    let genreObj = genres.find((g) => g.name.toLowerCase() === genre.toLowerCase());
+    let genreObj = genres.find(
+      (g) => g.name.toLowerCase() === genre.toLowerCase()
+    );
 
     if (!genreObj) {
       return res.status(404).json({ message: "Genre not found" });
@@ -136,16 +186,20 @@ app.get("/findMoviesByGenre", async (req, res) => {
 
     let genreId = genreObj.id;
 
-    let moviesResponse = await axios.get(`https://api.themoviedb.org/3/discover/movie?api_key=${MOVIEDB_API_KEY}&with_genres=${genreId}`);
+    let moviesResponse = await axios.get(
+      `https://api.themoviedb.org/3/discover/movie?api_key=${MOVIEDB_API_KEY}&with_genres=${genreId}`
+    );
     let movies = moviesResponse.data.results;
 
     if (!movies || movies.length === 0) {
-      return res.status(404).json({ message: "No movies found for this genre" });
+      return res
+        .status(404)
+        .json({ message: "No movies found for this genre" });
     }
 
     let titles = movies.slice(0, 10).map((movie) => movie.title);
 
-    res.status(200).json({ titles });
+    res.status(200).json(titles);
   } catch (error) {
     console.error("Error fetching movie data:", error.message);
     res.status(500).json({ message: "Error fetching movie data" });
@@ -236,7 +290,8 @@ app.post("/movieGroup/recommend", (req, res) => {
                 - Minimum IMDb Rating: ${minRating}
                 - Content Rating: ${contentRating}
                 - Movie Type: ${movieType}.
-                Make sure the recommendations match these preferences.`,
+                Make sure the recommendations match these preferences.
+                ONLY output the titles`,
     },
   ];
 
@@ -312,7 +367,8 @@ app.post("/bookGroup/recommend", (req, res) => {
                 - Page Count Range: ${minPages || "No minimum"} to ${
         maxPages || "No maximum"
       } pages.
-                Please provide 5 recommendations that match these criteria.`,
+                Please provide 5 recommendations that match these criteria.
+                ONLY output the titles`,
     },
   ];
 
@@ -1050,13 +1106,16 @@ app.get("/getGroupInfo", (req, res) => {
     return res.status(400).json({});
   }
 
+  console.log("Here is the name in getGroupInfo", name);
+
   group
     .findByName(name)
     .then((body) => {
+      console.log("Group info", body);
       return res.status(200).json(body);
     })
     .catch((error) => {
-      console.error(error);
+      console.error("In get getGroup" + error);
       return res.status(500).json({});
     });
 });
@@ -1137,7 +1196,109 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
         </div>
       </div>
     </div>
+
     <div id="searchResult"></div>
+
+    <div class="centerButton">
+      <button id="getAIResultsMovie">AI Recommendations</button>
+    </div>
+
+    <div class="hidden-box" id="mainFormMovie">
+
+    <form id="suggestionsForm">
+    <div class="formComponent">
+      <label for="genres">Genres:</label>
+      <select id="genres" required>
+        <option value="">Select Genre</option>
+        <option value="Anything">Anything</option>
+        <option value="Action">Action</option>
+        <option value="Adventure">Adventure</option>
+        <option value="Comedy">Comedy</option>
+        <option value="Drama">Drama</option>
+        <option value="Fantasy">Fantasy</option>
+        <option value="Horror">Horror</option>
+        <option value="Mystery">Mystery</option>
+        <option value="Romance">Romance</option>
+        <option value="Sci-Fi">Sci-Fi</option>
+        <option value="Thriller">Thriller</option>
+      </select>
+      </div>
+    
+      <div class="formComponent">
+      <label for="mood">Mood:</label>
+      <select id="mood" required>
+        <option value="">Select Mood</option>
+        <option value="Anything">Anything</option>
+        <option value="Happy">Happy</option>
+        <option value="Exciting">Exciting</option>
+        <option value="Romantic">Romantic</option>
+        <option value="Thrilling">Thrilling</option>
+        <option value="Scary">Scary</option>
+        <option value="Adventurous">Adventurous</option>
+        <option value="Calm">Calm</option>
+        <option value="Dramatic">Dramatic</option>
+        <option value="Mysterious">Mysterious</option>
+        <option value="Funny">Funny</option>
+        <option value="Uplifting">Uplifting</option>
+        <option value="Heartbreaking">Heartbreaking</option>
+      </select>
+      </div>
+    
+      <div class="formComponent">
+      <label for="minRating">Minimum IMDb Rating:</label>
+      <select id="minRating" required>
+        <option value="">Select Rating</option>
+        <option value="Anything">Anything</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+      </select>
+      </div>
+    
+      <div class="formComponent">
+      <label for="contentRating">Content Rating:</label>
+      <select id="contentRating" required>
+        <option value="">Select Content Rating</option>
+        <option value="Anything">Anything</option>
+        <option value="G">G - General Audience</option>
+        <option value="PG">PG - Parental Guidance</option>
+        <option value="PG-13">PG-13 - Parents Strongly Cautioned</option>
+        <option value="R">R - Restricted</option>
+        <option value="NC-17">NC-17 - Adults Only</option>
+      </select>
+      </div>
+    
+      <div class="formComponent">
+      <label for="movieType">Movie Type:</label>
+      <select id="movieType" required>
+        <option value="">Select Movie Type</option>
+        <option value="Anything">Anything</option>
+        <option value="Mainstream">Mainstream</option>
+        <option value="Indie">Indie</option>
+        <option value="Documentary">Documentary</option>
+        <option value="Short Film">Short Film</option>
+        <option value="Animated">Animated</option>
+        <option value="Foreign">Foreign</option>
+        <option value="Classic">Classic</option>
+      </select>
+      </div>
+    </div>
+
+    <div class="centerButton">
+        <button type="submit" id="aiSubmitMovie" class="hidden-box">Get Recommendations</button>
+      </div>
+
+    </form>
+    
+    <div id="suggestionsResult"></div>  
+
     <div id="mainBlock">
       <div id="leftSide">
         <div class="box">
@@ -1352,86 +1513,7 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
             <div id="createJoinButton">Join</div>
           </div>
         </div>
-      </div>
-      <form id="suggestionsForm">
-      <label for="genres">Genres:</label>
-      <select id="genres" required>
-        <option value="">Select Genre</option>
-        <option value="Anything">Anything</option>
-        <option value="Action">Action</option>
-        <option value="Adventure">Adventure</option>
-        <option value="Comedy">Comedy</option>
-        <option value="Drama">Drama</option>
-        <option value="Fantasy">Fantasy</option>
-        <option value="Horror">Horror</option>
-        <option value="Mystery">Mystery</option>
-        <option value="Romance">Romance</option>
-        <option value="Sci-Fi">Sci-Fi</option>
-        <option value="Thriller">Thriller</option>
-      </select>
-    
-      <label for="mood">Mood:</label>
-      <select id="mood" required>
-        <option value="">Select Mood</option>
-        <option value="Anything">Anything</option>
-        <option value="Happy">Happy</option>
-        <option value="Exciting">Exciting</option>
-        <option value="Romantic">Romantic</option>
-        <option value="Thrilling">Thrilling</option>
-        <option value="Scary">Scary</option>
-        <option value="Adventurous">Adventurous</option>
-        <option value="Calm">Calm</option>
-        <option value="Dramatic">Dramatic</option>
-        <option value="Mysterious">Mysterious</option>
-        <option value="Funny">Funny</option>
-        <option value="Uplifting">Uplifting</option>
-        <option value="Heartbreaking">Heartbreaking</option>
-      </select>
-    
-      <label for="minRating">Minimum IMDb Rating:</label>
-      <select id="minRating" required>
-        <option value="">Select Rating</option>
-        <option value="Anything">Anything</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-        <option value="7">7</option>
-        <option value="8">8</option>
-        <option value="9">9</option>
-        <option value="10">10</option>
-      </select>
-    
-      <label for="contentRating">Content Rating:</label>
-      <select id="contentRating" required>
-        <option value="">Select Content Rating</option>
-        <option value="Anything">Anything</option>
-        <option value="G">G - General Audience</option>
-        <option value="PG">PG - Parental Guidance</option>
-        <option value="PG-13">PG-13 - Parents Strongly Cautioned</option>
-        <option value="R">R - Restricted</option>
-        <option value="NC-17">NC-17 - Adults Only</option>
-      </select>
-    
-      <label for="movieType">Movie Type:</label>
-      <select id="movieType" required>
-        <option value="">Select Movie Type</option>
-        <option value="Anything">Anything</option>
-        <option value="Mainstream">Mainstream</option>
-        <option value="Indie">Indie</option>
-        <option value="Documentary">Documentary</option>
-        <option value="Short Film">Short Film</option>
-        <option value="Animated">Animated</option>
-        <option value="Foreign">Foreign</option>
-        <option value="Classic">Classic</option>
-      </select>
-    
-      <button type="submit">Get Recommendations</button>
-    </form>
-    
-    <div id="suggestionsResult"></div>    
+      </div>  
       </main>
       <script src="/socket.io/socket.io.js"></script>
       <script src="/new.js"></script>
@@ -1518,6 +1600,113 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
       </div>
     </div>
     <div id="searchResult"></div>
+
+    <div class="centerButton">
+      <button id="getAIResults">AI Recommendations</button>
+    </div>
+
+    <div class="hidden-box" id="mainForm">
+
+    <form id="bookSuggestionsForm">
+    <div class="formComponent">
+  <label for="bookGenre">Genre:</label>
+  <select id="bookGenre" required>
+    <option value="">Select Genre</option>
+    <option value="Anything">Anything</option>
+    <option value="Fiction">Fiction</option>
+    <option value="Non-Fiction">Non-Fiction</option>
+    <option value="Fantasy">Fantasy</option>
+    <option value="Mystery">Mystery</option>
+    <option value="Romance">Romance</option>
+    <option value="Thriller">Thriller</option>
+    <option value="Science Fiction">Science Fiction</option>
+    <option value="Biography">Biography</option>
+    <option value="Self-Help">Self-Help</option>
+    <option value="Young Adult">Young Adult</option>
+    <option value="Historical">Historical</option>
+    <option value="Horror">Horror</option>
+  </select>
+  </div>
+
+  <div class="formComponent">
+  <label for="bookMood">Mood:</label>
+  <select id="bookMood" required>
+    <option value="">Select Mood</option>
+    <option value="Anything">Anything</option>
+    <option value="Uplifting">Uplifting</option>
+    <option value="Dark">Dark</option>
+    <option value="Light-Hearted">Light-Hearted</option>
+    <option value="Inspiring">Inspiring</option>
+    <option value="Romantic">Romantic</option>
+    <option value="Suspenseful">Suspenseful</option>
+    <option value="Adventurous">Adventurous</option>
+    <option value="Thought-Provoking">Thought-Provoking</option>
+    <option value="Mysterious">Mysterious</option>
+  </select>
+  </div>
+
+  <div class="formComponent">
+  <label for="author">Author:</label>
+  <input type="text" id="author" placeholder="e.g., J.K. Rowling" />
+  </div>
+
+  <div class="formComponent">
+  <label for="bookType">Book Type:</label>
+  <select id="bookType" required>
+    <option value="">Select Book Type</option>
+    <option value="Anything">Anything</option>
+    <option value="Novel">Novel</option>
+    <option value="Short Stories">Short Stories</option>
+    <option value="Anthology">Anthology</option>
+    <option value="Graphic Novel">Graphic Novel</option>
+    <option value="Poetry">Poetry</option>
+    <option value="Memoir">Memoir</option>
+  </select>
+  </div>
+
+  <div class="formComponent">
+  <label for="minRating">Minimum Rating:</label>
+  <select id="minRating" required>
+    <option value="">Select Rating</option>
+    <option value="Anything">Anything</option>
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+    <option value="5">5</option>
+  </select>
+  </div>
+
+  <div class="formComponent">
+  <label for="audience">Target Audience:</label>
+  <select id="audience" required>
+    <option value="">Select Audience</option>
+    <option value="Anything">Anything</option>
+    <option value="Children">Children</option>
+    <option value="Teens">Teens</option>
+    <option value="Adults">Adults</option>
+    <option value="All Ages">All Ages</option>
+  </select>
+  </div>
+
+  <div class="formComponent">
+  <label for="minPages">Minimum Pages:</label>
+  <input type="number" id="minPages" placeholder="e.g., 100" />
+  </div>
+
+  <div class="formComponent">
+  <label for="maxPages">Maximum Pages:</label>
+  <input type="number" id="maxPages" placeholder="e.g., 500" />
+  </div>
+  </div>
+
+  <div class="centerButton">
+    <button type="submit" id="aiSubmit" class="hidden-box">Get Recommendations</button>
+  </div>
+</form>
+
+<div id="bookSuggestionsResult"></div>
+
     <div id="mainBlock">
       <div id="leftSide">
         <div class="box">
@@ -1733,86 +1922,6 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
           </div>
         </div>
       </div>
-      <form id="bookSuggestionsForm">
-  <label for="bookGenre">Genre:</label>
-  <select id="bookGenre" required>
-    <option value="">Select Genre</option>
-    <option value="Anything">Anything</option>
-    <option value="Fiction">Fiction</option>
-    <option value="Non-Fiction">Non-Fiction</option>
-    <option value="Fantasy">Fantasy</option>
-    <option value="Mystery">Mystery</option>
-    <option value="Romance">Romance</option>
-    <option value="Thriller">Thriller</option>
-    <option value="Science Fiction">Science Fiction</option>
-    <option value="Biography">Biography</option>
-    <option value="Self-Help">Self-Help</option>
-    <option value="Young Adult">Young Adult</option>
-    <option value="Historical">Historical</option>
-    <option value="Horror">Horror</option>
-  </select>
-
-  <label for="bookMood">Mood:</label>
-  <select id="bookMood" required>
-    <option value="">Select Mood</option>
-    <option value="Anything">Anything</option>
-    <option value="Uplifting">Uplifting</option>
-    <option value="Dark">Dark</option>
-    <option value="Light-Hearted">Light-Hearted</option>
-    <option value="Inspiring">Inspiring</option>
-    <option value="Romantic">Romantic</option>
-    <option value="Suspenseful">Suspenseful</option>
-    <option value="Adventurous">Adventurous</option>
-    <option value="Thought-Provoking">Thought-Provoking</option>
-    <option value="Mysterious">Mysterious</option>
-  </select>
-
-  <label for="author">Author:</label>
-  <input type="text" id="author" placeholder="e.g., J.K. Rowling" />
-
-  <label for="bookType">Book Type:</label>
-  <select id="bookType" required>
-    <option value="">Select Book Type</option>
-    <option value="Anything">Anything</option>
-    <option value="Novel">Novel</option>
-    <option value="Short Stories">Short Stories</option>
-    <option value="Anthology">Anthology</option>
-    <option value="Graphic Novel">Graphic Novel</option>
-    <option value="Poetry">Poetry</option>
-    <option value="Memoir">Memoir</option>
-  </select>
-
-  <label for="minRating">Minimum Rating:</label>
-  <select id="minRating" required>
-    <option value="">Select Rating</option>
-    <option value="Anything">Anything</option>
-    <option value="1">1</option>
-    <option value="2">2</option>
-    <option value="3">3</option>
-    <option value="4">4</option>
-    <option value="5">5</option>
-  </select>
-
-  <label for="audience">Target Audience:</label>
-  <select id="audience" required>
-    <option value="">Select Audience</option>
-    <option value="Anything">Anything</option>
-    <option value="Children">Children</option>
-    <option value="Teens">Teens</option>
-    <option value="Adults">Adults</option>
-    <option value="All Ages">All Ages</option>
-  </select>
-
-  <label for="minPages">Minimum Pages:</label>
-  <input type="number" id="minPages" placeholder="e.g., 100" />
-
-  <label for="maxPages">Maximum Pages:</label>
-  <input type="number" id="maxPages" placeholder="e.g., 500" />
-
-  <button type="submit">Get Recommendations</button>
-</form>
-
-<div id="bookSuggestionsResult"></div>
       </main>
       <script src="/socket.io/socket.io.js"></script>
       <script src="/new.js"></script>
@@ -1932,11 +2041,11 @@ app.post("/addMessage", async (req, res) => {
 });
 
 app.get("/getUsernameForGroup", (req, res) => {
+  console.log("Token storage in getUsernameForGroup", tokenStorage);
   // Utilize cookies to return username
   let { token } = req.cookies;
-  console.log("THIS IS COOKIES" + req.cookies);
   if (token === undefined) {
-    console.log("No cookies set for this username.");
+    console.log("In getUsernameForGroup, No cookies set for this username.");
     return res.status(500).json({
       error: "No cookie set for this user, internal issue with user setup.",
     });
@@ -1957,12 +2066,14 @@ app.get("/getMessages", async (req, res) => {
 
   let { token } = req.cookies;
   if (token === undefined) {
-    console.log("No cookies set for this username.");
+    console.log("In get messages, No cookies set for this username.");
     return res.status(500).json({
       error: "No cookie set for this user, internal issue with user setup.",
     });
   } else if (tokenStorage[token] === undefined) {
-    console.log("Server storage not properly accounting for this username.");
+    console.log(
+      "In get messages, Server storage not properly accounting for this username."
+    );
     return res.status(500).json({
       error:
         "No cookie set for this user, ensure user was initialized properly.",
@@ -2044,8 +2155,8 @@ app.get("/getMembersFromIDs", async (req, res) => {
   }
 
   if (members.length == 1) {
-    members = [members[0]]
-  } 
+    members = [members[0]];
+  }
 
   await user
     .getUsernamesFromIDs(members)
@@ -2100,6 +2211,8 @@ app.get("/groupSearch", (req, res) => {
     .then((response) => {
       let data = response.data;
 
+      console.log(data);
+
       if (data.Response === "False") {
         return res.status(404).json({ message: "Film not found" });
       }
@@ -2113,6 +2226,33 @@ app.get("/groupSearch", (req, res) => {
       };
 
       res.status(200).json(information);
+    })
+    .catch((error) => {
+      res.status(500).json({ message: "Error fetching film data" });
+    });
+});
+
+app.get("/groupSearchMax", (req, res) => {
+  let title = req.query.title;
+
+  if (!title) {
+    return res.status(400).json({ message: "Input Title" });
+  }
+
+  let url = `https://www.omdbapi.com/?s=${title}&apikey=${OMDB_API_KEY}`;
+
+  axios
+    .get(url)
+    .then((response) => {
+      let data = response.data;
+
+      if (data.Response === "False") {
+        return res.status(404).json({ message: "Film not found" });
+      }
+
+      let titles = data.Search.slice(0, 10).map((movie) => movie.Title);
+
+      res.status(200).json(titles);
     })
     .catch((error) => {
       res.status(500).json({ message: "Error fetching film data" });
@@ -2246,7 +2386,12 @@ app.get("/getGenres/:userId", async (req, res) => {
 
 app.get("/getUsername/:userId", async (req, res) => {
   let userId = req.params.userId;
-  console.log("From getUsername:", tokenStorage, "and here's the userId:", userId);
+  console.log(
+    "From getUsername:",
+    tokenStorage,
+    "and here's the userId:",
+    userId
+  );
   try {
     let { rows } = await pool.query(
       "SELECT username FROM users WHERE id = $1",
@@ -2400,6 +2545,34 @@ app.get("/groupSearchBook", (req, res) => {
     });
 });
 
+app.get("/groupSearchBookMax", (req, res) => {
+  let title = req.query.title;
+
+  if (!title) {
+    return res.status(400).json({ message: "Input title" });
+  }
+
+  let url = `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(
+    title
+  )}&key=${GOOGLE_API_KEY}`;
+
+  axios
+    .get(url)
+    .then((response) => {
+      let books = response.data.items;
+
+      if (!books || books.length === 0) {
+        return res.status(404).json({ message: "Book not found" });
+      }
+      let bookMax = books.splice(0, 10);
+
+      res.status(200).json(bookMax);
+    })
+    .catch((error) => {
+      res.status(500).json({ message: "Error fetching book data" });
+    });
+});
+
 app.get("/bookSearchByAuthor", (req, res) => {
   let author = req.query.author;
 
@@ -2433,6 +2606,36 @@ app.get("/bookSearchByAuthor", (req, res) => {
       };
 
       res.status(200).json(information);
+    })
+    .catch((error) => {
+      res.status(500).json({ message: "Error fetching book data" });
+    });
+});
+
+app.get("/bookSearchByAuthorMax", (req, res) => {
+  let author = req.query.author;
+
+  if (!author) {
+    return res.status(400).json({ message: "Input author" });
+  }
+
+  let url = `https://www.googleapis.com/books/v1/volumes?q=inauthor:${encodeURIComponent(
+    author
+  )}
+  &key=${GOOGLE_API_KEY}`;
+
+  axios
+    .get(url)
+    .then((response) => {
+      let books = response.data.items;
+      if (!books || books.length === 0) {
+        return res.status(404).json({ message: "Book not found" });
+      }
+      let book = books.splice(0, 10);
+
+      // console.log(book);
+
+      res.status(200).json(book);
     })
     .catch((error) => {
       res.status(500).json({ message: "Error fetching book data" });
@@ -2702,7 +2905,8 @@ app.get("/api/getEvents/:groupCode", async (req, res) => {
       "SELECT * FROM group_events WHERE group_code = $1 ORDER BY event_date",
       [groupCode]
     );
-    res.json(result.rows);
+    console.log("getEvents results for ", groupCode, ": ", result.rows);
+    res.json({ rows: result.rows });
   } catch (err) {
     console.error("Error retrieving events:", err.stack);
     res.status(500).json({ error: err.message });

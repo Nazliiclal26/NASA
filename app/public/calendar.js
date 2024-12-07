@@ -20,13 +20,13 @@ async function loadEventsFromDatabase(groupCode) {
     try {
         const response = await fetch(`/api/getEvents/${groupCode}`);
         if (response.ok) {
-            events = (await response.json()).map(event => ({
+            events = (await response.json()).rows.map(event => ({
                 id: event.event_id,
                 date: event.event_date.split("T")[0], // Strip off the time part
                 title: event.event_title,
                 description: event.description
             }));
-            
+
             console.log("Loaded events from database:", events); // Debug: inspect loaded events
             displayReminders();
             showCalendar(currentMonth, currentYear);
@@ -43,8 +43,9 @@ function addEvent() {
     const date = eventDateInput.value;
     const title = eventTitleInput.value;
     const description = eventDescriptionInput.value;
-    const pathParts = window.location.pathname.split("/");
-    const groupCode = pathParts[pathParts.length - 1];
+    //const pathParts = window.location.pathname.split("/");
+    //const groupCode = pathParts[pathParts.length - 1];
+    groupCode = decodeURIComponent(window.location.pathname).split("/").pop();
 
     console.log("Extracted date:", date); // Debugging output
     console.log("Extracted groupCode:", groupCode); // Debugging output
@@ -78,7 +79,7 @@ async function addEventToDatabase(groupCode, eventDate, eventTitle, description)
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
-        
+        console.log()
         if (response.ok) {
             const newEvent = await response.json();
             return {
@@ -301,11 +302,15 @@ function daysInMonth(iMonth, iYear) {
 
 // Initialize calendar on page load
 document.addEventListener("DOMContentLoaded", function() {
-    const pathParts = window.location.pathname.split("/");
-    const groupCodename = pathParts[pathParts.length - 1];
-    if (groupCodename) {
+    //yconst pathParts = window.location.pathname.split("/");
+    //const groupCodename = pathParts[pathParts.length - 1];
+    groupCodename = decodeURIComponent(window.location.pathname).split("/").pop();
+    console.log("group name for calendar: ", groupCodename);
+    /*if (groupCodename) {
         loadEventsFromDatabase(groupCodename);
     } else {
         console.error("No group codename found in the URL.");
-    }
+    }*/
+    loadEventsFromDatabase(groupCodename);
+    console.log("Load events is being called");
 });
