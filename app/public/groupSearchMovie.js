@@ -118,7 +118,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function updateButton() {
-    if (gptButton.textContent === "Close") {
+    if (gptButton.textContent !== "Close") {
       aiSubmit.classList.add("hidden-box");
       aiSubmit.classList.remove("display-flex");
     } else {
