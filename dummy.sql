@@ -37,7 +37,7 @@ INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, mem
     VALUES ('SoloLiving', 'chEET', 1, 'book', 'public', '{1}');
 
 INSERT INTO votes (group_code, film_title, book_title, num_votes, poster,film_genre,user_id) 
-    VALUES ('WeLoveMovies', 'Oppenheimer', "", '1', 'https://image.tmdb.org/t/p/original//8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg', 'action','nazli');
+    VALUES ('LoveMovies', 'Oppenheimer', "", '1', 'https://image.tmdb.org/t/p/original//8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg', 'action','nazli');
 
 -- --USER WATCHlIST: Adds 1 book and 1 movie to every user's watchlist
 -- -- Ajani's book and movie
