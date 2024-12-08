@@ -247,7 +247,7 @@ app.post("/votes/setMostVoted/", async (req, res) => {
     const result = await pool.query(
       `SELECT SUM(num_votes)
        FROM votes
-       WHERE group_code = $1 AND film_title = $2',
+       WHERE group_code = $1 AND film_title = $2`,
       [groupCode,film_title]
     );
     
