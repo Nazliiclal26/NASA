@@ -2218,7 +2218,7 @@ app.get("/groupSearch", (req, res) => {
     .then((response) => {
       let data = response.data;
 
-      console.log(data);
+      // console.log(data);
 
       if (data.Response === "False") {
         return res.status(404).json({ message: "Film not found" });
