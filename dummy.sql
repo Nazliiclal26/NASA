@@ -17,24 +17,24 @@ INSERT INTO users (username, first_name, last_name, password, preferred_genres)
 
 -- GROUP SETUP (Group IDs are hardcoded, this is assuming an empty database)
 -- 'TeamNASA', Book, Public: Leader - Ajani, Members - Ajani, Nazli, Ashifur, Susie
-INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, members) 
-    VALUES ('TeamNASA', 'iCHqb', 1, 'book', 'public', '{1,2,3,4}');
+--INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, members) 
+--    VALUES ('TeamNASA', 'iCHqb', 1, 'book', 'public', '{1,2,3,4}');
 
 -- 'We Love Movies', Movie, Private: Leader - Nazli, Members - Nazli, Ashifur
-INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, members) 
-    VALUES ('LoveMovies', '1A06U', 2, 'movie', 'private', '{2,3}');
+--INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, members) 
+--    VALUES ('LoveMovies', '1A06U', 2, 'movie', 'private', '{2,3}');
 
 -- 'MovieFun', Movie, Public: Leader - Ashifur, Members - Ashifur, Susie
-INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, members) 
-    VALUES ('MovieFun', 'jbJxl', 3, 'movie', 'public', '{3,4}');
+--INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, members) 
+--    VALUES ('MovieFun', 'jbJxl', 3, 'movie', 'public', '{3,4}');
 
 -- 'Book Nerds', Book, Private: Leader - Susie, Members - Susie, Ajani
-INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, members) 
-    VALUES ('Book Nerds', 'foJfD', 4, 'book', 'private', '{4,1}');
+--INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, members) 
+--    VALUES ('Book Nerds', 'foJfD', 4, 'book', 'private', '{4,1}');
 
 -- 'SoloLiving', Book, Public: Leader - Ajani, Members - Ajani
-INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, members) 
-    VALUES ('SoloLiving', 'chEET', 1, 'book', 'public', '{1}');
+--INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, members) 
+--    VALUES ('SoloLiving', 'chEET', 1, 'book', 'public', '{1}');
 
 -- --USER WATCHlIST: Adds 1 book and 1 movie to every user's watchlist
 -- -- Ajani's book and movie
