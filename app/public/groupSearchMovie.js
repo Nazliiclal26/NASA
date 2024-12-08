@@ -247,6 +247,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             body: JSON.stringify({
               groupCode,
               film_title: mostVoted.film_title,
+              num_votes: mostVoted.num_votes,
             }),
           });
 
