@@ -244,6 +244,13 @@ app.post("/votes/setMostVoted/", async (req, res) => {
   try {
     const { groupCode, film_title } = req.body;
 
+    const result = await pool.query(
+      `SELECT SUM(num_votes)
+       FROM votes
+       WHERE group_code = $1 AND film_title = $2',
+      [groupCode,film_title]
+    );
+    
     const existingWinner = await db.query(
       "SELECT * FROM votes WHERE group_code = $1 AND mostVotedFilm = TRUE",
       [groupCode]
@@ -254,12 +261,12 @@ app.post("/votes/setMostVoted/", async (req, res) => {
     }
 
     await db.query(
-      "UPDATE votes SET mostVotedFilm = TRUE WHERE group_code = $1 AND film_title = $2",
-      [groupCode, film_title]
+      "UPDATE votes SET mostVotedFilm = TRUE AND num_votes = $3 WHERE group_code = $1 AND film_title = $2",
+      [groupCode, film_title,result]
     );
 
     let updatedFilm = await db.query(
-      "SELECT * FROM votes WHERE group_code = $1 AND film_title = $2",
+      "SELECT * FROM votes WHERE group_code = $1 AND film_title = $2 AND mostVotedFilm = TRUE",
       [groupCode, film_title]
     );
 
