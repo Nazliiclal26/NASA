@@ -219,9 +219,20 @@ app.post("/votes/setMostVotedBook/", async (req, res) => {
       return res.status(200).json(existingWinner.rows[0]);
     }
 
-    await db.query(
-      "UPDATE votes SET mostVotedFilm = TRUE WHERE group_code = $1 AND book_title = $2",
+    const result = await pool.query(
+      `SELECT SUM(num_votes) AS total_votes
+       FROM votes
+       WHERE group_code = $1 AND book_title = $2`,
       [groupCode, book_title]
+    );
+
+    const totalVotes = result.rows[0]?.total_votes || 0;
+
+    await db.query(
+      `UPDATE votes
+       SET num_votes = $3, mostVotedFilm = TRUE
+       WHERE group_code = $1 AND book_title = $2`,
+      [groupCode, book_title, totalVotes]
     );
 
     let updatedFilm = await db.query(
