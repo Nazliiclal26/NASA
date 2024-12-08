@@ -36,39 +36,39 @@ INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, mem
 INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, members) 
     VALUES ('SoloLiving', 'chEET', 1, 'book', 'public', '{1}');
 
---USER WATCHlIST: Adds 1 book and 1 movie to every user's watchlist
--- Ajani's book and movie
-INSERT INTO user_watchlists (item_type, item_id, user_id, poster) VALUES ('books', 'Wicked', 1, 'http://books.google.com/books/content?id=P0O7kgEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api');
-INSERT INTO user_watchlists (item_type, item_id, user_id, poster) VALUES ('movies', 'Inside Out 2', 1, 'https://image.tmdb.org/t/p/original//vpnVM9B6NMmQpWeZvzLvDESb2QY.jpg');
+-- --USER WATCHlIST: Adds 1 book and 1 movie to every user's watchlist
+-- -- Ajani's book and movie
+-- INSERT INTO user_watchlists (item_type, item_id, user_id, poster) VALUES ('books', 'Wicked', 1, 'http://books.google.com/books/content?id=P0O7kgEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api');
+-- INSERT INTO user_watchlists (item_type, item_id, user_id, poster) VALUES ('movies', 'Inside Out 2', 1, 'https://image.tmdb.org/t/p/original//vpnVM9B6NMmQpWeZvzLvDESb2QY.jpg');
 
--- Nazli's book and movie
-INSERT INTO user_watchlists (item_type, item_id, user_id, poster) VALUES ('books', "Howl's Moving Castle", 2, 'http://books.google.com/books/content?id=C7IuKAAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api');
-INSERT INTO user_watchlists (item_type, item_id, user_id, poster) VALUES ('movies', 'Oppenheimer', 2, 'https://image.tmdb.org/t/p/original//8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg');
+-- -- Nazli's book and movie
+-- INSERT INTO user_watchlists (item_type, item_id, user_id, poster) VALUES ('books', "Howl's Moving Castle", 2, 'http://books.google.com/books/content?id=C7IuKAAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api');
+-- INSERT INTO user_watchlists (item_type, item_id, user_id, poster) VALUES ('movies', 'Oppenheimer', 2, 'https://image.tmdb.org/t/p/original//8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg');
 
--- Ashifur's book and movie
-INSERT INTO user_watchlists (item_type, item_id, user_id, poster) VALUES ('books', 'Batman: Year One Deluxe Edition', 3, 'http://books.google.com/books/content?id=mj0yDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api');
-INSERT INTO user_watchlists (item_type, item_id, user_id, poster) VALUES ('movies', 'Coco', 3, 'https://image.tmdb.org/t/p/original//gGEsBPAijhVUFoiNpgZXqRVWJt2.jpg');
+-- -- Ashifur's book and movie
+-- INSERT INTO user_watchlists (item_type, item_id, user_id, poster) VALUES ('books', 'Batman: Year One Deluxe Edition', 3, 'http://books.google.com/books/content?id=mj0yDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api');
+-- INSERT INTO user_watchlists (item_type, item_id, user_id, poster) VALUES ('movies', 'Coco', 3, 'https://image.tmdb.org/t/p/original//gGEsBPAijhVUFoiNpgZXqRVWJt2.jpg');
 
--- Susie's book and movie
-INSERT INTO user_watchlists (item_type, item_id, user_id, poster) VALUES ('books', 'The Little Prince', 4, 'http://books.google.com/books/content?id=CQYg20lTHtMC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api');
-INSERT INTO user_watchlists (item_type, item_id, user_id, poster) VALUES ('movies', 'Given', 4, 'https://m.media-amazon.com/images/M/MV5BMWI1OWY1NzgtZTg3MS00NjJjLWIxMGQtMzAzNGFlNmMxNTExXkEyXkFqcGc@._V1_SX300.jpg'); --YASSSSS
+-- -- Susie's book and movie
+-- INSERT INTO user_watchlists (item_type, item_id, user_id, poster) VALUES ('books', 'The Little Prince', 4, 'http://books.google.com/books/content?id=CQYg20lTHtMC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api');
+-- INSERT INTO user_watchlists (item_type, item_id, user_id, poster) VALUES ('movies', 'Given', 4, 'https://m.media-amazon.com/images/M/MV5BMWI1OWY1NzgtZTg3MS00NjJjLWIxMGQtMzAzNGFlNmMxNTExXkEyXkFqcGc@._V1_SX300.jpg'); --YASSSSS
 
---GROUP WATCHLIST: Adding all items of a user's watchlist to a group
--- Ajani's Groups:
-INSERT INTO group_watchlists (group_id, item_id, item_type,poster) VALUES (1, 'Wicked', 'books', 'http://books.google.com/books/content?id=P0O7kgEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api') ON CONFLICT DO NOTHING;
-INSERT INTO group_watchlists (group_id, item_id, item_type,poster) VALUES (4, 'Wicked', 'books', 'http://books.google.com/books/content?id=P0O7kgEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api') ON CONFLICT DO NOTHING;
-INSERT INTO group_watchlists (group_id, item_id, item_type,poster) VALUES (5, 'Wicked', 'books', 'http://books.google.com/books/content?id=P0O7kgEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api') ON CONFLICT DO NOTHING;
+-- --GROUP WATCHLIST: Adding all items of a user's watchlist to a group
+-- -- Ajani's Groups:
+-- INSERT INTO group_watchlists (group_id, item_id, item_type,poster) VALUES (1, 'Wicked', 'books', 'http://books.google.com/books/content?id=P0O7kgEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api') ON CONFLICT DO NOTHING;
+-- INSERT INTO group_watchlists (group_id, item_id, item_type,poster) VALUES (4, 'Wicked', 'books', 'http://books.google.com/books/content?id=P0O7kgEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api') ON CONFLICT DO NOTHING;
+-- INSERT INTO group_watchlists (group_id, item_id, item_type,poster) VALUES (5, 'Wicked', 'books', 'http://books.google.com/books/content?id=P0O7kgEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api') ON CONFLICT DO NOTHING;
 
--- Nazli's Groups:
-INSERT INTO group_watchlists (group_id, item_id, item_type,poster) VALUES (1, "Howl's Moving Castle", 'books', 'http://books.google.com/books/content?id=C7IuKAAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api') ON CONFLICT DO NOTHING;
-INSERT INTO group_watchlists (group_id, item_id, item_type,poster) VALUES (2, 'Oppenheimer', 'movies', 'https://image.tmdb.org/t/p/original//8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg') ON CONFLICT DO NOTHING;
+-- -- Nazli's Groups:
+-- INSERT INTO group_watchlists (group_id, item_id, item_type,poster) VALUES (1, "Howl's Moving Castle", 'books', 'http://books.google.com/books/content?id=C7IuKAAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api') ON CONFLICT DO NOTHING;
+-- INSERT INTO group_watchlists (group_id, item_id, item_type,poster) VALUES (2, 'Oppenheimer', 'movies', 'https://image.tmdb.org/t/p/original//8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg') ON CONFLICT DO NOTHING;
 
--- Ashifur's Groups:
-INSERT INTO group_watchlists (group_id, item_id, item_type,poster) VALUES (1, "Batman: Year One Deluxe Edition", 'books', 'http://books.google.com/books/content?id=mj0yDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api') ON CONFLICT DO NOTHING;
-INSERT INTO group_watchlists (group_id, item_id, item_type,poster) VALUES (2, 'Coco', 'movies', 'https://image.tmdb.org/t/p/original//gGEsBPAijhVUFoiNpgZXqRVWJt2.jpg') ON CONFLICT DO NOTHING;
-INSERT INTO group_watchlists (group_id, item_id, item_type,poster) VALUES (3, 'Coco', 'movies', 'https://image.tmdb.org/t/p/original//gGEsBPAijhVUFoiNpgZXqRVWJt2.jpg') ON CONFLICT DO NOTHING;
+-- -- Ashifur's Groups:
+-- INSERT INTO group_watchlists (group_id, item_id, item_type,poster) VALUES (1, "Batman: Year One Deluxe Edition", 'books', 'http://books.google.com/books/content?id=mj0yDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api') ON CONFLICT DO NOTHING;
+-- INSERT INTO group_watchlists (group_id, item_id, item_type,poster) VALUES (2, 'Coco', 'movies', 'https://image.tmdb.org/t/p/original//gGEsBPAijhVUFoiNpgZXqRVWJt2.jpg') ON CONFLICT DO NOTHING;
+-- INSERT INTO group_watchlists (group_id, item_id, item_type,poster) VALUES (3, 'Coco', 'movies', 'https://image.tmdb.org/t/p/original//gGEsBPAijhVUFoiNpgZXqRVWJt2.jpg') ON CONFLICT DO NOTHING;
 
--- Susie's Groups:
-INSERT INTO group_watchlists (group_id, item_id, item_type,poster) VALUES (1, 'The Little Prince', 'books', 'http://books.google.com/books/content?id=CQYg20lTHtMC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api') ON CONFLICT DO NOTHING;
-INSERT INTO group_watchlists (group_id, item_id, item_type,poster) VALUES (3, 'Given', 'movies', 'https://m.media-amazon.com/images/M/MV5BMWI1OWY1NzgtZTg3MS00NjJjLWIxMGQtMzAzNGFlNmMxNTExXkEyXkFqcGc@._V1_SX300.jpg') ON CONFLICT DO NOTHING;
-INSERT INTO group_watchlists (group_id, item_id, item_type,poster) VALUES (4, 'The Little Prince', 'books', 'http://books.google.com/books/content?id=CQYg20lTHtMC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api') ON CONFLICT DO NOTHING;
+-- -- Susie's Groups:
+-- INSERT INTO group_watchlists (group_id, item_id, item_type,poster) VALUES (1, 'The Little Prince', 'books', 'http://books.google.com/books/content?id=CQYg20lTHtMC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api') ON CONFLICT DO NOTHING;
+-- INSERT INTO group_watchlists (group_id, item_id, item_type,poster) VALUES (3, 'Given', 'movies', 'https://m.media-amazon.com/images/M/MV5BMWI1OWY1NzgtZTg3MS00NjJjLWIxMGQtMzAzNGFlNmMxNTExXkEyXkFqcGc@._V1_SX300.jpg') ON CONFLICT DO NOTHING;
+-- INSERT INTO group_watchlists (group_id, item_id, item_type,poster) VALUES (4, 'The Little Prince', 'books', 'http://books.google.com/books/content?id=CQYg20lTHtMC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api') ON CONFLICT DO NOTHING;
