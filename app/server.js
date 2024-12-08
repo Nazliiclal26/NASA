@@ -1125,6 +1125,10 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
   const groupCode = req.params.groupCode;
   let name = "";
 
+  if (Object.keys(tokenStorage).length === 0) {
+    res.redirect("/login.html");
+  }
+
   // With the group name, select the secret code
 
   // try {
@@ -1527,6 +1531,9 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
   const groupCode = req.params.groupCode;
   let name = "";
 
+  if (Object.keys(tokenStorage).length === 0) {
+    res.redirect("/login.html");
+  }
   // With the group name, select the secret code
 
   // try {
