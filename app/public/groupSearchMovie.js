@@ -219,7 +219,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       votedFilmsTitle.innerHTML = "";
       await displayMostVotedFilm();
       searchSection.style.display = "none";
-      searchBox.style.display = "flex";
+      searchBox.style.display = "none";
     } else {
       searchSection.style.display = "flex";
     }
