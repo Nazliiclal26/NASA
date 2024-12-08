@@ -362,7 +362,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       //console.log(newSection);
       searchResult.appendChild(newSection);
-      attachEventListeners();
+      // attachEventListeners();
     } catch (error) {
       searchResult.innerText = "Film not found or an error occurred.";
       console.error("Error fetching film:", error);
@@ -376,15 +376,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     });
 
-    document.querySelectorAll(".vote-btn").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        let filmTitle = e.target.dataset.title;
-        let filmGenre = e.target.dataset.genre;
-        let poster = e.target.closest(".film-card").querySelector("img").src;
-        voteForFilm(filmTitle, poster, filmGenre);
-        e.target.closest(".film-card").remove();
-      });
-    });
+    // document.querySelectorAll(".vote-btn").forEach((btn) => {
+    //   btn.addEventListener("click", (e) => {
+    //     let filmTitle = e.target.dataset.title;
+    //     let filmGenre = e.target.dataset.genre;
+    //     let poster = e.target.closest(".film-card").querySelector("img").src;
+    //     voteForFilm(filmTitle, poster, filmGenre);
+    //     e.target.closest(".film-card").remove();
+    //   });
+    // });
   }
 
   async function voteForFilm(title, poster, film_genre) {
