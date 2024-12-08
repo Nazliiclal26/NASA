@@ -1125,8 +1125,10 @@ app.get("/movieGroup/:groupCode", async (req, res) => {
   const groupCode = req.params.groupCode;
   let name = "";
 
-  if (Object.keys(tokenStorage).length === 0) {
-    res.redirect("/login.html");
+  let { token } = req.cookies;
+  if (Object.keys(tokenStorage).length === 0 || tokenStorage[token] === undefined) {
+    console.log("User entering group:", groupCode, "but token underfined - sending to login");
+    res.redirect("/");
   }
 
   // With the group name, select the secret code
@@ -1531,8 +1533,10 @@ app.get("/bookGroup/:groupCode", async (req, res) => {
   const groupCode = req.params.groupCode;
   let name = "";
 
-  if (Object.keys(tokenStorage).length === 0) {
-    res.redirect("/login.html");
+  let { token } = req.cookies;
+  if (Object.keys(tokenStorage).length === 0 || tokenStorage[token] === undefined) {
+    console.log("User entering group:", groupCode, "but token underfined - sending to login");
+    res.redirect("/");
   }
   // With the group name, select the secret code
 
