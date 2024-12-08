@@ -254,13 +254,6 @@ app.post("/votes/setMostVotedBook/", async (req, res) => {
 app.post("/votes/setMostVoted/", async (req, res) => {
   try {
     const { groupCode, film_title } = req.body;
-
-    const result = await pool.query(
-      `SELECT SUM(num_votes)
-       FROM votes
-       WHERE group_code = $1 AND film_title = $2`,
-      [groupCode,film_title]
-    );
     
     const existingWinner = await db.query(
       "SELECT * FROM votes WHERE group_code = $1 AND mostVotedFilm = TRUE",
