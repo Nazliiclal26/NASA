@@ -22,7 +22,7 @@ INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, mem
 
 -- 'We Love Movies', Movie, Private: Leader - Nazli, Members - Nazli, Ashifur
 INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, members) 
-    VALUES ('WeLoveMovies', '1A06U', 2, 'movie', 'private', '{2,3}');
+    VALUES ('LoveMovies', '1A06U', 2, 'movie', 'private', '{2,3}');
 
 -- 'MovieFun', Movie, Public: Leader - Ashifur, Members - Ashifur, Susie
 INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, members) 
