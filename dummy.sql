@@ -17,12 +17,12 @@ INSERT INTO users (username, first_name, last_name, password, preferred_genres)
 
 -- GROUP SETUP (Group IDs are hardcoded, this is assuming an empty database)
 -- 'TeamNASA', Book, Public: Leader - Ajani, Members - Ajani, Nazli, Ashifur, Susie
-INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, members) 
-    VALUES ('TeamNASA', 'iCHqb', 1, 'book', 'public', '{1,2,3,4}');
+INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, members,voting_status) 
+    VALUES ('TeamNASA', 'iCHqb', 1, 'book', 'public', '{1,2,3,4}',FALSE);
 
 -- 'We Love Movies', Movie, Private: Leader - Nazli, Members - Nazli, Ashifur
-INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, members) 
-    VALUES ('LoveMovies', '1A06U', 2, 'movie', 'private', '{2,3}');
+INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, members,voting_status) 
+    VALUES ('LoveMovies', '1A06U', 2, 'movie', 'private', '{2,3}',FALSE);
 
 -- 'MovieFun', Movie, Public: Leader - Ashifur, Members - Ashifur, Susie
 INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, members) 
@@ -35,6 +35,9 @@ INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, mem
 -- 'SoloLiving', Book, Public: Leader - Ajani, Members - Ajani
 INSERT INTO GROUPS (group_name, secret_code, leader_id, group_type, privacy, members) 
     VALUES ('SoloLiving', 'chEET', 1, 'book', 'public', '{1}');
+
+INSERT INTO votes (group_code, film_title, book_title, num_votes, poster,film_genre,user_id) 
+    VALUES ('WeLoveMovies', 'Oppenheimer', "", '1', 'https://image.tmdb.org/t/p/original//8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg', 'action','nazli');
 
 -- --USER WATCHlIST: Adds 1 book and 1 movie to every user's watchlist
 -- -- Ajani's book and movie
