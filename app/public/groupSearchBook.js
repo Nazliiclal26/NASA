@@ -35,10 +35,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
   });
 
-  if (localStorage.getItem("isNewUser") === "true") {
-    socket.emit("updateGroup");
-    localStorage.removeItem("isNewUser");
-  }
+  
 
   // Compares local storage of leader id and user id and see if they match
   function checkIfLeaderSync() {
@@ -802,6 +799,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 let groupCode = decodeURIComponent(window.location.pathname).split("/").pop();
 let username = null;
+
+if (localStorage.getItem("isNewUser") === "true") {
+  socket.emit("updateGroup");
+  localStorage.removeItem("isNewUser");
+}
 
 let send = document.getElementById("sendButton");
 let input = document.getElementById("messageInput");

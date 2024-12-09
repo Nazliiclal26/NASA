@@ -35,10 +35,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
   });
 
-  if (localStorage.getItem("isNewUser") === "true") {
-    socket.emit("updateGroup");
-    localStorage.removeItem("isNewUser");
-  }
 
   // Compares local storage of leader id and user id and see if they match
   function checkIfLeaderSync() {
@@ -817,6 +813,11 @@ send.addEventListener("click", () => {
 
   // Add to successful return body for add message fetch
   // appendSentMessage(message, username);
+
+  if (localStorage.getItem("isNewUser") === "true") {
+    socket.emit("updateGroup");
+    localStorage.removeItem("isNewUser");
+  }
 
   console.log("Sending message:", message);
   fetch("/addMessage", {
