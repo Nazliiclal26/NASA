@@ -334,6 +334,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       searchBookType.style.display = "block";
       searchBox.style.display = "flex";
       fetchVotes();
+      alert("Voting has started");
     } catch (error) {
       console.error("Error starting voting:", error);
     }
