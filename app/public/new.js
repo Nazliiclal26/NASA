@@ -163,7 +163,6 @@ function processJoinModal() {
 
             let joinedGroupName = data.group.group_name;
 
-            localStorage.setItem("isNewUser", "true");
             if (type === "book") {
               window.location.href = `/bookGroup/${joinedGroupName}`;
             } else {

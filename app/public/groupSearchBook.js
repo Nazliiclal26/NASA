@@ -35,11 +35,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
   });
 
-  if (localStorage.getItem("isNewUser") === "true") {
-    socket.emit("updateGroup");
-    localStorage.removeItem("isNewUser");
-  }
-
   // Compares local storage of leader id and user id and see if they match
   function checkIfLeaderSync() {
     let leaderId = parseInt(
