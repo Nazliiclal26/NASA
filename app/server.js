@@ -19,21 +19,10 @@ const path = require("path");
 
 const port = 3000;
 
-let hostname;
-let databaseConfig;
-if (process.env.NODE_ENV == "production") {
-  hostname = "0.0.0.0";
-  databaseConfig = { connectionString: process.env.DATABASE_URL };
-} else {
-  hostname = "localhost";
-  let { PGUSER, PGPASSWORD, PGDATABASE, PGHOST, PGPORT } = process.env;
-  databaseConfig = { PGUSER, PGPASSWORD, PGDATABASE, PGHOST, PGPORT };
-}
-
-//const hostname = "localhost";
+const hostname = "localhost";
 const env = require("../env.json");
-// const Pool = pg.Pool;
-//const pool = new Pool(env);
+const Pool = pg.Pool;
+const pool = new Pool(env);
 const group = require("../models/Group");
 const messages = require("../models/Messages");
 const user = require("../models/user");
@@ -46,7 +35,7 @@ let io = new Server(server);
   console.log(`Connected to database ${env.database}`);
 });*/
 // let pool = new Pool(databaseConfig);
-const pool = require("../config/db");
+const db = require("../config/db");
 
 pool.connect().then(() => {
   console.log("Connected to db");
@@ -2898,7 +2887,7 @@ io.on("connection", (socket) => {
   });
 });
 
-const db = require("../config/db");
+//const db = require("../config/db");
 
 // Endpoint to add an event
 app.post("/api/addEvent", async (req, res) => {
